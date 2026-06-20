@@ -172,7 +172,7 @@ select option{background:var(--parchment-3);}
       <ol>
         <li>Go to <strong>supabase.com</strong> &rarr; sign up &rarr; New Project (pick any name/region)</li>
         <li>Open <strong>SQL Editor</strong> in your project and run these three commands:<br><br>
-          <code>create table quests (id uuid primary key default gen_random_uuid(), title text, type text, desc text, item text, qty text, deliver_to text, deadline text, poster text, rewards text[], reward_note text, status text default 'open', claimed_by text, posted_at timestamptz default now());</code><br><br>
+          <code>create table quests (id uuid primary key default gen_random_uuid(), title text, type text, description text, item text, qty text, deliver_to text, deadline text, poster text, rewards text[], reward_note text, status text default 'open', claimed_by text, posted_at timestamptz default now());</code><br><br>
           <code>alter table quests enable row level security;</code><br><br>
           <code>create policy "public access" on quests for all using (true) with check (true);</code>
         </li>
@@ -386,7 +386,7 @@ async function fetchQuests(){
 
 function dbToQ(r){
   return{
-    id:r.id,title:r.title||'',type:r.type||'other',desc:r.desc||'',
+    id:r.id,title:r.title||'',type:r.type||'other',description:r.description||'',
     item:r.item||'',qty:r.qty||'',deliverTo:r.deliver_to||'',
     deadline:r.deadline||'',poster:r.poster||'',rewards:r.rewards||[],
     rewardNote:r.reward_note||'',status:r.status||'open',
@@ -449,7 +449,7 @@ function renderCard(q){
       <span class="card-status-badge ${bCls}">${sLabel}</span>
     </div>
     <div class="card-body">
-      ${q.desc?`<div class="card-desc">${esc(q.desc)}</div>`:''}
+      ${q.description?`<div class="card-desc">${esc(q.description)}</div>`:''}
       <div class="card-details">${rows}${rSec}</div>
     </div>
     <div class="card-foot">
@@ -490,7 +490,7 @@ async function postQuest(){
   const rewards=['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked);
   const row={
     title,type:document.getElementById('f-type').value,
-    desc:document.getElementById('f-desc').value.trim(),
+    description:document.getElementById('f-desc').value.trim(),
     item:document.getElementById('f-item').value.trim(),
     qty:document.getElementById('f-qty').value.trim(),
     deliver_to:document.getElementById('f-deliver').value.trim(),
