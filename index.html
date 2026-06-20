@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gloria Victis — Guild Quest Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
+<style>
+:root{--parchment:#1a1610;--parchment-2:#221e15;--parchment-3:#2c2618;--border:#5a4a2a;--border-light:#7a6535;--gold:#c8922a;--gold-bright:#e8b84b;--gold-dim:#6b4e1a;--text:#e8dfc0;--text-dim:#a09060;--text-faint:#5a5030;--red:#8b2020;--red-bright:#c43030;--green:#2a6b2a;--green-bright:#3a9a3a;--blue:#1e3a6b;--blue-bright:#4a7abf;--purple:#4a2070;--purple-bright:#8040c0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--parchment);color:var(--text);font-family:'Crimson Text',Georgia,serif;font-size:17px;min-height:100vh;}
+
+/* SETUP */
+#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.setup-box{background:var(--parchment-2);border:1px solid var(--border-light);width:100%;max-width:560px;padding:36px 32px;}
+.setup-title{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold-bright);letter-spacing:.06em;text-align:center;margin-bottom:6px;}
+.setup-sub{font-style:italic;color:var(--text-faint);text-align:center;font-size:.9rem;margin-bottom:28px;}
+.setup-crest{text-align:center;margin-bottom:20px;}
+.setup-steps{background:var(--parchment-3);border:1px solid var(--border);padding:16px 18px;margin-bottom:22px;font-size:.86rem;line-height:1.75;color:var(--text-dim);}
+.setup-steps strong{color:var(--gold-bright);font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;}
+.setup-steps code{background:var(--parchment);border:1px solid var(--border);padding:1px 5px;font-size:.78rem;color:var(--gold);font-family:monospace;word-break:break-all;}
+.setup-steps ol{padding-left:18px;}
+.setup-steps li{margin-bottom:8px;}
+.setup-form{display:flex;flex-direction:column;gap:14px;}
+.setup-err{color:var(--red-bright);font-size:.85rem;font-style:italic;min-height:18px;}
+
+/* HEADER */
+header{background:var(--parchment-2);border-bottom:2px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-crest{width:38px;height:38px;flex-shrink:0;}
+.logo h1{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;color:var(--gold-bright);letter-spacing:.06em;line-height:1.1;}
+.logo h1 span{display:block;font-size:.65rem;font-weight:400;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;}
+.header-actions{display:flex;align-items:center;gap:10px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green-bright);animation:pulse 2s infinite;flex-shrink:0;}
+.live-label{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green-bright);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* BUTTONS */
+.btn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;border:1px solid var(--border);background:var(--parchment-3);color:var(--text-dim);padding:7px 14px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.btn:hover{border-color:var(--gold);color:var(--gold);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-bright);}
+.btn-primary:hover{background:var(--gold);color:var(--parchment);}
+.btn-sm{padding:5px 10px;font-size:.65rem;}
+.btn-danger{border-color:var(--red);color:var(--red-bright);}
+.btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red-bright);}
+.btn-success{border-color:var(--green);color:var(--green-bright);}
+.btn-success:hover{background:var(--green);color:#fff;border-color:var(--green-bright);}
+
+/* TOOLBAR */
+.toolbar{background:var(--parchment-2);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.filter-label{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;color:var(--text-faint);text-transform:uppercase;margin-right:4px;}
+.filter-btn{font-family:'Cinzel',serif;font-size:.65rem;font-weight:600;letter-spacing:.07em;border:1px solid var(--border);background:transparent;color:var(--text-dim);padding:4px 11px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.filter-btn:hover,.filter-btn.active{border-color:var(--gold);color:var(--gold-bright);background:var(--gold-dim);}
+.spacer{flex:1;}
+.quest-count{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-faint);letter-spacing:.05em;}
+
+/* GRID */
+main{max-width:1280px;margin:0 auto;padding:28px 24px;}
+.quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;}
+
+/* CARD */
+.quest-card{background:var(--parchment-2);border:1px solid var(--border);display:flex;flex-direction:column;transition:border-color .15s;}
+.quest-card:hover{border-color:var(--border-light);}
+.quest-card.status-claimed{opacity:.78;}
+.quest-card.status-complete{opacity:.5;}
+.card-type-bar{height:4px;width:100%;}
+.type-gather .card-type-bar{background:var(--gold);}
+.type-farm .card-type-bar{background:var(--green-bright);}
+.type-deliver .card-type-bar{background:var(--blue-bright);}
+.type-craft .card-type-bar{background:var(--purple-bright);}
+.type-other .card-type-bar{background:var(--text-dim);}
+.card-head{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border);}
+.card-type-icon{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:1px solid var(--border);background:var(--parchment-3);}
+.card-meta{flex:1;min-width:0;}
+.card-type-tag{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:3px;}
+.type-gather .card-type-tag{color:var(--gold);}
+.type-farm .card-type-tag{color:var(--green-bright);}
+.type-deliver .card-type-tag{color:var(--blue-bright);}
+.type-craft .card-type-tag{color:var(--purple-bright);}
+.card-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--text);line-height:1.25;word-break:break-word;}
+.card-status-badge{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border:1px solid;flex-shrink:0;align-self:flex-start;}
+.badge-open{border-color:var(--gold-dim);color:var(--gold);}
+.badge-claimed{border-color:var(--blue);color:var(--blue-bright);}
+.badge-complete{border-color:var(--green);color:var(--green-bright);}
+.card-body{padding:12px 16px;flex:1;display:flex;flex-direction:column;gap:10px;}
+.card-desc{font-style:italic;color:var(--text-dim);font-size:.92rem;line-height:1.4;}
+.card-details{display:flex;flex-direction:column;gap:5px;}
+.detail-row{display:flex;align-items:baseline;gap:6px;font-size:.88rem;}
+.detail-label{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);flex-shrink:0;width:72px;}
+.detail-value{color:var(--text);word-break:break-word;}
+.rewards-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;}
+.reward-chip{display:inline-flex;align-items:center;gap:4px;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border:1px solid;}
+.reward-points{border-color:var(--gold-dim);color:var(--gold-bright);background:rgba(200,146,42,.08);}
+.reward-ticket{border-color:var(--purple);color:var(--purple-bright);background:rgba(128,64,192,.08);}
+.reward-gift{border-color:var(--red-bright);color:#e06060;background:rgba(139,32,32,.08);}
+.reward-prio{border-color:var(--blue);color:var(--blue-bright);background:rgba(74,122,191,.08);}
+.card-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.card-poster{font-size:.78rem;color:var(--text-faint);}
+.card-poster strong{color:var(--text-dim);font-weight:600;font-style:normal;}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* STATUS */
+.board-status{grid-column:1/-1;text-align:center;padding:80px 24px;color:var(--text-faint);}
+.board-status .status-icon{font-size:2.5rem;margin-bottom:16px;opacity:.3;}
+.board-status p{font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ornament{text-align:center;color:var(--border-light);font-size:.8rem;letter-spacing:.2em;margin-bottom:20px;font-family:'Cinzel',serif;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--parchment-2);border:1px solid var(--border-light);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--gold-bright);letter-spacing:.05em;}
+.modal-close{background:none;border:none;color:var(--text-faint);font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px;transition:color .15s;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:16px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group label{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
+.form-row{display:flex;gap:12px;}
+.form-row .form-group{flex:1;}
+input,textarea,select{background:var(--parchment-3);border:1px solid var(--border);color:var(--text);font-family:'Crimson Text',serif;font-size:1rem;padding:8px 10px;width:100%;outline:none;transition:border-color .15s;}
+input:focus,textarea:focus,select:focus{border-color:var(--gold);}
+textarea{resize:vertical;min-height:72px;}
+select option{background:var(--parchment-3);}
+.reward-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.reward-check{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.reward-check input[type=checkbox]{width:16px;height:16px;flex-shrink:0;accent-color:var(--gold);cursor:pointer;}
+.reward-check span{font-size:.85rem;color:var(--text-dim);}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+.claim-modal-body{padding:20px;display:flex;flex-direction:column;gap:14px;}
+.claim-quest-title{font-family:'Cinzel',serif;font-size:1rem;color:var(--gold-bright);border-bottom:1px solid var(--border);padding-bottom:10px;}
+.claim-info{font-style:italic;color:var(--text-dim);font-size:.9rem;line-height:1.5;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--parchment-3);border:1px solid var(--gold);color:var(--gold-bright);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+#toast.show{opacity:1;}
+
+@media(max-width:600px){
+  .quest-grid{grid-template-columns:1fr;}
+  header{padding:0 14px;}
+  main{padding:16px 12px;}
+  .toolbar{padding:8px 12px;}
+  .form-row{flex-direction:column;}
+  .reward-checks{grid-template-columns:1fr;}
+  .setup-box{padding:24px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <div class="setup-crest">
+      <svg width="52" height="52" viewBox="0 0 38 38" fill="none">
+        <polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#7a6535" stroke-width="1.5"/>
+        <line x1="19" y1="8" x2="19" y2="30" stroke="#c8922a" stroke-width="1.5"/>
+        <line x1="10" y1="13" x2="28" y2="13" stroke="#c8922a" stroke-width="1.5"/>
+        <circle cx="19" cy="19" r="3" fill="none" stroke="#e8b84b" stroke-width="1"/>
+        <polygon points="19,6 21,12 27,12 22,16 24,22 19,18 14,22 16,16 11,12 17,12" fill="#c8922a" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="setup-title">Gloria Victis</div>
+    <div class="setup-sub">Guild Quest Board &mdash; First-time Setup</div>
+    <div class="setup-steps">
+      <strong>Supabase setup &mdash; free, takes 2 minutes:</strong>
+      <ol>
+        <li>Go to <strong>supabase.com</strong> &rarr; sign up &rarr; New Project (pick any name/region)</li>
+        <li>Open <strong>SQL Editor</strong> in your project and run these three commands:<br><br>
+          <code>create table quests (id uuid primary key default gen_random_uuid(), title text, type text, desc text, item text, qty text, deliver_to text, deadline text, poster text, rewards text[], reward_note text, status text default 'open', claimed_by text, posted_at timestamptz default now());</code><br><br>
+          <code>alter table quests enable row level security;</code><br><br>
+          <code>create policy "public access" on quests for all using (true) with check (true);</code>
+        </li>
+        <li>Go to <strong>Project Settings &rarr; API</strong></li>
+        <li>Copy <strong>Project URL</strong> and <strong>anon public</strong> key into the fields below</li>
+      </ol>
+    </div>
+    <div class="setup-form">
+      <div class="form-group">
+        <label>Supabase Project URL</label>
+        <input id="cfg-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co">
+      </div>
+      <div class="form-group">
+        <label>Supabase Anon Key (public)</label>
+        <input id="cfg-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+      </div>
+      <div class="setup-err" id="setup-err"></div>
+      <button class="btn btn-primary" onclick="saveConfig()">Connect &amp; Open Board</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <header>
+    <div class="logo">
+      <svg class="logo-crest" viewBox="0 0 38 38" fill="none">
+        <polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#7a6535" stroke-width="1.5"/>
+        <line x1="19" y1="8" x2="19" y2="30" stroke="#c8922a" stroke-width="1.5"/>
+        <line x1="10" y1="13" x2="28" y2="13" stroke="#c8922a" stroke-width="1.5"/>
+        <circle cx="19" cy="19" r="3" fill="none" stroke="#e8b84b" stroke-width="1"/>
+        <polygon points="19,6 21,12 27,12 22,16 24,22 19,18 14,22 16,16 11,12 17,12" fill="#c8922a" opacity="0.5"/>
+      </svg>
+      <h1>Gloria Victis<span>Guild Quest Board</span></h1>
+    </div>
+    <div class="header-actions">
+      <div class="live-dot"></div>
+      <span class="live-label">Live</span>
+      <button class="btn btn-primary" onclick="openNewQuestModal()">&#9876; Post Quest</button>
+      <button class="btn btn-sm" onclick="resetConfig()" title="Change Supabase connection">&#9881;</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('open',this)">Open</button>
+    <button class="filter-btn" onclick="setFilter('claimed',this)">Claimed</button>
+    <button class="filter-btn" onclick="setFilter('complete',this)">Complete</button>
+    <span style="width:1px;height:16px;background:var(--border);margin:0 4px"></span>
+    <button class="filter-btn" onclick="setFilter('gather',this)">&#9935; Gather</button>
+    <button class="filter-btn" onclick="setFilter('farm',this)">&#127806; Farm</button>
+    <button class="filter-btn" onclick="setFilter('deliver',this)">&#128230; Deliver</button>
+    <button class="filter-btn" onclick="setFilter('craft',this)">&#128296; Craft</button>
+    <button class="filter-btn" onclick="setFilter('other',this)">&#128220; Other</button>
+    <span class="spacer"></span>
+    <span class="quest-count" id="quest-count"></span>
+  </div>
+
+  <main>
+    <div class="ornament">&#10022; &nbsp; Active Contracts &nbsp; &#10022;</div>
+    <div class="quest-grid" id="quest-grid">
+      <div class="board-status"><div class="spinner"></div><p>Connecting to database&hellip;</p></div>
+    </div>
+  </main>
+</div>
+
+<!-- NEW QUEST MODAL -->
+<div class="modal-overlay hidden" id="new-quest-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">&#9876; Post a New Quest</span>
+      <button class="modal-close" onclick="closeModal('new-quest-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quest Title *</label>
+          <input id="f-title" type="text" placeholder="e.g. Iron Ore Collection">
+        </div>
+        <div class="form-group" style="max-width:140px">
+          <label>Type *</label>
+          <select id="f-type">
+            <option value="gather">Gather</option>
+            <option value="farm">Farm</option>
+            <option value="deliver">Deliver</option>
+            <option value="craft">Craft</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="f-desc" placeholder="What needs to be done? Location, details, special instructions..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Item / Resource</label>
+          <input id="f-item" type="text" placeholder="e.g. Iron Ore">
+        </div>
+        <div class="form-group" style="max-width:120px">
+          <label>Quantity</label>
+          <input id="f-qty" type="text" placeholder="e.g. 500">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Deliver To</label>
+          <input id="f-deliver" type="text" placeholder="Player name or location">
+        </div>
+        <div class="form-group">
+          <label>Deadline (optional)</label>
+          <input id="f-deadline" type="text" placeholder="e.g. Sunday 20:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Posted By *</label>
+        <input id="f-poster" type="text" placeholder="Your in-game name">
+      </div>
+      <div class="form-group">
+        <label>Rewards</label>
+        <div class="reward-checks">
+          <label class="reward-check"><input type="checkbox" id="r-points"> <span>&#127885; Guild Points</span></label>
+          <label class="reward-check"><input type="checkbox" id="r-ticket"> <span>&#127903; Giveaway Ticket</span></label>
+          <label class="reward-check"><input type="checkbox" id="r-gift">   <span>&#127873; Gift / Item</span></label>
+          <label class="reward-check"><input type="checkbox" id="r-prio">   <span>&#11088; Production Priority</span></label>
+        </div>
+        <input id="f-reward-note" type="text" placeholder="Details, e.g. 50 points, epic sword, next crafting slot" style="margin-top:8px">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('new-quest-modal')">Cancel</button>
+      <button class="btn btn-primary" id="post-btn" onclick="postQuest()">Post Quest</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLAIM MODAL -->
+<div class="modal-overlay hidden" id="claim-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">&#9876; Claim Quest</span>
+      <button class="modal-close" onclick="closeModal('claim-modal')">&#10005;</button>
+    </div>
+    <div class="claim-modal-body">
+      <div class="claim-quest-title" id="claim-quest-title"></div>
+      <p class="claim-info">Enter your in-game name to claim this quest. It will be marked as taken so other guild members know it is being handled.</p>
+      <div class="form-group">
+        <label>Your In-Game Name *</label>
+        <input id="claim-name" type="text" placeholder="Your character name">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('claim-modal')">Cancel</button>
+      <button class="btn btn-success" id="claim-btn" onclick="confirmClaim()">Claim Quest</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CFG_KEY = 'gv_supabase_cfg';
+let sb = null;
+let quests = [];
+let currentFilter = 'all';
+let claimingId = null;
+
+const TYPE_ICONS  = {gather:'⛏',farm:'🌾',deliver:'📦',craft:'🔨',other:'📜'};
+const TYPE_LABELS = {gather:'Gather',farm:'Farm',deliver:'Deliver',craft:'Craft',other:'Other'};
+
+function loadConfig(){try{return JSON.parse(localStorage.getItem(CFG_KEY));}catch{return null;}}
+
+function saveConfig(){
+  const url=document.getElementById('cfg-url').value.trim();
+  const key=document.getElementById('cfg-key').value.trim();
+  const err=document.getElementById('setup-err');
+  err.textContent='';
+  if(!url||!key){err.textContent='Both fields are required.';return;}
+  if(!url.startsWith('https://')){err.textContent='URL must start with https://';return;}
+  localStorage.setItem(CFG_KEY,JSON.stringify({url,key}));
+  initApp({url,key});
+}
+
+function resetConfig(){
+  if(!confirm('Disconnect and re-enter Supabase credentials?'))return;
+  localStorage.removeItem(CFG_KEY);
+  document.getElementById('app').style.display='none';
+  document.getElementById('setup-screen').style.display='flex';
+}
+
+async function initApp(cfg){
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  try{
+    sb=supabase.createClient(cfg.url,cfg.key);
+    await fetchQuests();
+    subscribeRealtime();
+  }catch(e){
+    showBoardError('Could not connect. Check your credentials.');
+    console.error(e);
+  }
+}
+
+async function fetchQuests(){
+  const{data,error}=await sb.from('quests').select('*').order('posted_at',{ascending:false});
+  if(error){showBoardError('Failed to load: '+error.message);return;}
+  quests=(data||[]).map(dbToQ);
+  render();
+}
+
+function dbToQ(r){
+  return{
+    id:r.id,title:r.title||'',type:r.type||'other',desc:r.desc||'',
+    item:r.item||'',qty:r.qty||'',deliverTo:r.deliver_to||'',
+    deadline:r.deadline||'',poster:r.poster||'',rewards:r.rewards||[],
+    rewardNote:r.reward_note||'',status:r.status||'open',
+    claimedBy:r.claimed_by||null,postedAt:new Date(r.posted_at).getTime()
+  };
+}
+
+function subscribeRealtime(){
+  sb.channel('quests-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'quests'},p=>{
+      if(p.eventType==='INSERT')quests.unshift(dbToQ(p.new));
+      else if(p.eventType==='UPDATE'){const i=quests.findIndex(q=>q.id===p.new.id);if(i!==-1)quests[i]=dbToQ(p.new);}
+      else if(p.eventType==='DELETE')quests=quests.filter(q=>q.id!==p.old.id);
+      render();
+    }).subscribe();
+}
+
+function filtered(){
+  if(currentFilter==='all')return quests;
+  if(['open','claimed','complete'].includes(currentFilter))return quests.filter(q=>q.status===currentFilter);
+  return quests.filter(q=>q.type===currentFilter);
+}
+
+function renderRewards(q){
+  const map={points:['reward-points','🏅 Guild Points'],ticket:['reward-ticket','🎟 Ticket'],gift:['reward-gift','🎁 Gift'],prio:['reward-prio','⭐ Prio']};
+  const chips=(q.rewards||[]).map(r=>{const[cls,l]=map[r]||['',''];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
+  const note=q.rewardNote?`<span class="reward-chip" style="border-color:var(--border);color:var(--text-dim)">${esc(q.rewardNote)}</span>`:'';
+  return chips+note;
+}
+
+function timeAgo(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return'just now';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function renderCard(q){
+  const sLabel={open:'Open',claimed:'Claimed',complete:'Complete'}[q.status];
+  const bCls={open:'badge-open',claimed:'badge-claimed',complete:'badge-complete'}[q.status];
+  const rows=[
+    q.item&&`<div class="detail-row"><span class="detail-label">Item</span><span class="detail-value">${esc(q.item)}</span></div>`,
+    q.qty&&`<div class="detail-row"><span class="detail-label">Quantity</span><span class="detail-value">${esc(q.qty)}</span></div>`,
+    q.deliverTo&&`<div class="detail-row"><span class="detail-label">Deliver To</span><span class="detail-value">${esc(q.deliverTo)}</span></div>`,
+    q.deadline&&`<div class="detail-row"><span class="detail-label">Deadline</span><span class="detail-value">${esc(q.deadline)}</span></div>`,
+    q.claimedBy&&`<div class="detail-row"><span class="detail-label">Claimed By</span><span class="detail-value" style="color:var(--blue-bright)">${esc(q.claimedBy)}</span></div>`,
+  ].filter(Boolean).join('');
+  const rHtml=renderRewards(q);
+  const rSec=rHtml?`<div class="detail-row" style="align-items:flex-start"><span class="detail-label" style="padding-top:3px">Rewards</span><div class="rewards-row">${rHtml}</div></div>`:'';
+  let acts='';
+  if(q.status==='open')acts=`<button class="btn btn-sm btn-success" onclick="openClaimModal('${q.id}')">Claim</button>`;
+  else if(q.status==='claimed')acts=`<button class="btn btn-sm btn-primary" onclick="completeQuest('${q.id}')">Mark Complete</button><button class="btn btn-sm" onclick="unclaimQuest('${q.id}')">Unclaim</button>`;
+  acts+=` <button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">Delete</button>`;
+  return`<div class="quest-card type-${q.type} status-${q.status}" id="card-${q.id}">
+    <div class="card-type-bar"></div>
+    <div class="card-head">
+      <div class="card-type-icon">${TYPE_ICONS[q.type]||'📜'}</div>
+      <div class="card-meta"><div class="card-type-tag">${TYPE_LABELS[q.type]||'Other'}</div><div class="card-title">${esc(q.title)}</div></div>
+      <span class="card-status-badge ${bCls}">${sLabel}</span>
+    </div>
+    <div class="card-body">
+      ${q.desc?`<div class="card-desc">${esc(q.desc)}</div>`:''}
+      <div class="card-details">${rows}${rSec}</div>
+    </div>
+    <div class="card-foot">
+      <span class="card-poster">Posted by <strong>${esc(q.poster)}</strong> &middot; ${timeAgo(q.postedAt)}</span>
+      <div class="card-actions">${acts}</div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const list=filtered();
+  const grid=document.getElementById('quest-grid');
+  document.getElementById('quest-count').textContent=list.length===1?'1 quest':`${list.length} quests`;
+  if(!list.length){
+    grid.innerHTML=`<div class="board-status"><div class="status-icon">📜</div><p>No quests found</p><button class="btn btn-primary" onclick="openNewQuestModal()">Post the first quest</button></div>`;
+    return;
+  }
+  const ord={open:0,claimed:1,complete:2};
+  const sorted=[...list].sort((a,b)=>(ord[a.status]-ord[b.status])||(b.postedAt-a.postedAt));
+  grid.innerHTML=sorted.map(renderCard).join('');
+}
+
+function showBoardError(msg){
+  document.getElementById('quest-grid').innerHTML=`<div class="board-status"><div class="status-icon">⚠</div><p>${msg}</p><button class="btn" onclick="fetchQuests()">Retry</button></div>`;
+}
+
+function openNewQuestModal(){
+  ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster','f-reward-note'].forEach(id=>document.getElementById(id).value='');
+  ['r-points','r-ticket','r-gift','r-prio'].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById('f-type').value='gather';
+  openModal('new-quest-modal');
+}
+
+async function postQuest(){
+  const title=document.getElementById('f-title').value.trim();
+  const poster=document.getElementById('f-poster').value.trim();
+  if(!title||!poster){toast('Title and Posted By are required.');return;}
+  const rewards=['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked);
+  const row={
+    title,type:document.getElementById('f-type').value,
+    desc:document.getElementById('f-desc').value.trim(),
+    item:document.getElementById('f-item').value.trim(),
+    qty:document.getElementById('f-qty').value.trim(),
+    deliver_to:document.getElementById('f-deliver').value.trim(),
+    deadline:document.getElementById('f-deadline').value.trim(),
+    poster,rewards,
+    reward_note:document.getElementById('f-reward-note').value.trim(),
+    status:'open',claimed_by:null
+  };
+  setBusy('post-btn',true);
+  const{error}=await sb.from('quests').insert(row);
+  setBusy('post-btn',false);
+  if(error){toast('Error: '+error.message);return;}
+  closeModal('new-quest-modal');
+  toast('Quest posted!');
+}
+
+function openClaimModal(id){
+  claimingId=id;
+  const q=quests.find(x=>x.id===id);
+  document.getElementById('claim-quest-title').textContent=q.title;
+  document.getElementById('claim-name').value='';
+  openModal('claim-modal');
+}
+
+async function confirmClaim(){
+  const name=document.getElementById('claim-name').value.trim();
+  if(!name){toast('Enter your in-game name.');return;}
+  setBusy('claim-btn',true);
+  const{error}=await sb.from('quests').update({status:'claimed',claimed_by:name}).eq('id',claimingId);
+  setBusy('claim-btn',false);
+  if(error){toast('Error: '+error.message);return;}
+  closeModal('claim-modal');
+  toast('Quest claimed!');
+}
+
+async function unclaimQuest(id){
+  const{error}=await sb.from('quests').update({status:'open',claimed_by:null}).eq('id',id);
+  if(error){toast('Error: '+error.message);return;}
+  toast('Quest unclaimed.');
+}
+
+async function completeQuest(id){
+  const{error}=await sb.from('quests').update({status:'complete'}).eq('id',id);
+  if(error){toast('Error: '+error.message);return;}
+  toast('Quest complete!');
+}
+
+async function deleteQuest(id){
+  if(!confirm('Delete this quest?'))return;
+  const{error}=await sb.from('quests').delete().eq('id',id);
+  if(error){toast('Error: '+error.message);return;}
+  toast('Quest deleted.');
+}
+
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+function setBusy(id,b){const el=document.getElementById(id);if(el)el.disabled=b;}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.add('hidden');})
+);
+
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+const cfg=loadConfig();
+if(cfg){document.getElementById('cfg-url').value=cfg.url;document.getElementById('cfg-key').value=cfg.key;initApp(cfg);}
+else{document.getElementById('setup-screen').style.display='flex';}
+<\/script>
+</body>
+</html>
