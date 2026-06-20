@@ -15,6 +15,7 @@ Single HTML file. No build step. No server. Deployable to GitHub Pages in minute
 - **Filters** — by status or quest type (Gather / Farm / Deliver / Craft / Other)
 - **Real-time sync** — Supabase Realtime pushes changes to all connected browsers instantly
 - **No login required** — anyone with the link can post and claim
+- **Русский язык** — переключение языка в правом верхнем углу (Russian language toggle in top-right)
 
 ---
 
@@ -43,7 +44,7 @@ create table quests (
   id uuid primary key default gen_random_uuid(),
   title text,
   type text,
-  desc text,
+  description text,
   item text,
   qty text,
   deliver_to text,
@@ -76,6 +77,10 @@ create policy "public access" on quests
 2. Go to **Settings → Pages → Source: Deploy from branch → main / root**
 3. GitHub will publish the site at `https://playmagame.github.io/Gloria-Victis-Quest-Board/`
 
+### 3. Open the board
+
+The Supabase credentials are already hardcoded — just open the URL and start using it. Click **RU** in the top-right to switch to Russian.
+
 ---
 
 ## Quest Types
@@ -106,8 +111,6 @@ index.html         ← entire app (HTML + CSS + JS, single file)
 quest-board.html   ← source file (same as index.html)
 README.md          ← this file
 ```
-
----
 
 ---
 
