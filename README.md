@@ -76,12 +76,6 @@ create policy "public access" on quests
 2. Go to **Settings → Pages → Source: Deploy from branch → main / root**
 3. GitHub will publish the site at `https://playmagame.github.io/Gloria-Victis-Quest-Board/`
 
-### 3. First-time connection
-
-When anyone opens the board for the first time they'll see a setup screen. Paste the Supabase Project URL and anon key — credentials are saved to their browser and never needed again.
-
-The anon key is safe to share. It's a public-facing read/write key restricted by the Row Level Security policy you created above.
-
 ---
 
 ## Quest Types
@@ -114,10 +108,6 @@ README.md          ← this file
 ```
 
 ---
-
-## Resetting the Connection
-
-Click the **⚙** button in the top-right corner of the board to disconnect and re-enter Supabase credentials.
 
 ---
 

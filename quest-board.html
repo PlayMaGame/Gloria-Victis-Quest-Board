@@ -12,19 +12,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--parchment);color:var(--text);font-family:'Crimson Text',Georgia,serif;font-size:17px;min-height:100vh;}
 
-/* SETUP */
-#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-.setup-box{background:var(--parchment-2);border:1px solid var(--border-light);width:100%;max-width:560px;padding:36px 32px;}
-.setup-title{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold-bright);letter-spacing:.06em;text-align:center;margin-bottom:6px;}
-.setup-sub{font-style:italic;color:var(--text-faint);text-align:center;font-size:.9rem;margin-bottom:28px;}
-.setup-crest{text-align:center;margin-bottom:20px;}
-.setup-steps{background:var(--parchment-3);border:1px solid var(--border);padding:16px 18px;margin-bottom:22px;font-size:.86rem;line-height:1.75;color:var(--text-dim);}
-.setup-steps strong{color:var(--gold-bright);font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;}
-.setup-steps code{background:var(--parchment);border:1px solid var(--border);padding:1px 5px;font-size:.78rem;color:var(--gold);font-family:monospace;word-break:break-all;}
-.setup-steps ol{padding-left:18px;}
-.setup-steps li{margin-bottom:8px;}
-.setup-form{display:flex;flex-direction:column;gap:14px;}
-.setup-err{color:var(--red-bright);font-size:.85rem;font-style:italic;min-height:18px;}
+
 
 /* HEADER */
 header{background:var(--parchment-2);border-bottom:2px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;}
@@ -153,50 +141,8 @@ select option{background:var(--parchment-3);}
 </head>
 <body>
 
-<!-- SETUP SCREEN -->
-<div id="setup-screen">
-  <div class="setup-box">
-    <div class="setup-crest">
-      <svg width="52" height="52" viewBox="0 0 38 38" fill="none">
-        <polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#7a6535" stroke-width="1.5"/>
-        <line x1="19" y1="8" x2="19" y2="30" stroke="#c8922a" stroke-width="1.5"/>
-        <line x1="10" y1="13" x2="28" y2="13" stroke="#c8922a" stroke-width="1.5"/>
-        <circle cx="19" cy="19" r="3" fill="none" stroke="#e8b84b" stroke-width="1"/>
-        <polygon points="19,6 21,12 27,12 22,16 24,22 19,18 14,22 16,16 11,12 17,12" fill="#c8922a" opacity="0.5"/>
-      </svg>
-    </div>
-    <div class="setup-title">Gloria Victis</div>
-    <div class="setup-sub">Guild Quest Board &mdash; First-time Setup</div>
-    <div class="setup-steps">
-      <strong>Supabase setup &mdash; free, takes 2 minutes:</strong>
-      <ol>
-        <li>Go to <strong>supabase.com</strong> &rarr; sign up &rarr; New Project (pick any name/region)</li>
-        <li>Open <strong>SQL Editor</strong> in your project and run these three commands:<br><br>
-          <code>create table quests (id uuid primary key default gen_random_uuid(), title text, type text, description text, item text, qty text, deliver_to text, deadline text, poster text, rewards text[], reward_note text, status text default 'open', claimed_by text, posted_at timestamptz default now());</code><br><br>
-          <code>alter table quests enable row level security;</code><br><br>
-          <code>create policy "public access" on quests for all using (true) with check (true);</code>
-        </li>
-        <li>Go to <strong>Project Settings &rarr; API</strong></li>
-        <li>Copy <strong>Project URL</strong> and <strong>anon public</strong> key into the fields below</li>
-      </ol>
-    </div>
-    <div class="setup-form">
-      <div class="form-group">
-        <label>Supabase Project URL</label>
-        <input id="cfg-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co">
-      </div>
-      <div class="form-group">
-        <label>Supabase Anon Key (public)</label>
-        <input id="cfg-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-      </div>
-      <div class="setup-err" id="setup-err"></div>
-      <button class="btn btn-primary" onclick="saveConfig()">Connect &amp; Open Board</button>
-    </div>
-  </div>
-</div>
-
 <!-- MAIN APP -->
-<div id="app" style="display:none">
+<div id="app">
   <header>
     <div class="logo">
       <svg class="logo-crest" viewBox="0 0 38 38" fill="none">
@@ -212,7 +158,7 @@ select option{background:var(--parchment-3);}
       <div class="live-dot"></div>
       <span class="live-label">Live</span>
       <button class="btn btn-primary" onclick="openNewQuestModal()">&#9876; Post Quest</button>
-      <button class="btn btn-sm" onclick="resetConfig()" title="Change Supabase connection">&#9881;</button>
+
     </div>
   </header>
 
@@ -335,7 +281,9 @@ select option{background:var(--parchment-3);}
 <div id="toast"></div>
 
 <script>
-const CFG_KEY = 'gv_supabase_cfg';
+const SUPABASE_URL = 'https://dnwitnnzrkcismsbxfcg.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRud2l0bm56cmtjaXNtc2J4ZmNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjY0MTYsImV4cCI6MjA5NzUwMjQxNn0.z75KyvMaNTj9ORWrUguEJqHmdtjWrdlIwvedWvB5OFE';
+
 let sb = null;
 let quests = [];
 let currentFilter = 'all';
@@ -344,31 +292,9 @@ let claimingId = null;
 const TYPE_ICONS  = {gather:'⛏',farm:'🌾',deliver:'📦',craft:'🔨',other:'📜'};
 const TYPE_LABELS = {gather:'Gather',farm:'Farm',deliver:'Deliver',craft:'Craft',other:'Other'};
 
-function loadConfig(){try{return JSON.parse(localStorage.getItem(CFG_KEY));}catch{return null;}}
-
-function saveConfig(){
-  const url=document.getElementById('cfg-url').value.trim();
-  const key=document.getElementById('cfg-key').value.trim();
-  const err=document.getElementById('setup-err');
-  err.textContent='';
-  if(!url||!key){err.textContent='Both fields are required.';return;}
-  if(!url.startsWith('https://')){err.textContent='URL must start with https://';return;}
-  localStorage.setItem(CFG_KEY,JSON.stringify({url,key}));
-  initApp({url,key});
-}
-
-function resetConfig(){
-  if(!confirm('Disconnect and re-enter Supabase credentials?'))return;
-  localStorage.removeItem(CFG_KEY);
-  document.getElementById('app').style.display='none';
-  document.getElementById('setup-screen').style.display='flex';
-}
-
-async function initApp(cfg){
-  document.getElementById('setup-screen').style.display='none';
-  document.getElementById('app').style.display='block';
+async function initApp(){
   try{
-    sb=supabase.createClient(cfg.url,cfg.key);
+    sb=supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     await fetchQuests();
     subscribeRealtime();
   }catch(e){
@@ -570,9 +496,7 @@ function toast(msg){
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-const cfg=loadConfig();
-if(cfg){document.getElementById('cfg-url').value=cfg.url;document.getElementById('cfg-key').value=cfg.key;initApp(cfg);}
-else{document.getElementById('setup-screen').style.display='flex';}
+initApp();
 </script>
 </body>
 </html>
