@@ -193,9 +193,10 @@ select option{background:var(--parchment-3);}
         <polygon points="19,6 21,12 27,12 22,16 24,22 19,18 14,22 16,16 11,12 17,12" fill="#c8922a" opacity="0.5"/>
       </svg>
     </div>
-    <div class="warning-title" data-i18n="warning_title">&#9876; Private Guild Board</div>
-    <div class="warning-body" data-i18n="warning_body">This board is for members of the <strong>Avangard</strong> guild and our allies only. Do not share this link with players outside the alliance.</div>
-    <button class="warning-btn" onclick="dismissWarning()" data-i18n="warning_btn">I Understand</button>
+    <div class="warning-title">&#9876; Private Guild Board</div>
+    <div class="warning-body">This board is for members of the <strong>Avangard</strong> guild and our allies only. Do not share this link with players outside the alliance.</div>
+    <div class="warning-body" style="border-top:1px solid var(--border);padding-top:16px;margin-top:-8px;font-size:.88rem">Эта доска предназначена только для членов гильдии <strong>Avangard</strong> и наших союзников. Не делитесь этой ссылкой с игроками вне альянса.</div>
+    <button class="warning-btn" onclick="dismissWarning()">I Understand &amp; Agree</button>
   </div>
 </div>
 
@@ -461,7 +462,7 @@ const TRANS = {
     admin_password:'Password',admin_unlock:'Unlock',
     award_title:'Award Points',award_points:'Points',award_reason:'Reason',
     award_reason_ph:'e.g. Event victory',award_btn:'Award',
-    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',warning_title:'Private Guild Board',warning_body:'This board is for members of the <strong>Avangard</strong> guild and our allies only. Do not share this link with players outside the alliance.',warning_btn:'I Understand',
+    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.'
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
@@ -510,7 +511,7 @@ const TRANS = {
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
     award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
     award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
-    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',warning_title:'\u041f\u0440\u0438\u0432\u0430\u0442\u043d\u0430\u044f \u0434\u043e\u0441\u043a\u0430 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',warning_body:'\u042d\u0442\u0430 \u0434\u043e\u0441\u043a\u0430 \u043f\u0440\u0435\u0434\u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0430 \u0442\u043e\u043b\u044c\u043a\u043e \u0434\u043b\u044f \u0447\u043b\u0435\u043d\u043e\u0432 \u0433\u0438\u043b\u044c\u0434\u0438\u0438 <strong>Avangard</strong> \u0438 \u043d\u0430\u0448\u0438\u0445 \u0441\u043e\u044e\u0437\u043d\u0438\u043a\u043e\u0432. \u041d\u0435 \u0434\u0435\u043b\u0438\u0442\u0435\u0441\u044c \u044d\u0442\u043e\u0439 \u0441\u0441\u044b\u043b\u043a\u043e\u0439 \u0441 \u0438\u0433\u0440\u043e\u043a\u0430\u043c\u0438 \u0432\u043d\u0435 \u0430\u043b\u044c\u044f\u043d\u0441\u0430.',warning_btn:'\u042f \u043f\u043e\u043d\u0438\u043c\u0430\u044e',
+    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.'
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -1041,17 +1042,16 @@ function toast(msg){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function dismissWarning(){
-  localStorage.setItem('gv_warning','1');
+  sessionStorage.setItem('gv_warning','1');
   document.getElementById('warning-overlay').classList.add('hidden');
+  applyTranslations();
   initApp();
 }
 
-if(localStorage.getItem('gv_warning')){
+if(sessionStorage.getItem('gv_warning')){
   document.getElementById('warning-overlay').classList.add('hidden');
   applyTranslations();
   initApp();
-}else{
-  applyTranslations();
 }
 </script>
 </body>
