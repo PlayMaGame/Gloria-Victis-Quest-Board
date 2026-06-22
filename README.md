@@ -80,6 +80,19 @@ alter table loyalty enable row level security;
 
 create policy "public access" on loyalty
   for all using (true) with check (true);
+
+create table ticker_items (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  image text not null,
+  hot boolean default false,
+  sort_order integer default 0
+);
+
+alter table ticker_items enable row level security;
+
+create policy "public access" on ticker_items
+  for all using (true) with check (true);
 ```
 
 5. Go to **Project Settings → API** and copy:
