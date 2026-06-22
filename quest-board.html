@@ -165,6 +165,15 @@ select option{background:var(--parchment-3);}
 .warning-btn{font-family:'Cinzel',serif;font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--gold);background:var(--gold-dim);color:var(--gold-bright);padding:10px 28px;cursor:pointer;transition:all .15s;}
 .warning-btn:hover{background:var(--gold);color:var(--parchment);}
 
+/* TICKER */
+#ticker-wrap{position:fixed;bottom:0;left:0;right:0;z-index:800;background:var(--parchment-2);border-top:2px solid var(--border);height:52px;overflow:hidden;display:flex;align-items:center;}
+#ticker-track{display:flex;gap:40px;white-space:nowrap;animation:ticker 60s linear infinite;padding-left:100vw;}
+.ticker-item{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text);flex-shrink:0;}
+.ticker-item img{width:32px;height:32px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
+.ticker-item .ticker-hot{color:var(--red-bright);font-size:.7rem;margin-left:2px;}
+.ticker-admin-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:801;}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;background:var(--parchment-3);border:1px solid var(--gold);color:var(--gold-bright);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
 #toast.show{opacity:1;}
@@ -399,6 +408,39 @@ select option{background:var(--parchment-3);}
   </div>
 </div>
 
+<!-- TICKER BAR -->
+<div id="ticker-wrap" class="hidden">
+  <div id="ticker-track"></div>
+  <button class="btn btn-sm ticker-admin-btn" id="ticker-admin-btn" onclick="openTickerModal()" style="display:none">&#9881;</button>
+</div>
+
+<!-- TICKER ADMIN MODAL -->
+<div class="modal-overlay hidden" id="ticker-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="ticker_title">&#9881; Ticker Items</span>
+      <button class="modal-close" onclick="closeModal('ticker-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body" id="ticker-modal-body">
+      <div class="form-row" style="gap:8px;margin-bottom:12px">
+        <div class="form-group" style="flex:2">
+          <label data-i18n="ticker_name">Item Name</label>
+          <input id="ti-name" type="text">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label data-i18n="ticker_image">Image File</label>
+          <input id="ti-image" type="text" placeholder="file.jpg">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <label class="reward-check"><input type="checkbox" id="ti-hot"> <span data-i18n="ticker_hot">&#128293; Hot</span></label>
+        <button class="btn btn-sm btn-primary" onclick="addTickerItem()" data-i18n="ticker_add">Add</button>
+      </div>
+      <div id="ti-list" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -454,7 +496,7 @@ const TRANS = {
     admin_password:'Password',admin_unlock:'Unlock',
     award_title:'Award Points',award_points:'Points',award_reason:'Reason',
     award_reason_ph:'e.g. Event victory',award_btn:'Award',
-    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',
+    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',ticker_title:'Ticker Items',ticker_name:'Item Name',ticker_image:'Image File',ticker_hot:'🔥 Hot',ticker_add:'Add',ticker_del:'Delete',
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
@@ -503,7 +545,7 @@ const TRANS = {
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
     award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
     award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
-    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',
+    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',ticker_title:'\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b \u0431\u0435\u0433\u0443\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438',ticker_name:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',ticker_image:'\u0424\u0430\u0439\u043b',ticker_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435',ticker_add:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c',ticker_del:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -553,6 +595,7 @@ async function initApp(){
     await fetchQuests();
     subscribeRealtime();
     fetchLeaderboard();
+    fetchTickerItems();
   }catch(e){
     showBoardError(t('connect_error'));
     console.error(e);
@@ -587,6 +630,9 @@ function subscribeRealtime(){
     }).subscribe();
   sb.channel('loyalty-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'loyalty'},()=>{fetchLeaderboard();})
+    .subscribe();
+  sb.channel('ticker-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'ticker_items'},()=>{fetchTickerItems();})
     .subscribe();
 }
 
@@ -681,6 +727,8 @@ function renderCard(q){
 function render(){
   const admin=isAdmin();
   document.getElementById('admin-badge').classList.toggle('show',admin);
+  const tBtn=document.getElementById('ticker-admin-btn');
+  if(tBtn)tBtn.style.display=admin?'':'none';
   const list=filtered();
   const grid=document.getElementById('quest-grid');
   const cnt=list.length;
@@ -1004,6 +1052,79 @@ function renderLeaderboard(){
     const awardBtn=admin?` <button class="lb-award-btn" onclick="openAwardModal('${esc(name)}')">+</button>`:'';
     return`<div class="lb-row"><span class="lb-rank ${rCls}">#${rank}</span><span class="lb-name">${esc(name)}${awardBtn}</span><span class="lb-points">${pts}</span></div>`;
   }).join('');
+}
+
+// TICKER
+let tickerItems=[];
+
+async function fetchTickerItems(){
+  if(!sb)return;
+  const{data,error}=await sb.from('ticker_items').select('*').order('sort_order',{ascending:true});
+  if(error&&error.message.includes('does not exist'))return;
+  if(error)return;
+  tickerItems=data||[];
+  if(!tickerItems.length){
+    const defaults=[
+      {name:'Blood of the Beast',image:'Blood of the Beast.jpg',hot:false,sort_order:1},
+      {name:'Leaf Plan Seeds',image:'Leaf Plan Seads.jpg',hot:false,sort_order:2},
+      {name:'Milk',image:'Milk.jpg',hot:false,sort_order:3},
+      {name:'Saffron',image:'Saffron.jpg',hot:true,sort_order:4}
+    ];
+    for(const d of defaults){
+      await sb.from('ticker_items').insert(d);
+    }
+    tickerItems=defaults;
+  }
+  renderTicker();
+}
+
+function renderTicker(){
+  const wrap=document.getElementById('ticker-wrap');
+  const track=document.getElementById('ticker-track');
+  document.getElementById('ticker-admin-btn').style.display=isAdmin()?'':'none';
+  if(!tickerItems.length){wrap.classList.add('hidden');return;}
+  wrap.classList.remove('hidden');
+  const items=tickerItems.map(i=>{
+    const hot=i.hot?'<span class="ticker-hot">🔥</span>':'';
+    return`<div class="ticker-item"><img src="images/${esc(i.image)}" alt="${esc(i.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${esc(i.name[0])}</text></svg>'">${esc(i.name)}${hot}</div>`;
+  }).join('');
+  track.innerHTML=items+items; // duplicate for seamless loop
+}
+
+async function addTickerItem(){
+  const name=document.getElementById('ti-name').value.trim();
+  const image=document.getElementById('ti-image').value.trim();
+  if(!name||!image){toast('Name and image required.');return;}
+  const hot=document.getElementById('ti-hot').checked;
+  const{error}=await sb.from('ticker_items').insert({name,image,hot,sort_order:tickerItems.length+1});
+  if(error){toast(t('err_prefix')+error.message);return;}
+  document.getElementById('ti-name').value='';document.getElementById('ti-image').value='';document.getElementById('ti-hot').checked=false;
+  toast('Item added!');
+}
+
+async function deleteTickerItem(id){
+  if(!confirm('Delete this ticker item?'))return;
+  const{error}=await sb.from('ticker_items').delete().eq('id',id);
+  if(error){toast(t('err_prefix')+error.message);return;}
+}
+
+async function toggleTickerHot(id){
+  const item=tickerItems.find(i=>i.id===id);
+  if(!item)return;
+  const{error}=await sb.from('ticker_items').update({hot:!item.hot}).eq('id',id);
+  if(error){toast(t('err_prefix')+error.message);return;}
+}
+
+function openTickerModal(){
+  document.getElementById('ti-name').value='';document.getElementById('ti-image').value='';document.getElementById('ti-hot').checked=false;
+  const list=document.getElementById('ti-list');
+  if(!tickerItems.length){list.innerHTML='<p style="color:var(--text-faint);font-style:italic">No items yet.</p>';}
+  else{list.innerHTML=tickerItems.map(i=>{
+    const hot=i.hot?' 🔥':'';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment-3)"><img src="images/${esc(i.image)}" alt="" style="width:28px;height:28px;object-fit:cover;border:1px solid var(--border)"><span style="flex:1;font-size:.85rem">${esc(i.name)}${hot}</span><button class="btn btn-sm ${i.hot?'btn-primary':''}" onclick="toggleTickerHot('${i.id}')" style="font-size:.55rem">🔥</button><button class="btn btn-sm btn-danger" onclick="deleteTickerItem('${i.id}')" style="font-size:.55rem">✕</button></div>`;
+  }).join('');}
+  applyTranslations();
+  openModal('ticker-modal');
 }
 
 function openModal(id){document.getElementById(id).classList.remove('hidden');}
