@@ -93,6 +93,9 @@ alter table ticker_items enable row level security;
 
 create policy "public access" on ticker_items
   for all using (true) with check (true);
+
+-- Enable realtime for ticker
+alter publication supabase_realtime add table ticker_items;
 ```
 
 5. Go to **Project Settings → API** and copy:

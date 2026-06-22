@@ -414,9 +414,6 @@ select option{background:var(--parchment-3);}
 
 <!-- TICKER BAR -->
 <div id="ticker-wrap" class="hidden">
-  <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding:0 12px;border-right:2px solid var(--border);height:100%">
-    <span style="color:var(--red-bright);font-family:Cinzel;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap" data-i18n="ticker_announce">&#128293; Items in need:</span>
-  </div>
   <div id="ticker-track"></div>
   <button class="btn btn-sm ticker-admin-btn" id="ticker-admin-btn" onclick="openTickerModal()" style="display:none">&#9881;</button>
 </div>
@@ -1078,12 +1075,13 @@ function renderTicker(){
   document.getElementById('ticker-admin-btn').style.display=isAdmin()?'':'none';
   if(!tickerItems.length){wrap.classList.add('hidden');return;}
   wrap.classList.remove('hidden');
+  const announce=`<span class="ticker-item" style="color:var(--red-bright);font-family:Cinzel;font-size:.65rem;text-transform:uppercase;flex-shrink:0;margin-right:20px">${t('ticker_announce')}</span>`;
   const items=tickerItems.map(i=>{
     const hotCls=i.hot?' ticker-item-hot':'';
     const hot=i.hot?'<span class="ticker-hot">🔥</span>':'';
     return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${esc(i.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${esc(i.name[0])}</text></svg>'">${esc(i.name)}${hot}</div>`;
   }).join('');
-  track.innerHTML=items;
+  track.innerHTML=announce+items;
 }
 
 async function addTickerItem(image, name){
