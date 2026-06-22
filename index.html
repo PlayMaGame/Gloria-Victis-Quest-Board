@@ -1069,18 +1069,6 @@ async function fetchTickerItems(){
   if(!document.getElementById('ticker-modal').classList.contains('hidden')){
     openTickerModal();
   }
-  if(!tickerItems.length){
-    const defaults=[
-      {name:'Blood of the Beast',image:'Blood of the Beast.jpg',hot:false,sort_order:1},
-      {name:'Leaf Plan Seeds',image:'Leaf Plan Seads.jpg',hot:false,sort_order:2},
-      {name:'Milk',image:'Milk.jpg',hot:false,sort_order:3},
-      {name:'Saffron',image:'Saffron.jpg',hot:true,sort_order:4}
-    ];
-    for(const d of defaults){
-      await sb.from('ticker_items').insert(d);
-    }
-    tickerItems=defaults;
-  }
   renderTicker();
 }
 
