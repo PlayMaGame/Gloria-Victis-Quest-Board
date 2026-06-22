@@ -154,6 +154,17 @@ select option{background:var(--parchment-3);}
   .leaderboard{width:100%;position:static;}
 }
 
+/* WARNING OVERLAY */
+.warning-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.warning-overlay.hidden{display:none;}
+.warning-box{background:var(--parchment-2);border:2px solid var(--gold);max-width:500px;width:100%;padding:36px 32px;text-align:center;}
+.warning-crest{margin-bottom:16px;}
+.warning-title{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:var(--gold-bright);letter-spacing:.06em;margin-bottom:16px;}
+.warning-body{font-style:italic;color:var(--text-dim);font-size:.95rem;line-height:1.6;margin-bottom:24px;}
+.warning-body strong{color:var(--gold);font-style:normal;}
+.warning-btn{font-family:'Cinzel',serif;font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--gold);background:var(--gold-dim);color:var(--gold-bright);padding:10px 28px;cursor:pointer;transition:all .15s;}
+.warning-btn:hover{background:var(--gold);color:var(--parchment);}
+
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;background:var(--parchment-3);border:1px solid var(--gold);color:var(--gold-bright);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
 #toast.show{opacity:1;}
@@ -169,6 +180,24 @@ select option{background:var(--parchment-3);}
 </style>
 </head>
 <body>
+
+<!-- GUILD WARNING -->
+<div class="warning-overlay" id="warning-overlay">
+  <div class="warning-box">
+    <div class="warning-crest">
+      <svg width="48" height="48" viewBox="0 0 38 38" fill="none">
+        <polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#c8922a" stroke-width="1.5"/>
+        <line x1="19" y1="8" x2="19" y2="30" stroke="#c8922a" stroke-width="1.5"/>
+        <line x1="10" y1="13" x2="28" y2="13" stroke="#c8922a" stroke-width="1.5"/>
+        <circle cx="19" cy="19" r="3" fill="none" stroke="#e8b84b" stroke-width="1"/>
+        <polygon points="19,6 21,12 27,12 22,16 24,22 19,18 14,22 16,16 11,12 17,12" fill="#c8922a" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="warning-title" data-i18n="warning_title">&#9876; Private Guild Board</div>
+    <div class="warning-body" data-i18n="warning_body">This board is for members of the <strong>Avangard</strong> guild and our allies only. Do not share this link with players outside the alliance.</div>
+    <button class="warning-btn" onclick="dismissWarning()" data-i18n="warning_btn">I Understand</button>
+  </div>
+</div>
 
 <!-- MAIN APP -->
 <div id="app">
@@ -432,7 +461,7 @@ const TRANS = {
     admin_password:'Password',admin_unlock:'Unlock',
     award_title:'Award Points',award_points:'Points',award_reason:'Reason',
     award_reason_ph:'e.g. Event victory',award_btn:'Award',
-    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',
+    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',warning_title:'Private Guild Board',warning_body:'This board is for members of the <strong>Avangard</strong> guild and our allies only. Do not share this link with players outside the alliance.',warning_btn:'I Understand',
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
@@ -481,7 +510,7 @@ const TRANS = {
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
     award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
     award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
-    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',
+    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',warning_title:'\u041f\u0440\u0438\u0432\u0430\u0442\u043d\u0430\u044f \u0434\u043e\u0441\u043a\u0430 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',warning_body:'\u042d\u0442\u0430 \u0434\u043e\u0441\u043a\u0430 \u043f\u0440\u0435\u0434\u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0430 \u0442\u043e\u043b\u044c\u043a\u043e \u0434\u043b\u044f \u0447\u043b\u0435\u043d\u043e\u0432 \u0433\u0438\u043b\u044c\u0434\u0438\u0438 <strong>Avangard</strong> \u0438 \u043d\u0430\u0448\u0438\u0445 \u0441\u043e\u044e\u0437\u043d\u0438\u043a\u043e\u0432. \u041d\u0435 \u0434\u0435\u043b\u0438\u0442\u0435\u0441\u044c \u044d\u0442\u043e\u0439 \u0441\u0441\u044b\u043b\u043a\u043e\u0439 \u0441 \u0438\u0433\u0440\u043e\u043a\u0430\u043c\u0438 \u0432\u043d\u0435 \u0430\u043b\u044c\u044f\u043d\u0441\u0430.',warning_btn:'\u042f \u043f\u043e\u043d\u0438\u043c\u0430\u044e',
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -1011,8 +1040,19 @@ function toast(msg){
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-applyTranslations();
-initApp();
+function dismissWarning(){
+  localStorage.setItem('gv_warning','1');
+  document.getElementById('warning-overlay').classList.add('hidden');
+  initApp();
+}
+
+if(localStorage.getItem('gv_warning')){
+  document.getElementById('warning-overlay').classList.add('hidden');
+  applyTranslations();
+  initApp();
+}else{
+  applyTranslations();
+}
 </script>
 </body>
 </html>
