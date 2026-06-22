@@ -1,0 +1,43 @@
+screen:
+  # Method 1: capture by window title (works in borderless windowed mode)
+  game_window_title: "Gloria Victis"
+  # Method 2: fixed absolute screen region [left, top, width, height]
+  # (used as fallback if window is not found)
+  region: [0, 0, 1920, 1080]
+
+grid:
+  # Number of rows and columns in the inventory grid
+  rows: 6
+  cols: 8
+  # Size of each slot in pixels
+  slot_width: 44
+  slot_height: 44
+  # Top-left pixel of the first (0,0) slot, relative to captured region
+  start_x: 200
+  start_y: 350
+  # Extra spacing between slots (slot + offset = pitch)
+  offset_x: 4
+  offset_y: 4
+
+matching:
+  # Minimum template matching confidence (0.0 - 1.0)
+  threshold: 0.80
+
+ocr:
+  # Path to Tesseract OCR executable (change if installed elsewhere)
+  tesseract_cmd: "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+  # Page segmentation mode: 7 = treat as single text line
+  psm: 7
+  # Only allow these characters in OCR output
+  char_whitelist: "0123456789"
+
+auto_detect:
+  enabled: false
+  poll_interval: 0.5
+  # Uncomment and configure to detect when inventory is open:
+  # inventory_open_check:
+  #   region: [x, y, width, height]
+  #   expected_pixel: [R, G, B]
+
+database:
+  path: "inventory_db.json"

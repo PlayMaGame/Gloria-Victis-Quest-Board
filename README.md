@@ -12,7 +12,10 @@ Single HTML file. No build step. No server. Deployable to GitHub Pages in minute
 - **Reward types** — Guild Points, Giveaway Tickets, Gifts, Production Priority
 - **Claim system** — members enter their in-game name to claim a quest; board updates for everyone instantly
 - **Status flow** — Open → Claimed → Complete
-- **Filters** — by status or quest type (Gather / Farm / Deliver / Craft / Other)
+- **Filters** — by status or quest type (Gather / Farm / Deliver / Craft / Event)
+- **Event quests** — players register for events; admin closes them and awards loyalty points
+- **Leaderboard** — sidebar shows all players ranked by loyalty points
+- **Admin controls** — triple-click the crest logo to unlock; edit/delete quests, set rewards, award points
 - **Real-time sync** — Supabase Realtime pushes changes to all connected browsers instantly
 - **No login required** — anyone with the link can post and claim
 - **Русский язык** — переключение языка в правом верхнем углу (Russian language toggle in top-right)
@@ -54,16 +57,28 @@ create table quests (
   reward_note text,
   status text default 'open',
   claimed_by text,
+  participants text[] default '{}',
   posted_at timestamptz default now()
 );
-```
 
-```sql
 alter table quests enable row level security;
-```
 
-```sql
 create policy "public access" on quests
+  for all using (true) with check (true);
+
+create table loyalty (
+  id uuid primary key default gen_random_uuid(),
+  player_name text not null,
+  points integer not null default 0,
+  reason text,
+  awarded_by text,
+  quest_id uuid,
+  created_at timestamptz default now()
+);
+
+alter table loyalty enable row level security;
+
+create policy "public access" on loyalty
   for all using (true) with check (true);
 ```
 
@@ -81,6 +96,10 @@ create policy "public access" on quests
 
 The Supabase credentials are already hardcoded — just open the URL and start using it. Click **RU** in the top-right to switch to Russian.
 
+### 4. Admin Access
+
+Triple-click the **crest logo** in the top-left to open the admin login. Default password: `gvadmin2024`
+
 ---
 
 ## Quest Types
@@ -91,7 +110,7 @@ The Supabase credentials are already hardcoded — just open the URL and start u
 | 🌾 Farm | Green | Farming crops, animals, repeatable grinding |
 | 📦 Deliver | Blue | Moving items between players or locations |
 | 🔨 Craft | Purple | Crafting requests where materials are provided |
-| 📜 Other | Grey | Anything else |
+| 🎪 Event | Orange | Guild events, competitions, gatherings |
 
 ---
 

@@ -58,6 +58,8 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px;}
 .type-deliver .card-type-bar{background:var(--blue-bright);}
 .type-craft .card-type-bar{background:var(--purple-bright);}
 .type-other .card-type-bar{background:var(--text-dim);}
+.type-event .card-type-bar{background:#c06020;}
+.type-event .card-type-tag{color:#e08030;}
 .card-head{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border);}
 .card-type-icon{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:1px solid var(--border);background:var(--parchment-3);}
 .card-meta{flex:1;min-width:0;}
@@ -122,6 +124,33 @@ select option{background:var(--parchment-3);}
 .claim-quest-title{font-family:'Cinzel',serif;font-size:1rem;color:var(--gold-bright);border-bottom:1px solid var(--border);padding-bottom:10px;}
 .claim-info{font-style:italic;color:var(--text-dim);font-size:.9rem;line-height:1.5;}
 
+/* ADMIN BADGE */
+.admin-badge{display:none;align-items:center;gap:4px;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--red-bright);cursor:pointer;padding:3px 7px;border:1px solid var(--red);}
+.admin-badge.show{display:inline-flex;}
+
+/* LEADERBOARD */
+.board-layout{display:flex;gap:24px;align-items:flex-start;}
+.board-main{flex:1;min-width:0;}
+.leaderboard{width:260px;flex-shrink:0;background:var(--parchment-2);border:1px solid var(--border);position:sticky;top:92px;}
+.lb-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-bright);text-align:center;}
+.lb-list{max-height:500px;overflow-y:auto;}
+.lb-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--parchment-3);font-size:.85rem;transition:background .15s;}
+.lb-row:hover{background:var(--parchment-3);}
+.lb-rank{font-family:'Cinzel',serif;font-size:.65rem;color:var(--text-faint);min-width:22px;text-align:right;}
+.lb-rank-1{color:var(--gold);}
+.lb-rank-2{color:#c0c0c0;}
+.lb-rank-3{color:#b08050;}
+.lb-name{flex:1;color:var(--text);word-break:break-word;}
+.lb-points{font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold-bright);font-weight:600;white-space:nowrap;}
+.lb-empty{padding:24px 14px;text-align:center;color:var(--text-faint);font-style:italic;font-size:.85rem;}
+.lb-award-btn{background:none;border:1px solid var(--border);color:var(--gold);font-size:.6rem;padding:1px 6px;cursor:pointer;font-family:'Cinzel',serif;}
+.lb-award-btn:hover{background:var(--gold-dim);color:var(--gold-bright);}
+
+@media(max-width:900px){
+  .board-layout{flex-direction:column;}
+  .leaderboard{width:100%;position:static;}
+}
+
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;background:var(--parchment-3);border:1px solid var(--gold);color:var(--gold-bright);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
 #toast.show{opacity:1;}
@@ -154,6 +183,7 @@ select option{background:var(--parchment-3);}
     <div class="header-actions">
       <div class="live-dot"></div>
       <span class="live-label" data-i18n="live">Live</span>
+      <span class="admin-badge" id="admin-badge" onclick="logoutAdmin()" title="Click to logout">⚷ Admin</span>
       <button class="btn btn-sm" onclick="toggleLang()" id="lang-btn">RU</button>
       <button class="btn btn-primary" onclick="openNewQuestModal()">&#9876; <span data-i18n="post_quest">Post Quest</span></button>
     </div>
@@ -170,15 +200,25 @@ select option{background:var(--parchment-3);}
     <button class="filter-btn" onclick="setFilter('farm',this)">&#127806; <span data-i18n="farm">Farm</span></button>
     <button class="filter-btn" onclick="setFilter('deliver',this)">&#128230; <span data-i18n="deliver">Deliver</span></button>
     <button class="filter-btn" onclick="setFilter('craft',this)">&#128296; <span data-i18n="craft">Craft</span></button>
-    <button class="filter-btn" onclick="setFilter('other',this)">&#128220; <span data-i18n="other">Other</span></button>
+    <button class="filter-btn" onclick="setFilter('event',this)">&#128220; <span data-i18n="event">Event</span></button>
     <span class="spacer"></span>
     <span class="quest-count" id="quest-count"></span>
   </div>
 
   <main>
-    <div class="ornament" data-i18n="active_contracts">&#10022; &nbsp; Active Contracts &nbsp; &#10022;</div>
-    <div class="quest-grid" id="quest-grid">
-      <div class="board-status"><div class="spinner"></div><p data-i18n="connecting">Connecting to database&hellip;</p></div>
+    <div class="board-layout">
+      <div class="board-main">
+        <div class="ornament" data-i18n="active_contracts">&#10022; &nbsp; Active Contracts &nbsp; &#10022;</div>
+        <div class="quest-grid" id="quest-grid">
+          <div class="board-status"><div class="spinner"></div><p data-i18n="connecting">Connecting to database&hellip;</p></div>
+        </div>
+      </div>
+      <aside class="leaderboard" id="leaderboard">
+        <div class="lb-header" data-i18n="leaderboard">&#127942; Leaderboard</div>
+        <div class="lb-list" id="lb-list">
+          <div class="lb-empty" data-i18n="lb_empty">No points yet</div>
+        </div>
+      </aside>
     </div>
   </main>
 </div>
@@ -199,11 +239,11 @@ select option{background:var(--parchment-3);}
         <div class="form-group" style="max-width:140px">
           <label data-i18n="type">Type *</label>
           <select id="f-type">
-            <option value="gather">Gather</option>
-            <option value="farm">Farm</option>
-            <option value="deliver">Deliver</option>
-            <option value="craft">Craft</option>
-            <option value="other">Other</option>
+            <option value="gather" data-i18n="gather">Gather</option>
+            <option value="farm" data-i18n="farm">Farm</option>
+            <option value="deliver" data-i18n="deliver">Deliver</option>
+            <option value="craft" data-i18n="craft">Craft</option>
+            <option value="event" data-i18n="event">Event</option>
           </select>
         </div>
       </div>
@@ -235,7 +275,7 @@ select option{background:var(--parchment-3);}
         <label data-i18n="posted_by">Posted By *</label>
         <input id="f-poster" type="text" data-i18n-placeholder="poster_ph">
       </div>
-      <div class="form-group">
+      <div class="form-group" id="rewards-section">
         <label data-i18n="rewards">Rewards</label>
         <div class="reward-checks">
           <label class="reward-check"><input type="checkbox" id="r-points"> <span data-i18n="reward_points">&#127885; Guild Points</span></label>
@@ -275,20 +315,69 @@ select option{background:var(--parchment-3);}
   </div>
 </div>
 
+<!-- ADMIN PASSWORD MODAL -->
+<div class="modal-overlay hidden" id="admin-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="admin_title">&#9876; Admin Access</span>
+      <button class="modal-close" onclick="closeModal('admin-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-style:italic;color:var(--text-dim);font-size:.9rem" data-i18n="admin_info">Enter the admin password to unlock management controls.</p>
+      <div class="form-group">
+        <label data-i18n="admin_password">Password</label>
+        <input id="admin-pw" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('admin-modal')" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="verifyAdmin()" data-i18n="admin_unlock">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- AWARD POINTS MODAL -->
+<div class="modal-overlay hidden" id="award-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="award_title">&#127942; Award Points</span>
+      <button class="modal-close" onclick="closeModal('award-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-style:italic;color:var(--text-dim);font-size:.9rem;margin-bottom:4px" id="award-player-name"></p>
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label data-i18n="award_points">Points</label>
+          <input id="award-points" type="number" value="10" min="1">
+        </div>
+        <div class="form-group" style="flex:2">
+          <label data-i18n="award_reason">Reason</label>
+          <input id="award-reason" type="text" data-i18n-placeholder="award_reason_ph">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('award-modal')" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAward()" data-i18n="award_btn">Award</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://dnwitnnzrkcismsbxfcg.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRud2l0bm56cmtjaXNtc2J4ZmNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjY0MTYsImV4cCI6MjA5NzUwMjQxNn0.z75KyvMaNTj9ORWrUguEJqHmdtjWrdlIwvedWvB5OFE';
+const ADMIN_PASSWORD = 'gvadmin2024';
 
 const LANG_KEY = 'gv_lang';
 const TRANS = {
   en:{
     subtitle:'Guild Quest Board',live:'Live',post_quest:'Post Quest',
     filter:'Filter:',all:'All',open:'Open',claimed:'Claimed',complete:'Complete',
-    gather:'Gather',farm:'Farm',deliver:'Deliver',craft:'Craft',other:'Other',
-    active_contracts:'✦  Active Contracts  ✦',connecting:'Connecting to database\u2026',
-    new_quest_title:'⚶ Post a New Quest',
+    gather:'Gather',farm:'Farm',deliver:'Deliver',craft:'Craft',event:'Event',
+    active_contracts:'\u2726  Active Contracts  \u2726',connecting:'Connecting to database\u2026',
+    new_quest_title:'Post a New Quest',edit_title:'Edit Quest',save:'Save',
     quest_title:'Quest Title *',quest_title_ph:'e.g. Iron Ore Collection',
     type:'Type *',description:'Description',desc_ph:'What needs to be done? Location, details, special instructions...',
     item:'Item / Resource',item_ph:'e.g. Iron Ore',
@@ -297,10 +386,10 @@ const TRANS = {
     deadline:'Deadline (optional)',deadline_ph:'e.g. Sunday 20:00',
     posted_by:'Posted By *',poster_ph:'Your in-game name',
     rewards:'Rewards',
-    reward_points:'🏅 Guild Points',reward_ticket:'🎟 Giveaway Ticket',reward_gift:'🎁 Gift / Item',reward_prio:'⭐ Production Priority',
+    reward_points:'\U0001f3c5 Guild Points',reward_ticket:'\U0001f39f Giveaway Ticket',reward_gift:'\U0001f381 Gift / Item',reward_prio:'\u2b50 Production Priority',
     reward_note_ph:'Details, e.g. 50 points, epic sword, next crafting slot',
     cancel:'Cancel',
-    claim_quest_title:'⚶ Claim Quest',
+    claim_quest_title:'Claim Quest',
     claim_info:'Enter your in-game name to claim this quest. It will be marked as taken so other guild members know it is being handled.',
     your_name:'Your In-Game Name *',name_ph:'Your character name',
     claim_quest:'Claim Quest',
@@ -323,48 +412,60 @@ const TRANS = {
     quest_complete:'Quest complete!',
     quest_deleted:'Quest deleted.',
     confirm_delete:'Delete this quest?',
+    leaderboard:'\U0001f3c6 Leaderboard',
+    lb_empty:'No points yet',
+    admin_title:'Admin Access',admin_info:'Enter the admin password to unlock management controls.',
+    admin_password:'Password',admin_unlock:'Unlock',
+    award_title:'Award Points',award_points:'Points',award_reason:'Reason',
+    award_reason_ph:'e.g. Event victory',award_btn:'Award',
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
-    subtitle:'Гильдейская Доска Заданий',live:'В эфире',post_quest:'Создать',
-    filter:'Фильтр:',all:'Все',open:'Открытые',claimed:'Взятые',complete:'Выполненные',
-    gather:'Сбор',farm:'Ферма',deliver:'Доставка',craft:'Крафт',other:'Другое',
-    active_contracts:'✦  Активные Контракты  ✦',connecting:'Подключение к базе данных\u2026',
-    new_quest_title:'⚶ Создать задание',
-    quest_title:'Название *',quest_title_ph:'Например: Сбор железной руды',
-    type:'Тип *',description:'Описание',desc_ph:'Что нужно сделать? Локация, детали, инструкции...',
-    item:'Предмет / Ресурс',item_ph:'Например: Железная руда',
-    quantity:'Количество',qty_ph:'Например: 500',
-    deliver_to:'Доставить',deliver_ph:'Имя игрока или локация',
-    deadline:'Срок (необяз.)',deadline_ph:'Например: Воскресенье 20:00',
-    posted_by:'Автор *',poster_ph:'Ваше игровое имя',
-    rewards:'Награды',
-    reward_points:'🏅 Очки гильдии',reward_ticket:'🎟 Билет розыгрыша',reward_gift:'🎁 Подарок / Предмет',reward_prio:'⭐ Приоритет производства',
-    reward_note_ph:'Детали: 50 очков, эпический меч, следующий слот крафта',
-    cancel:'Отмена',
-    claim_quest_title:'⚶ Взять задание',
-    claim_info:'Введите ваше игровое имя, чтобы взять это задание. Оно будет отмечено как занятое, чтобы другие знали, что его уже выполняют.',
-    your_name:'Ваше игровое имя *',name_ph:'Ваше игровое имя',
-    claim_quest:'Взяться',
-    item_label:'Предмет',qty_label:'Кол-во',deliver_to_label:'Доставить',deadline_label:'Срок',claimed_by_label:'Взял(а)',
-    rewards_label:'Награды',
-    claim:'Взять',mark_complete:'Готово',unclaim:'Вернуть',delete:'Удалить',
-    posted_by_text:'Автор',
-    quest_one:'1 задание',quest_many:'{n} заданий',
-    no_quests:'Заданий нет',post_first_quest:'Создать первое задание',
-    retry:'Повторить',
-    just_now:'только что',m_ago:'{n}м назад',h_ago:'{n}ч назад',d_ago:'{n}д назад',
-    required_title_poster:'Название и автор обязательны.',
-    connect_error:'Не удалось подключиться. Проверьте данные.',
-    load_error:'Ошибка загрузки: ',
-    err_prefix:'Ошибка: ',
-    quest_posted:'Задание создано!',
-    enter_name:'Введите ваше игровое имя.',
-    quest_claimed:'Задание взято!',
-    quest_unclaimed:'Задание возвращено.',
-    quest_complete:'Задание выполнено!',
-    quest_deleted:'Задание удалено.',
-    confirm_delete:'Удалить это задание?',
+    subtitle:'\u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0430\u044f \u0414\u043e\u0441\u043a\u0430 \u0417\u0430\u0434\u0430\u043d\u0438\u0439',live:'\u0412 \u044d\u0444\u0438\u0440\u0435',post_quest:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c',
+    filter:'\u0424\u0438\u043b\u044c\u0442\u0440:',all:'\u0412\u0441\u0435',open:'\u041e\u0442\u043a\u0440\u044b\u0442\u044b\u0435',claimed:'\u0412\u0437\u044f\u0442\u044b\u0435',complete:'\u0412\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043d\u044b\u0435',
+    gather:'\u0421\u0431\u043e\u0440',farm:'\u0424\u0435\u0440\u043c\u0430',deliver:'\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430',craft:'\u041a\u0440\u0430\u0444\u0442',event:'\u0418\u0432\u0435\u043d\u0442',
+    active_contracts:'\u2726  \u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u041a\u043e\u043d\u0442\u0440\u0430\u043a\u0442\u044b  \u2726',connecting:'\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043a \u0431\u0430\u0437\u0435 \u0434\u0430\u043d\u043d\u044b\u0445\u2026',
+    new_quest_title:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',edit_title:'\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c',save:'\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c',
+    quest_title:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 *',quest_title_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0421\u0431\u043e\u0440 \u0436\u0435\u043b\u0435\u0437\u043d\u043e\u0439 \u0440\u0443\u0434\u044b',
+    type:'\u0422\u0438\u043f *',description:'\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435',desc_ph:'\u0427\u0442\u043e \u043d\u0443\u0436\u043d\u043e \u0441\u0434\u0435\u043b\u0430\u0442\u044c? \u041b\u043e\u043a\u0430\u0446\u0438\u044f, \u0434\u0435\u0442\u0430\u043b\u0438, \u0438\u043d\u0441\u0442\u0440\u0443\u043a\u0446\u0438\u0438...',
+    item:'\u041f\u0440\u0435\u0434\u043c\u0435\u0442 / \u0420\u0435\u0441\u0443\u0440\u0441',item_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0416\u0435\u043b\u0435\u0437\u043d\u0430\u044f \u0440\u0443\u0434\u0430',
+    quantity:'\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',qty_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: 500',
+    deliver_to:'\u0414\u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c',deliver_ph:'\u0418\u043c\u044f \u0438\u0433\u0440\u043e\u043a\u0430 \u0438\u043b\u0438 \u043b\u043e\u043a\u0430\u0446\u0438\u044f',
+    deadline:'\u0421\u0440\u043e\u043a (\u043d\u0435\u043e\u0431\u044f\u0437.)',deadline_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0412\u043e\u0441\u043a\u0440\u0435\u0441\u0435\u043d\u044c\u0435 20:00',
+    posted_by:'\u0410\u0432\u0442\u043e\u0440 *',poster_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
+    rewards:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
+    reward_points:'\U0001f3c5 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_ticket:'\U0001f39f \u0411\u0438\u043b\u0435\u0442 \u0440\u043e\u0437\u044b\u0433\u0440\u044b\u0448\u0430',reward_gift:'\U0001f381 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',reward_prio:'\u2b50 \u041f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442 \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0441\u0442\u0432\u0430',
+    reward_note_ph:'\u0414\u0435\u0442\u0430\u043b\u0438: 50 \u043e\u0447\u043a\u043e\u0432, \u044d\u043f\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u043c\u0435\u0447, \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u0439 \u0441\u043b\u043e\u0442 \u043a\u0440\u0430\u0444\u0442\u0430',
+    cancel:'\u041e\u0442\u043c\u0435\u043d\u0430',
+    claim_quest_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',
+    claim_info:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u0447\u0442\u043e\u0431\u044b \u0432\u0437\u044f\u0442\u044c \u044d\u0442\u043e \u0437\u0430\u0434\u0430\u043d\u0438\u0435. \u041e\u043d\u043e \u0431\u0443\u0434\u0435\u0442 \u043e\u0442\u043c\u0435\u0447\u0435\u043d\u043e \u043a\u0430\u043a \u0437\u0430\u043d\u044f\u0442\u043e\u0435, \u0447\u0442\u043e\u0431\u044b \u0434\u0440\u0443\u0433\u0438\u0435 \u0437\u043d\u0430\u043b\u0438, \u0447\u0442\u043e \u0435\u0433\u043e \u0443\u0436\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u044f\u044e\u0442.',
+    your_name:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f *',name_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
+    claim_quest:'\u0412\u0437\u044f\u0442\u044c\u0441\u044f',
+    item_label:'\u041f\u0440\u0435\u0434\u043c\u0435\u0442',qty_label:'\u041a\u043e\u043b-\u0432\u043e',deliver_to_label:'\u0414\u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c',deadline_label:'\u0421\u0440\u043e\u043a',claimed_by_label:'\u0412\u0437\u044f\u043b(\u0430)',
+    rewards_label:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
+    claim:'\u0412\u0437\u044f\u0442\u044c',mark_complete:'\u0413\u043e\u0442\u043e\u0432\u043e',unclaim:'\u0412\u0435\u0440\u043d\u0443\u0442\u044c',delete:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
+    posted_by_text:'\u0410\u0432\u0442\u043e\u0440',
+    quest_one:'1 \u0437\u0430\u0434\u0430\u043d\u0438\u0435',quest_many:'{n} \u0437\u0430\u0434\u0430\u043d\u0438\u0439',
+    no_quests:'\u0417\u0430\u0434\u0430\u043d\u0438\u0439 \u043d\u0435\u0442',post_first_quest:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u043f\u0435\u0440\u0432\u043e\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0435',
+    retry:'\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c',
+    just_now:'\u0442\u043e\u043b\u044c\u043a\u043e \u0447\u0442\u043e',m_ago:'{n}\u043c \u043d\u0430\u0437\u0430\u0434',h_ago:'{n}\u0447 \u043d\u0430\u0437\u0430\u0434',d_ago:'{n}\u0434 \u043d\u0430\u0437\u0430\u0434',
+    required_title_poster:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0438 \u0430\u0432\u0442\u043e\u0440 \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u044b.',
+    connect_error:'\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u044c\u0441\u044f. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0434\u0430\u043d\u043d\u044b\u0435.',
+    load_error:'\u041e\u0448\u0438\u0431\u043a\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438: ',
+    err_prefix:'\u041e\u0448\u0438\u0431\u043a\u0430: ',
+    quest_posted:'\u0417\u0430\u0434\u0430\u043d\u0438\u0435 \u0441\u043e\u0437\u0434\u0430\u043d\u043e!',
+    enter_name:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f.',
+    quest_claimed:'\u0417\u0430\u0434\u0430\u043d\u0438\u0435 \u0432\u0437\u044f\u0442\u043e!',
+    quest_unclaimed:'\u0417\u0430\u0434\u0430\u043d\u0438\u0435 \u0432\u043e\u0437\u0432\u0440\u0430\u0449\u0435\u043d\u043e.',
+    quest_complete:'\u0417\u0430\u0434\u0430\u043d\u0438\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e!',
+    quest_deleted:'\u0417\u0430\u0434\u0430\u043d\u0438\u0435 \u0443\u0434\u0430\u043b\u0435\u043d\u043e.',
+    confirm_delete:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u044d\u0442\u043e \u0437\u0430\u0434\u0430\u043d\u0438\u0435?',
+    leaderboard:'\U0001f3c6 \u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432',
+    lb_empty:'\u041e\u0447\u043a\u043e\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442',
+    admin_title:'\u0414\u043e\u0441\u0442\u0443\u043f \u0430\u0434\u043c\u0438\u043d\u0430',admin_info:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u0430 \u0434\u043b\u044f \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f.',
+    admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
+    award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
+    award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -375,7 +476,7 @@ let quests = [];
 let currentFilter = 'all';
 let claimingId = null;
 
-const TYPE_ICONS  = {gather:'⛏',farm:'🌾',deliver:'📦',craft:'🔨',other:'📜'};
+const TYPE_ICONS  = {gather:'\u26cf',farm:'\U0001f33e',deliver:'\U0001f4e6',craft:'\U0001f528',event:'\U0001f3aa'};
 
 function t(key, ...args){
   let val = (TRANS[lang]||TRANS.en)[key];
@@ -387,10 +488,14 @@ function t(key, ...args){
 function applyTranslations(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{
     const k=el.getAttribute('data-i18n');
-    if(k){const txt=t(k);if(txt!==el.innerHTML.trim())el.innerHTML=txt;}
+    if(k&&el.tagName!=='OPTION'){const txt=t(k);if(txt!==el.innerHTML.trim())el.innerHTML=txt;}
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
     el.setAttribute('placeholder',t(el.getAttribute('data-i18n-placeholder')));
+  });
+  document.querySelectorAll('#f-type option').forEach(o=>{
+    const k=o.getAttribute('data-i18n');
+    if(k)o.textContent=t(k);
   });
   document.getElementById('html-tag').setAttribute('lang',lang);
   document.getElementById('lang-btn').textContent=lang==='en'?t('lang_ru'):t('lang_en');
@@ -401,6 +506,7 @@ function toggleLang(){
   localStorage.setItem(LANG_KEY,lang);
   applyTranslations();
   render();
+  renderLeaderboard();
 }
 
 async function initApp(){
@@ -408,6 +514,7 @@ async function initApp(){
     sb=supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     await fetchQuests();
     subscribeRealtime();
+    fetchLeaderboard();
   }catch(e){
     showBoardError(t('connect_error'));
     console.error(e);
@@ -423,11 +530,12 @@ async function fetchQuests(){
 
 function dbToQ(r){
   return{
-    id:r.id,title:r.title||'',type:r.type||'other',description:r.description||'',
+    id:r.id,title:r.title||'',type:r.type||'event',description:r.description||'',
     item:r.item||'',qty:r.qty||'',deliverTo:r.deliver_to||'',
     deadline:r.deadline||'',poster:r.poster||'',rewards:r.rewards||[],
     rewardNote:r.reward_note||'',status:r.status||'open',
-    claimedBy:r.claimed_by||null,postedAt:new Date(r.posted_at).getTime()
+    claimedBy:r.claimed_by||null,postedAt:new Date(r.posted_at).getTime(),
+    participants:r.participants||[]
   };
 }
 
@@ -439,6 +547,9 @@ function subscribeRealtime(){
       else if(p.eventType==='DELETE')quests=quests.filter(q=>q.id!==p.old.id);
       render();
     }).subscribe();
+  sb.channel('loyalty-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'loyalty'},()=>{fetchLeaderboard();})
+    .subscribe();
 }
 
 function filtered(){
@@ -462,33 +573,54 @@ function timeAgo(ts){
   return t('d_ago',Math.floor(s/86400));
 }
 
+function isAdmin(){return localStorage.getItem('gv_admin')==='true';}
+
 function renderCard(q){
   const sLabel={open:t('open'),claimed:t('claimed'),complete:t('complete')}[q.status];
   const bCls={open:'badge-open',claimed:'badge-claimed',complete:'badge-complete'}[q.status];
-  const typeLabel={gather:t('gather'),farm:t('farm'),deliver:t('deliver'),craft:t('craft'),other:t('other')}[q.type]||t('other');
+  const typeLabel={gather:t('gather'),farm:t('farm'),deliver:t('deliver'),craft:t('craft'),event:t('event')}[q.type]||t('event');
+  const isEvent=q.type==='event';
   const rows=[
     q.item&&`<div class="detail-row"><span class="detail-label">${t('item_label')}</span><span class="detail-value">${esc(q.item)}</span></div>`,
     q.qty&&`<div class="detail-row"><span class="detail-label">${t('qty_label')}</span><span class="detail-value">${esc(q.qty)}</span></div>`,
     q.deliverTo&&`<div class="detail-row"><span class="detail-label">${t('deliver_to_label')}</span><span class="detail-value">${esc(q.deliverTo)}</span></div>`,
     q.deadline&&`<div class="detail-row"><span class="detail-label">${t('deadline_label')}</span><span class="detail-value">${esc(q.deadline)}</span></div>`,
-    q.claimedBy&&`<div class="detail-row"><span class="detail-label">${t('claimed_by_label')}</span><span class="detail-value" style="color:var(--blue-bright)">${esc(q.claimedBy)}</span></div>`,
+    q.claimedBy&&!isEvent&&`<div class="detail-row"><span class="detail-label">${t('claimed_by_label')}</span><span class="detail-value" style="color:var(--blue-bright)">${esc(q.claimedBy)}</span></div>`,
   ].filter(Boolean).join('');
   const rHtml=renderRewards(q);
-  const rSec=rHtml?`<div class="detail-row" style="align-items:flex-start"><span class="detail-label" style="padding-top:3px">${t('rewards_label')}</span><div class="rewards-row">${rHtml}</div></div>`:'';
+  const rSec=rHtml&&!isEvent?`<div class="detail-row" style="align-items:flex-start"><span class="detail-label" style="padding-top:3px">${t('rewards_label')}</span><div class="rewards-row">${rHtml}</div></div>`:'';
   let acts='';
-  if(q.status==='open')acts=`<button class="btn btn-sm btn-success" onclick="openClaimModal('${q.id}')">${t('claim')}</button>`;
-  else if(q.status==='claimed')acts=`<button class="btn btn-sm btn-primary" onclick="completeQuest('${q.id}')">${t('mark_complete')}</button><button class="btn btn-sm" onclick="unclaimQuest('${q.id}')">${t('unclaim')}</button>`;
-  acts+=` <button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">${t('delete')}</button>`;
+  if(isEvent&&q.status==='open'){
+    const pCount=(q.participants||[]).length;
+    acts=`<span style="font-size:.75rem;color:var(--text-dim);font-style:italic">${pCount} ${pCount===1?'player':'players'}</span>`;
+    acts+=` <button class="btn btn-sm btn-success" onclick="registerForEvent('${q.id}')">Register</button>`;
+  }else if(!isEvent&&q.status==='open'){
+    acts=`<button class="btn btn-sm btn-success" onclick="openClaimModal('${q.id}')">${t('claim')}</button>`;
+  }else if(q.status==='claimed'){
+    acts=`<button class="btn btn-sm btn-primary" onclick="completeQuest('${q.id}')">${t('mark_complete')}</button><button class="btn btn-sm" onclick="unclaimQuest('${q.id}')">${t('unclaim')}</button>`;
+  }
+  if(isEvent&&q.status==='open'&&isAdmin()){
+    acts+=` <button class="btn btn-sm btn-primary" onclick="closeEvent('${q.id}')">Close Event</button>`;
+  }
+  if(isAdmin()){
+    acts+=` <button class="btn btn-sm" onclick="openEditModal('${q.id}')">\u270f</button>`;
+    acts+=` <button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">${t('delete')}</button>`;
+  }
+  let participantsHtml='';
+  if(isEvent&&(q.participants||[]).length){
+    participantsHtml=`<div class="card-desc" style="font-size:.8rem;margin-top:4px">\U0001f4cb ${esc((q.participants||[]).join(', '))}</div>`;
+  }
   return`<div class="quest-card type-${q.type} status-${q.status}" id="card-${q.id}">
     <div class="card-type-bar"></div>
     <div class="card-head">
-      <div class="card-type-icon">${TYPE_ICONS[q.type]||'📜'}</div>
+      <div class="card-type-icon">${TYPE_ICONS[q.type]||'\U0001f4dc'}</div>
       <div class="card-meta"><div class="card-type-tag">${typeLabel}</div><div class="card-title">${esc(q.title)}</div></div>
       <span class="card-status-badge ${bCls}">${sLabel}</span>
     </div>
     <div class="card-body">
       ${q.description?`<div class="card-desc">${esc(q.description)}</div>`:''}
       <div class="card-details">${rows}${rSec}</div>
+      ${participantsHtml}
     </div>
     <div class="card-foot">
       <span class="card-poster">${t('posted_by_text')} <strong>${esc(q.poster)}</strong> &middot; ${timeAgo(q.postedAt)}</span>
@@ -498,12 +630,15 @@ function renderCard(q){
 }
 
 function render(){
+  const admin=isAdmin();
+  document.getElementById('admin-badge').classList.toggle('show',admin);
   const list=filtered();
   const grid=document.getElementById('quest-grid');
   const cnt=list.length;
   document.getElementById('quest-count').textContent=cnt===1?t('quest_one'):t('quest_many',cnt);
   if(!cnt){
-    grid.innerHTML=`<div class="board-status"><div class="status-icon">📜</div><p>${t('no_quests')}</p><button class="btn btn-primary" onclick="openNewQuestModal()">${t('post_first_quest')}</button></div>`;
+    grid.innerHTML=`<div class="board-status"><div class="status-icon">\U0001f4dc</div><p>${t('no_quests')}</p><button class="btn btn-primary" onclick="openNewQuestModal()">${t('post_first_quest')}</button></div>`;
+    applyTranslations();
     return;
   }
   const ord={open:0,claimed:1,complete:2};
@@ -513,13 +648,33 @@ function render(){
 }
 
 function showBoardError(msg){
-  document.getElementById('quest-grid').innerHTML=`<div class="board-status"><div class="status-icon">⚠</div><p>${msg}</p><button class="btn" onclick="fetchQuests()">${t('retry')}</button></div>`;
+  document.getElementById('quest-grid').innerHTML=`<div class="board-status"><div class="status-icon">\u26a0</div><p>${msg}</p><button class="btn" onclick="fetchQuests()">${t('retry')}</button></div>`;
 }
 
-function openNewQuestModal(){
+function openNewQuestModal(editData){
   ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster','f-reward-note'].forEach(id=>document.getElementById(id).value='');
   ['r-points','r-ticket','r-gift','r-prio'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('f-type').value='gather';
+  const rw=document.getElementById('rewards-section');
+  if(rw)rw.style.display=isAdmin()?'':'none';
+  if(editData){
+    document.getElementById('f-title').value=editData.title;
+    document.getElementById('f-type').value=editData.type;
+    document.getElementById('f-desc').value=editData.description||'';
+    document.getElementById('f-item').value=editData.item||'';
+    document.getElementById('f-qty').value=editData.qty||'';
+    document.getElementById('f-deliver').value=editData.deliverTo||'';
+    document.getElementById('f-deadline').value=editData.deadline||'';
+    document.getElementById('f-poster').value=editData.poster||'';
+    document.getElementById('f-reward-note').value=editData.rewardNote||'';
+    (editData.rewards||[]).forEach(r=>{const el=document.getElementById('r-'+r);if(el)el.checked=true;});
+    document.getElementById('post-btn').textContent=editData?t('save'):t('post_quest');
+    document.getElementById('post-btn').setAttribute('onclick',editData?`saveEdit('${editData.id}')`:'postQuest()');
+  }else{
+    document.getElementById('post-btn').textContent=t('post_quest');
+    document.getElementById('post-btn').setAttribute('onclick','postQuest()');
+    document.querySelector('.modal-title').innerHTML = '\u2696 ' + t('new_quest_title');
+  }
   applyTranslations();
   openModal('new-quest-modal');
 }
@@ -528,7 +683,7 @@ async function postQuest(){
   const title=document.getElementById('f-title').value.trim();
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
-  const rewards=['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked);
+  const rewards=isAdmin()?['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked):[];
   const row={
     title,type:document.getElementById('f-type').value,
     description:document.getElementById('f-desc').value.trim(),
@@ -537,8 +692,8 @@ async function postQuest(){
     deliver_to:document.getElementById('f-deliver').value.trim(),
     deadline:document.getElementById('f-deadline').value.trim(),
     poster,rewards,
-    reward_note:document.getElementById('f-reward-note').value.trim(),
-    status:'open',claimed_by:null
+    reward_note:isAdmin()?document.getElementById('f-reward-note').value.trim():'',
+    status:'open',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
   const{error}=await sb.from('quests').insert(row);
@@ -546,6 +701,37 @@ async function postQuest(){
   if(error){toast(t('err_prefix')+error.message);return;}
   closeModal('new-quest-modal');
   toast(t('quest_posted'));
+}
+
+function openEditModal(id){
+  const q=quests.find(x=>x.id===id);
+  if(!q)return;
+  document.querySelector('.modal-title').innerHTML='\u270f '+t('edit_title');
+  openNewQuestModal(q);
+}
+
+async function saveEdit(id){
+  const title=document.getElementById('f-title').value.trim();
+  const poster=document.getElementById('f-poster').value.trim();
+  if(!title||!poster){toast(t('required_title_poster'));return;}
+  const rewards=isAdmin()?['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const row={
+    title,type:document.getElementById('f-type').value,
+    description:document.getElementById('f-desc').value.trim(),
+    item:document.getElementById('f-item').value.trim(),
+    qty:document.getElementById('f-qty').value.trim(),
+    deliver_to:document.getElementById('f-deliver').value.trim(),
+    deadline:document.getElementById('f-deadline').value.trim(),
+    poster,rewards,
+    reward_note:isAdmin()?document.getElementById('f-reward-note').value.trim():''
+  };
+  setBusy('post-btn',true);
+  const{error}=await sb.from('quests').update(row).eq('id',id);
+  setBusy('post-btn',false);
+  if(error){toast(t('err_prefix')+error.message);return;}
+  document.querySelector('.modal-title').innerHTML='\u2696 '+t('new_quest_title');
+  closeModal('new-quest-modal');
+  toast('Quest updated!');
 }
 
 function openClaimModal(id){
@@ -568,10 +754,40 @@ async function confirmClaim(){
   toast(t('quest_claimed'));
 }
 
+async function registerForEvent(id){
+  const name=prompt(t('enter_name'));
+  if(!name)return;
+  const q=quests.find(x=>x.id===id);
+  if(!q)return;
+  const parts=q.participants||[];
+  if(parts.includes(name)){toast('Already registered.');return;}
+  parts.push(name);
+  const{error}=await sb.from('quests').update({participants:parts}).eq('id',id);
+  if(error){toast(t('err_prefix')+error.message);return;}
+  toast('Registered!');
+}
+
 async function unclaimQuest(id){
   const{error}=await sb.from('quests').update({status:'open',claimed_by:null}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
   toast(t('quest_unclaimed'));
+}
+
+async function closeEvent(id){
+  const q=quests.find(x=>x.id===id);
+  if(!q)return;
+  const parts=q.participants||[];
+  if(!parts.length){toast('No participants to reward.');return;}
+  const names=parts.join('\n');
+  const pts=prompt('Award points to each participant?\nParticipants:\n'+names+'\n\nPoints per player:');
+  if(pts===null)return;
+  const p=parseInt(pts);
+  if(isNaN(p)||p<1){toast('Invalid points.');return;}
+  for(const name of parts){
+    await sb.from('loyalty').insert({player_name:name,points:p,reason:q.title,awarded_by:'Admin',quest_id:id});
+  }
+  await sb.from('quests').update({status:'complete'}).eq('id',id);
+  toast('Event closed! Points awarded.');
 }
 
 async function completeQuest(id){
@@ -592,6 +808,96 @@ function setFilter(f,btn){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   render();
+}
+
+// ADMIN
+let adminClicks=0;
+let adminTimer=null;
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.logo-crest'))return;
+  adminClicks++;
+  if(adminClicks===3){
+    adminClicks=0;
+    clearTimeout(adminTimer);
+    if(isAdmin()){toast('Already admin mode.');return;}
+    document.getElementById('admin-pw').value='';
+    openModal('admin-modal');
+    document.getElementById('admin-pw').focus();
+    return;
+  }
+  clearTimeout(adminTimer);
+  adminTimer=setTimeout(()=>{adminClicks=0;},2000);
+});
+
+function verifyAdmin(){
+  const pw=document.getElementById('admin-pw').value.trim();
+  if(pw===ADMIN_PASSWORD){
+    localStorage.setItem('gv_admin','true');
+    closeModal('admin-modal');
+    toast('Admin mode unlocked!');
+    render();
+    renderLeaderboard();
+  }else{
+    toast('Wrong password.');
+  }
+}
+
+function logoutAdmin(){
+  if(!confirm('Log out of admin mode?'))return;
+  localStorage.removeItem('gv_admin');
+  render();
+  renderLeaderboard();
+  toast('Admin mode off.');
+}
+
+function openAwardModal(playerName){
+  document.getElementById('award-player-name').textContent=playerName;
+  document.getElementById('award-points').value=10;
+  document.getElementById('award-reason').value='';
+  applyTranslations();
+  openModal('award-modal');
+}
+
+async function confirmAward(){
+  const name=document.getElementById('award-player-name').textContent;
+  const pts=parseInt(document.getElementById('award-points').value);
+  const reason=document.getElementById('award-reason').value.trim()||'Manual award';
+  if(isNaN(pts)||pts<1){toast('Enter a valid point amount.');return;}
+  const{error}=await sb.from('loyalty').insert({player_name:name,points:pts,reason,awarded_by:'Admin'});
+  if(error){toast(t('err_prefix')+error.message);return;}
+  closeModal('award-modal');
+  toast('Awarded '+pts+' points to '+name);
+}
+
+// LEADERBOARD
+let loyaltyData=[];
+
+async function fetchLeaderboard(){
+  if(!sb)return;
+  const{data,error}=await sb.from('loyalty').select('*');
+  if(error)return;
+  loyaltyData=data||[];
+  renderLeaderboard();
+}
+
+function renderLeaderboard(){
+  const list=document.getElementById('lb-list');
+  if(!list)return;
+  const map={};
+  (loyaltyData||[]).forEach(r=>{map[r.player_name]=(map[r.player_name]||0)+r.points;});
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  if(!sorted.length){
+    list.innerHTML=`<div class="lb-empty" data-i18n="lb_empty">No points yet</div>`;
+    applyTranslations();
+    return;
+  }
+  const admin=isAdmin();
+  list.innerHTML=sorted.map(([name,pts],i)=>{
+    const rank=i+1;
+    const rCls=rank===1?'lb-rank-1':rank===2?'lb-rank-2':rank===3?'lb-rank-3':'';
+    const awardBtn=admin?` <button class="lb-award-btn" onclick="openAwardModal('${esc(name)}')">+</button>`:'';
+    return`<div class="lb-row"><span class="lb-rank ${rCls}">#${rank}</span><span class="lb-name">${esc(name)}${awardBtn}</span><span class="lb-points">${pts}</span></div>`;
+  }).join('');
 }
 
 function openModal(id){document.getElementById(id).classList.remove('hidden');}
