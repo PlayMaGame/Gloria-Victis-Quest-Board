@@ -680,13 +680,13 @@ function onTypeChange(){
   const ll=document.getElementById('deadline-label');
   const li=document.getElementById('f-deadline');
   if(isEvent){
-    dl.textContent=t('event_location');
-    ll.textContent=t('event_start');
+    dl.setAttribute('data-i18n','event_location');
+    ll.setAttribute('data-i18n','event_start');
     li.setAttribute('type','datetime-local');
     document.getElementById('f-title').setAttribute('data-i18n-placeholder','event_title_ph');
   }else{
-    dl.textContent=t('deliver_to');
-    ll.textContent=t('deadline');
+    dl.setAttribute('data-i18n','deliver_to');
+    ll.setAttribute('data-i18n','deadline');
     li.setAttribute('type','text');
     document.getElementById('f-title').setAttribute('data-i18n-placeholder','quest_title_ph');
   }
