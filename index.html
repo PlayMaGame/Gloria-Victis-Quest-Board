@@ -197,9 +197,8 @@ select option{background:var(--parchment-3);}
 <!-- GUILD WARNING -->
 <div class="warning-overlay" id="warning-overlay">
   <div class="warning-box">
-    <div class="warning-crest" style="position:relative;width:48px;height:48px;margin:0 auto 16px">
-      <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Cinzel;font-weight:700;color:var(--gold);font-size:.9rem;background:var(--parchment-3);border:1px solid var(--border)">AV</span>
-      <img style="position:absolute;inset:0;width:48px;height:48px" src="https://yt3.googleusercontent.com/Ob8ym91Phkc8lSrFecoSbr_RXQZPWDBxxTT3vlouCxHfmQ5Io9pwQNykjVfFIJzQ2vvoNGbwUGg=s160-c-k-c0x00ffffff-no-rj" alt="AV" onerror="this.style.display='none'">
+    <div class="warning-crest" style="margin:0 auto 16px">
+      <svg width="48" height="48" viewBox="0 0 38 38"><polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#c8922a" stroke-width="1.5"/><text x="19" y="24" text-anchor="middle" fill="#c8922a" font-family="Cinzel" font-size="14" font-weight="700">AV</text></svg>
     </div>
     <div class="warning-title">&#9876; Private Guild Board</div>
     <div class="warning-body">This board is for members of the <strong>Avangard</strong> guild and our allies only. Do not share this link with players outside the alliance.</div>
@@ -212,9 +211,8 @@ select option{background:var(--parchment-3);}
 <div id="app">
   <header>
     <div class="logo">
-      <div class="logo-crest" style="position:relative">
-        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Cinzel;font-weight:700;color:var(--gold);font-size:.65rem;background:var(--parchment-3);border:1px solid var(--border)">AV</span>
-        <img style="width:38px;height:38px" src="https://yt3.googleusercontent.com/Ob8ym91Phkc8lSrFecoSbr_RXQZPWDBxxTT3vlouCxHfmQ5Io9pwQNykjVfFIJzQ2vvoNGbwUGg=s160-c-k-c0x00ffffff-no-rj" alt="AV" onerror="this.style.display='none'">
+      <div class="logo-crest" style="position:relative;width:38px;height:38px;flex-shrink:0">
+        <svg width="38" height="38" viewBox="0 0 38 38"><polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#c8922a" stroke-width="1.5"/><text x="19" y="24" text-anchor="middle" fill="#c8922a" font-family="Cinzel" font-size="14" font-weight="700">AV</text></svg>
       </div>
       <h1>Gloria Victis<span data-i18n="subtitle">Guild Quest Board</span></h1>
     </div>
@@ -223,6 +221,7 @@ select option{background:var(--parchment-3);}
       <span class="live-label" data-i18n="live">Live</span>
       <span class="admin-badge" id="admin-badge" onclick="logoutAdmin()" title="Click to logout">⚷ Admin</span>
       <button class="btn btn-sm" onclick="toggleLang()" id="lang-btn">RU</button>
+      <button class="btn btn-sm" onclick="openGuideModal()">&#10067;</button>
       <button class="btn btn-primary" onclick="openNewQuestModal()">&#9876; <span data-i18n="post_quest">Post Quest</span></button>
     </div>
   </header>
@@ -230,6 +229,7 @@ select option{background:var(--parchment-3);}
   <div class="toolbar">
     <span class="filter-label" data-i18n="filter">Filter:</span>
     <button class="filter-btn active" onclick="setFilter('all',this)" data-i18n="all">All</button>
+    <span style="width:1px;height:16px;background:var(--border);margin:0 4px"></span>
     <button class="filter-btn" onclick="setFilter('open',this)" data-i18n="open">Open</button>
     <button class="filter-btn" onclick="setFilter('claimed',this)" data-i18n="claimed">Claimed</button>
     <button class="filter-btn" onclick="setFilter('complete',this)" data-i18n="complete">Complete</button>
@@ -238,6 +238,7 @@ select option{background:var(--parchment-3);}
     <button class="filter-btn" onclick="setFilter('farm',this)">&#127806; <span data-i18n="farm">Farm</span></button>
     <button class="filter-btn" onclick="setFilter('deliver',this)">&#128230; <span data-i18n="deliver">Deliver</span></button>
     <button class="filter-btn" onclick="setFilter('craft',this)">&#128296; <span data-i18n="craft">Craft</span></button>
+    <span style="width:1px;height:16px;background:var(--border);margin:0 4px"></span>
     <button class="filter-btn" onclick="setFilter('event',this)">&#128220; <span data-i18n="event">Event</span></button>
     <span class="spacer"></span>
     <span class="quest-count" id="quest-count"></span>
@@ -412,6 +413,38 @@ select option{background:var(--parchment-3);}
   </div>
 </div>
 
+<!-- GUIDE MODAL -->
+<div class="modal-overlay hidden" id="guide-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="guide_title">&#10067; How to Use</span>
+      <button class="modal-close" onclick="closeModal('guide-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body" style="gap:0">
+      <div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;gap:8px;align-items:flex-start">
+        <span style="color:var(--gold-bright);font-family:Cinzel;font-size:.7rem;min-width:24px">1.</span>
+        <div><strong data-i18n="guide_p1_title">Post a quest</strong><br><span style="color:var(--text-dim);font-size:.85rem" data-i18n="guide_p1_desc">Click "Post Quest", fill in title, type, description and rewards. Only admins can set rewards.</span></div>
+      </div>
+      <div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;gap:8px;align-items:flex-start">
+        <span style="color:var(--gold-bright);font-family:Cinzel;font-size:.7rem;min-width:24px">2.</span>
+        <div><strong data-i18n="guide_p2_title">Claim a quest</strong><br><span style="color:var(--text-dim);font-size:.85rem" data-i18n="guide_p2_desc">Enter your in-game name to mark it as taken. All members see it in real time.</span></div>
+      </div>
+      <div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;gap:8px;align-items:flex-start">
+        <span style="color:var(--gold-bright);font-family:Cinzel;font-size:.7rem;min-width:24px">3.</span>
+        <div><strong data-i18n="guide_p3_title">Events</strong><br><span style="color:var(--text-dim);font-size:.85rem" data-i18n="guide_p3_desc">Register for guild events with your IGN. Admin closes the event and awards loyalty points.</span></div>
+      </div>
+      <div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;gap:8px;align-items:flex-start">
+        <span style="color:var(--gold-bright);font-family:Cinzel;font-size:.7rem;min-width:24px">4.</span>
+        <div><strong data-i18n="guide_p4_title">Leaderboard</strong><br><span style="color:var(--text-dim);font-size:.85rem" data-i18n="guide_p4_desc">Earn loyalty points by completing quests and participating in events. Top players are shown on the right.</span></div>
+      </div>
+      <div style="padding:10px 0;display:flex;gap:8px;align-items:flex-start">
+        <span style="color:var(--gold-bright);font-family:Cinzel;font-size:.7rem;min-width:24px">5.</span>
+        <div><strong data-i18n="guide_p5_title">Admin access</strong><br><span style="color:var(--text-dim);font-size:.85rem" data-i18n="guide_p5_desc">Triple-click the guild crest to unlock admin tools. Admins can edit, delete, set rewards, and award points.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- TICKER BAR -->
 <div id="ticker-wrap" class="hidden">
   <div id="ticker-track"></div>
@@ -495,7 +528,7 @@ const TRANS = {
     admin_password:'Password',admin_unlock:'Unlock',
     award_title:'Award Points',award_points:'Points',award_reason:'Reason',
     award_reason_ph:'e.g. Event victory',award_btn:'Award',
-    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',ticker_title:'Ticker Items',ticker_click_hint:'Click an item below to add it to the scrolling ticker:',ticker_add_hot:'🔥 Add as hot',ticker_active:'Active ticker items:',ticker_clear:'Clear All',ticker_del:'Delete',ticker_announce:'🔥 Items in need:',
+    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',ticker_title:'Ticker Items',ticker_click_hint:'Click an item below to add it to the scrolling ticker:',ticker_add_hot:'🔥 Add as hot',ticker_active:'Active ticker items:',ticker_clear:'Clear All',ticker_del:'Delete',ticker_announce:'🔥 Items in need:',guide_title:'How to Use',guide_p1_title:'Post a quest',guide_p1_desc:'Click "Post Quest", fill in title, type, description and rewards. Only admins can set rewards.',guide_p2_title:'Claim a quest',guide_p2_desc:'Enter your in-game name to mark it as taken. All members see it in real time.',guide_p3_title:'Events',guide_p3_desc:'Register for guild events with your IGN. Admin closes the event and awards loyalty points.',guide_p4_title:'Leaderboard',guide_p4_desc:'Earn loyalty points by completing quests and participating in events. Top players are shown on the right.',guide_p5_title:'Admin access',guide_p5_desc:'Triple-click the guild crest to unlock admin tools. Admins can edit, delete, set rewards, and award points.',
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
@@ -544,7 +577,7 @@ const TRANS = {
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
     award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
     award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
-    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',ticker_title:'\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b \u0431\u0435\u0433\u0443\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438',ticker_click_hint:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442, \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0435\u0433\u043e \u0432 \u0431\u0435\u0433\u0443\u0449\u0443\u044e \u0441\u0442\u0440\u043e\u043a\u0443:',ticker_add_hot:'🔥 \u041a\u0430\u043a \u0433\u043e\u0440\u044f\u0447\u0435\u0435',ticker_active:'\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u044b:',ticker_clear:'\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c',ticker_del:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',ticker_announce:'🔥 \u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b:',
+    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',ticker_title:'\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b \u0431\u0435\u0433\u0443\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438',ticker_click_hint:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442, \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0435\u0433\u043e \u0432 \u0431\u0435\u0433\u0443\u0449\u0443\u044e \u0441\u0442\u0440\u043e\u043a\u0443:',ticker_add_hot:'🔥 \u041a\u0430\u043a \u0433\u043e\u0440\u044f\u0447\u0435\u0435',ticker_active:'\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u044b:',ticker_clear:'\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c',ticker_del:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',ticker_announce:'🔥 \u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b:',guide_title:'\u041a\u0430\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c\u0441\u044f',guide_p1_title:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p1_desc:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 "\u0421\u043e\u0437\u0434\u0430\u0442\u044c", \u0437\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435, \u0442\u0438\u043f, \u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0438 \u043d\u0430\u0433\u0440\u0430\u0434\u044b. \u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d \u043c\u043e\u0436\u0435\u0442 \u0443\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0442\u044c \u043d\u0430\u0433\u0440\u0430\u0434\u044b.',guide_p2_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p2_desc:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043c\u0435\u0442\u0438\u0442\u044c \u0435\u0433\u043e \u043a\u0430\u043a \u0432\u0437\u044f\u0442\u043e\u0435. \u0412\u0441\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u0432\u0438\u0434\u044f\u0442 \u044d\u0442\u043e \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438.',guide_p3_title:'\u0418\u0432\u0435\u043d\u0442\u044b',guide_p3_desc:'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044c \u043d\u0430 \u0433\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0435 \u0438\u0432\u0435\u043d\u0442\u044b \u0441 \u0432\u0430\u0448\u0438\u043c IGN. \u0410\u0434\u043c\u0438\u043d \u0437\u0430\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u0438\u0432\u0435\u043d\u0442 \u0438 \u043d\u0430\u0447\u0438\u0441\u043b\u044f\u0435\u0442 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438.',guide_p4_title:'\u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432',guide_p4_desc:'\u0417\u0430\u0440\u0430\u0431\u0430\u0442\u044b\u0432\u0430\u0439\u0442\u0435 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438 \u0437\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0439 \u0438 \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 \u0438\u0432\u0435\u043d\u0442\u0430\u0445. \u041b\u0443\u0447\u0448\u0438\u0435 \u0438\u0433\u0440\u043e\u043a\u0438 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u044b \u0441\u043f\u0440\u0430\u0432\u0430.',guide_p5_title:'\u0414\u043e\u0441\u0442\u0443\u043f \u0430\u0434\u043c\u0438\u043d\u0430',guide_p5_desc:'\u0422\u0440\u043e\u0439\u043d\u043e\u0439 \u043a\u043b\u0438\u043a \u043f\u043e \u0433\u0435\u0440\u0431\u0443 \u0433\u0438\u043b\u044c\u0434\u0438\u0438 \u0434\u043b\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u043a \u0438\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u0430\u043c \u0430\u0434\u043c\u0438\u043d\u0430. \u0410\u0434\u043c\u0438\u043d \u043c\u043e\u0436\u0435\u0442 \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c, \u0443\u0434\u0430\u043b\u044f\u0442\u044c, \u0443\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0442\u044c \u043d\u0430\u0433\u0440\u0430\u0434\u044b \u0438 \u043d\u0430\u0447\u0438\u0441\u043b\u044f\u0442\u044c \u043e\u0447\u043a\u0438.',
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -557,6 +590,10 @@ let claimingId = null;
 
 const TYPE_ICONS  = {gather:'\u26cf',farm:'🌾',deliver:'📦',craft:'🔨',event:'🎪'};
 const AVAILABLE_IMAGES = ['Blood of the Beast.jpg','Leaf Plan Seads.jpg','Milk.jpg','Saffron.jpg'];
+const ITEM_NAMES = {
+  en:{'Blood of the Beast':'Blood of the Beast','Leaf Plan Seads':'Leaf Plan Seeds','Milk':'Milk','Saffron':'Saffron'},
+  ru:{'Blood of the Beast':'Кровь зверя','Leaf Plan Seads':'Семена','Milk':'Молоко','Saffron':'Шафран'}
+};
 
 function t(key, ...args){
   let val = (TRANS[lang]||TRANS.en)[key];
@@ -1054,6 +1091,11 @@ function renderLeaderboard(){
   }).join('');
 }
 
+function openGuideModal(){
+  applyTranslations();
+  openModal('guide-modal');
+}
+
 // TICKER
 let tickerItems=[];
 
@@ -1077,9 +1119,10 @@ function renderTicker(){
   wrap.classList.remove('hidden');
   const announce=`<span class="ticker-item" style="color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;margin-right:20px">${t('ticker_announce')}</span>`;
   const items=tickerItems.map(i=>{
+    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[i.name]||i.name;
     const hotCls=i.hot?' ticker-item-hot':'';
     const hot=i.hot?'<span class="ticker-hot">🔥</span>':'';
-    return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${esc(i.name)}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${esc(i.name[0])}</text></svg>'">${esc(i.name)}${hot}</div>`;
+    return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${esc(tName)}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${esc(tName[0])}</text></svg>'">${esc(tName)}${hot}</div>`;
   }).join('');
   track.innerHTML=announce+items;
 }
@@ -1129,8 +1172,9 @@ function openTickerModal(){
   const list=document.getElementById('ti-list');
   if(!tickerItems.length){list.innerHTML='<p style="color:var(--text-faint);font-style:italic">No items yet.</p>';}
   else{list.innerHTML=tickerItems.map(i=>{
+    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[i.name]||i.name;
     const hot=i.hot?' 🔥':'';
-    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment-3)"><img src="images/${esc(i.image)}" alt="" style="width:28px;height:28px;object-fit:cover;border:1px solid var(--border)"><span style="flex:1;font-size:.85rem">${esc(i.name)}${hot}</span><button class="btn btn-sm ${i.hot?'btn-primary':''}" onclick="toggleTickerHot('${i.id}')" style="font-size:.55rem">🔥</button><button class="btn btn-sm btn-danger" onclick="deleteTickerItem('${i.id}')" style="font-size:.55rem">✕</button></div>`;
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment-3)"><img src="images/${esc(i.image)}" alt="" style="width:28px;height:28px;object-fit:cover;border:1px solid var(--border)"><span style="flex:1;font-size:.85rem">${esc(tName)}${hot}</span><button class="btn btn-sm ${i.hot?'btn-primary':''}" onclick="toggleTickerHot('${i.id}')" style="font-size:.55rem">🔥</button><button class="btn btn-sm btn-danger" onclick="deleteTickerItem('${i.id}')" style="font-size:.55rem">✕</button></div>`;
   }).join('');}
   applyTranslations();
   openModal('ticker-modal');
