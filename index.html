@@ -60,6 +60,9 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px;}
 .type-other .card-type-bar{background:var(--text-dim);}
 .type-event .card-type-bar{background:#c06020;}
 .type-event .card-type-tag{color:#e08030;}
+.card-hot-deal{box-shadow:0 0 12px rgba(255,100,0,.4),0 0 30px rgba(255,50,0,.15);border-color:#c06020;}
+.card-hot-deal .card-type-bar{background:linear-gradient(90deg,#ff4400,#ff8800,#ff4400);background-size:200% 100%;animation:fireGlow 2s ease infinite;}
+@keyframes fireGlow{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
 .card-head{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border);}
 .card-type-icon{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:1px solid var(--border);background:var(--parchment-3);}
 .card-meta{flex:1;min-width:0;}
@@ -278,6 +281,7 @@ select option{background:var(--parchment-3);}
       <div class="form-group" id="rewards-section">
         <label data-i18n="rewards">Rewards</label>
         <div class="reward-checks">
+          <label class="reward-check"><input type="checkbox" id="r-hot"> <span data-i18n="reward_hot">&#128293; Hot Deal</span></label>
           <label class="reward-check"><input type="checkbox" id="r-points"> <span data-i18n="reward_points">&#127885; Guild Points</span></label>
           <label class="reward-check"><input type="checkbox" id="r-gift">   <span data-i18n="reward_gift">&#127873; Gift / Item</span></label>
         </div>
@@ -396,7 +400,7 @@ const TRANS = {
     deadline:'Deadline (optional)',deadline_ph:'e.g. Sunday 20:00',
     posted_by:'Posted By *',poster_ph:'Your in-game name',
     rewards:'Rewards',
-    reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',
+    reward_hot:'🔥 Hot Deal',reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',
     gift_ph:'Describe the gift...',
     cancel:'Cancel',
     claim_quest_title:'Claim Quest',
@@ -445,7 +449,7 @@ const TRANS = {
     deadline:'\u0421\u0440\u043e\u043a (\u043d\u0435\u043e\u0431\u044f\u0437.)',deadline_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0412\u043e\u0441\u043a\u0440\u0435\u0441\u0435\u043d\u044c\u0435 20:00',
     posted_by:'\u0410\u0432\u0442\u043e\u0440 *',poster_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
     rewards:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
-    reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',
+    reward_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',
     gift_ph:'\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u043f\u043e\u0434\u0430\u0440\u043e\u043a...',
     cancel:'\u041e\u0442\u043c\u0435\u043d\u0430',
     claim_quest_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',
@@ -571,7 +575,7 @@ function filtered(){
 }
 
 function renderRewards(q){
-  const map={points:['reward-points',t('reward_points')],gift:['reward-gift',t('reward_gift')]};
+  const map={hot:['reward-points',t('reward_hot')],points:['reward-points',t('reward_points')],gift:['reward-gift',t('reward_gift')]};
   const chips=(q.rewards||[]).map(r=>{const[cls,l]=map[r]||['',''];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
   const note=q.rewardNote?`<span class="reward-chip" style="border-color:var(--border);color:var(--text-dim)">${esc(q.rewardNote)}</span>`:'';
   const pts=q.pointsValue&&q.rewards.includes('points')?`<span class="reward-chip reward-points">🏅 ${q.pointsValue} pts</span>`:'';
@@ -632,7 +636,8 @@ function renderCard(q){
   if(isEvent&&(q.participants||[]).length){
     participantsHtml=`<div class="card-desc" style="font-size:.8rem;margin-top:4px">📋 ${esc((q.participants||[]).join(', '))}</div>`;
   }
-  return`<div class="quest-card type-${q.type} status-${q.status}" id="card-${q.id}">
+  const hotCls=(q.rewards||[]).includes('hot')?' card-hot-deal':'';
+  return`<div class="quest-card type-${q.type} status-${q.status}${hotCls}" id="card-${q.id}">
     <div class="card-type-bar"></div>
     <div class="card-head">
       <div class="card-type-icon">${TYPE_ICONS[q.type]||'📜'}</div>
@@ -664,7 +669,12 @@ function render(){
     return;
   }
   const ord={open:0,claimed:1,complete:2};
-  const sorted=[...list].sort((a,b)=>(ord[a.status]-ord[b.status])||(b.postedAt-a.postedAt));
+  const sorted=[...list].sort((a,b)=>{
+    const aHot=(a.rewards||[]).includes('hot')?0:1;
+    const bHot=(b.rewards||[]).includes('hot')?0:1;
+    if(aHot!==bHot)return aHot-bHot;
+    return (ord[a.status]-ord[b.status])||(b.postedAt-a.postedAt);
+  });
   grid.innerHTML=sorted.map(renderCard).join('');
   applyTranslations();
 }
@@ -695,7 +705,7 @@ function onTypeChange(){
 
 function openNewQuestModal(editData){
   ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster'].forEach(id=>document.getElementById(id).value='');
-  ['r-points','r-gift'].forEach(id=>document.getElementById(id).checked=false);
+  ['r-hot','r-points','r-gift'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('f-points-value').value='';document.getElementById('f-points-value').style.display='none';
   document.getElementById('f-gift-desc').value='';document.getElementById('f-gift-desc').style.display='none';
   document.getElementById('f-type').value='gather';
@@ -731,7 +741,7 @@ async function postQuest(){
   const title=document.getElementById('f-title').value.trim();
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
-  const rewards=isAdmin()?['points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const rewards=isAdmin()?['hot','points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
   const pv=parseInt(document.getElementById('f-points-value').value)||0;
   const giftNote=isAdmin()?document.getElementById('f-gift-desc').value.trim():'';
   const row={
@@ -765,7 +775,7 @@ async function saveEdit(id){
   const title=document.getElementById('f-title').value.trim();
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
-  const rewards=isAdmin()?['points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const rewards=isAdmin()?['hot','points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
   const pv=parseInt(document.getElementById('f-points-value').value)||0;
   const giftNote=isAdmin()?document.getElementById('f-gift-desc').value.trim():'';
   const row={
