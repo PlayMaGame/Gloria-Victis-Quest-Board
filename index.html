@@ -279,12 +279,10 @@ select option{background:var(--parchment-3);}
         <label data-i18n="rewards">Rewards</label>
         <div class="reward-checks">
           <label class="reward-check"><input type="checkbox" id="r-points"> <span data-i18n="reward_points">&#127885; Guild Points</span></label>
-          <label class="reward-check"><input type="checkbox" id="r-ticket"> <span data-i18n="reward_ticket">&#127903; Giveaway Ticket</span></label>
           <label class="reward-check"><input type="checkbox" id="r-gift">   <span data-i18n="reward_gift">&#127873; Gift / Item</span></label>
-          <label class="reward-check"><input type="checkbox" id="r-prio">   <span data-i18n="reward_prio">&#11088; Production Priority</span></label>
         </div>
-        <input id="f-reward-note" type="text" data-i18n-placeholder="reward_note_ph" style="margin-top:8px">
         <input id="f-points-value" type="number" min="1" style="display:none;margin-top:6px;max-width:140px" data-i18n-placeholder="points_ph">
+        <input id="f-gift-desc" type="text" style="display:none;margin-top:6px" data-i18n-placeholder="gift_ph">
       </div>
     </div>
     <div class="modal-foot">
@@ -387,8 +385,8 @@ const TRANS = {
     deadline:'Deadline (optional)',deadline_ph:'e.g. Sunday 20:00',
     posted_by:'Posted By *',poster_ph:'Your in-game name',
     rewards:'Rewards',
-    reward_points:'🏅 Guild Points',reward_ticket:'🎟 Giveaway Ticket',reward_gift:'🎁 Gift / Item',reward_prio:'\u2b50 Production Priority',
-    reward_note_ph:'Details, e.g. 50 points, epic sword, next crafting slot',
+    reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',
+    gift_ph:'Describe the gift...',
     cancel:'Cancel',
     claim_quest_title:'Claim Quest',
     claim_info:'Enter your in-game name to claim this quest. It will be marked as taken so other guild members know it is being handled.',
@@ -436,8 +434,8 @@ const TRANS = {
     deadline:'\u0421\u0440\u043e\u043a (\u043d\u0435\u043e\u0431\u044f\u0437.)',deadline_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0412\u043e\u0441\u043a\u0440\u0435\u0441\u0435\u043d\u044c\u0435 20:00',
     posted_by:'\u0410\u0432\u0442\u043e\u0440 *',poster_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
     rewards:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
-    reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_ticket:'🎟 \u0411\u0438\u043b\u0435\u0442 \u0440\u043e\u0437\u044b\u0433\u0440\u044b\u0448\u0430',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',reward_prio:'\u2b50 \u041f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442 \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0441\u0442\u0432\u0430',
-    reward_note_ph:'\u0414\u0435\u0442\u0430\u043b\u0438: 50 \u043e\u0447\u043a\u043e\u0432, \u044d\u043f\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u043c\u0435\u0447, \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u0439 \u0441\u043b\u043e\u0442 \u043a\u0440\u0430\u0444\u0442\u0430',
+    reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',
+    gift_ph:'\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u043f\u043e\u0434\u0430\u0440\u043e\u043a...',
     cancel:'\u041e\u0442\u043c\u0435\u043d\u0430',
     claim_quest_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',
     claim_info:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u0447\u0442\u043e\u0431\u044b \u0432\u0437\u044f\u0442\u044c \u044d\u0442\u043e \u0437\u0430\u0434\u0430\u043d\u0438\u0435. \u041e\u043d\u043e \u0431\u0443\u0434\u0435\u0442 \u043e\u0442\u043c\u0435\u0447\u0435\u043d\u043e \u043a\u0430\u043a \u0437\u0430\u043d\u044f\u0442\u043e\u0435, \u0447\u0442\u043e\u0431\u044b \u0434\u0440\u0443\u0433\u0438\u0435 \u0437\u043d\u0430\u043b\u0438, \u0447\u0442\u043e \u0435\u0433\u043e \u0443\u0436\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u044f\u044e\u0442.',
@@ -562,7 +560,7 @@ function filtered(){
 }
 
 function renderRewards(q){
-  const map={points:['reward-points',t('reward_points')],ticket:['reward-ticket',t('reward_ticket')],gift:['reward-gift',t('reward_gift')],prio:['reward-prio',t('reward_prio')]};
+  const map={points:['reward-points',t('reward_points')],gift:['reward-gift',t('reward_gift')]};
   const chips=(q.rewards||[]).map(r=>{const[cls,l]=map[r]||['',''];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
   const note=q.rewardNote?`<span class="reward-chip" style="border-color:var(--border);color:var(--text-dim)">${esc(q.rewardNote)}</span>`:'';
   const pts=q.pointsValue&&q.rewards.includes('points')?`<span class="reward-chip reward-points">🏅 ${q.pointsValue} pts</span>`:'';
@@ -669,25 +667,23 @@ function onTypeChange(){
   document.getElementById('item-qty-row').style.display=isEvent?'none':'';
   const dl=document.getElementById('deliver-label');
   const ll=document.getElementById('deadline-label');
-  const di=document.getElementById('f-deliver');
   const li=document.getElementById('f-deadline');
   if(isEvent){
     dl.textContent=t('event_location');
     ll.textContent=t('event_start');
-    di.setAttribute('type','datetime-local');
     li.setAttribute('type','datetime-local');
   }else{
     dl.textContent=t('deliver_to');
     ll.textContent=t('deadline');
-    di.setAttribute('type','text');
     li.setAttribute('type','text');
   }
 }
 
 function openNewQuestModal(editData){
-  ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster','f-reward-note'].forEach(id=>document.getElementById(id).value='');
-  ['r-points','r-ticket','r-gift','r-prio'].forEach(id=>document.getElementById(id).checked=false);
+  ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster'].forEach(id=>document.getElementById(id).value='');
+  ['r-points','r-gift'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('f-points-value').value='';document.getElementById('f-points-value').style.display='none';
+  document.getElementById('f-gift-desc').value='';document.getElementById('f-gift-desc').style.display='none';
   document.getElementById('f-type').value='gather';
   const rw=document.getElementById('rewards-section');
   if(rw)rw.style.display=isAdmin()?'':'none';
@@ -701,10 +697,11 @@ function openNewQuestModal(editData){
     document.getElementById('f-deliver').value=editData.deliverTo||'';
     document.getElementById('f-deadline').value=editData.deadline||'';
     document.getElementById('f-poster').value=editData.poster||'';
-    document.getElementById('f-reward-note').value=editData.rewardNote||'';
+    document.getElementById('f-gift-desc').value=editData.rewardNote||'';
     if(editData.pointsValue)document.getElementById('f-points-value').value=editData.pointsValue;
     (editData.rewards||[]).forEach(r=>{const el=document.getElementById('r-'+r);if(el)el.checked=true;});
     if(editData.rewards&&editData.rewards.includes('points'))document.getElementById('f-points-value').style.display='';
+    if(editData.rewards&&editData.rewards.includes('gift')&&editData.rewardNote)document.getElementById('f-gift-desc').style.display='';
     document.getElementById('post-btn').textContent=editData?t('save'):t('post_quest');
     document.getElementById('post-btn').setAttribute('onclick',editData?`saveEdit('${editData.id}')`:'postQuest()');
   }else{
@@ -720,8 +717,9 @@ async function postQuest(){
   const title=document.getElementById('f-title').value.trim();
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
-  const rewards=isAdmin()?['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const rewards=isAdmin()?['points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
   const pv=parseInt(document.getElementById('f-points-value').value)||0;
+  const giftNote=isAdmin()?document.getElementById('f-gift-desc').value.trim():'';
   const row={
     title,type:document.getElementById('f-type').value,
     description:document.getElementById('f-desc').value.trim(),
@@ -730,7 +728,7 @@ async function postQuest(){
     deliver_to:document.getElementById('f-deliver').value.trim(),
     deadline:document.getElementById('f-deadline').value.trim(),
     poster,rewards,
-    reward_note:isAdmin()?document.getElementById('f-reward-note').value.trim():'',
+    reward_note:giftNote,
     points_value:pv,
     status:'open',claimed_by:null,participants:[]
   };
@@ -753,8 +751,9 @@ async function saveEdit(id){
   const title=document.getElementById('f-title').value.trim();
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
-  const rewards=isAdmin()?['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const rewards=isAdmin()?['points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
   const pv=parseInt(document.getElementById('f-points-value').value)||0;
+  const giftNote=isAdmin()?document.getElementById('f-gift-desc').value.trim():'';
   const row={
     title,type:document.getElementById('f-type').value,
     description:document.getElementById('f-desc').value.trim(),
@@ -763,7 +762,7 @@ async function saveEdit(id){
     deliver_to:document.getElementById('f-deliver').value.trim(),
     deadline:document.getElementById('f-deadline').value.trim(),
     poster,rewards,
-    reward_note:isAdmin()?document.getElementById('f-reward-note').value.trim():'',
+    reward_note:giftNote,
     points_value:pv
   };
   setBusy('post-btn',true);
@@ -960,6 +959,10 @@ document.querySelectorAll('.modal-overlay').forEach(el=>
 document.getElementById('r-points').addEventListener('change',function(){
   document.getElementById('f-points-value').style.display=this.checked?'':'none';
   if(!this.checked)document.getElementById('f-points-value').value='';
+});
+document.getElementById('r-gift').addEventListener('change',function(){
+  document.getElementById('f-gift-desc').style.display=this.checked?'':'none';
+  if(!this.checked)document.getElementById('f-gift-desc').value='';
 });
 
 let toastTimer;
