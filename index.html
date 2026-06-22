@@ -184,14 +184,9 @@ select option{background:var(--parchment-3);}
 <!-- GUILD WARNING -->
 <div class="warning-overlay" id="warning-overlay">
   <div class="warning-box">
-    <div class="warning-crest">
-      <svg width="48" height="48" viewBox="0 0 38 38" fill="none">
-        <polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#c8922a" stroke-width="1.5"/>
-        <line x1="19" y1="8" x2="19" y2="30" stroke="#c8922a" stroke-width="1.5"/>
-        <line x1="10" y1="13" x2="28" y2="13" stroke="#c8922a" stroke-width="1.5"/>
-        <circle cx="19" cy="19" r="3" fill="none" stroke="#e8b84b" stroke-width="1"/>
-        <polygon points="19,6 21,12 27,12 22,16 24,22 19,18 14,22 16,16 11,12 17,12" fill="#c8922a" opacity="0.5"/>
-      </svg>
+    <div class="warning-crest" style="position:relative;width:48px;height:48px;margin:0 auto 16px">
+      <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Cinzel;font-weight:700;color:var(--gold);font-size:.9rem;background:var(--parchment-3);border:1px solid var(--border)">AV</span>
+      <img style="position:absolute;inset:0;width:48px;height:48px" src="https://yt3.googleusercontent.com/Ob8ym91Phkc8lSrFecoSbr_RXQZPWDBxxTT3vlouCxHfmQ5Io9pwQNykjVfFIJzQ2vvoNGbwUGg=s160-c-k-c0x00ffffff-no-rj" alt="AV" onerror="this.style.display='none'">
     </div>
     <div class="warning-title">&#9876; Private Guild Board</div>
     <div class="warning-body">This board is for members of the <strong>Avangard</strong> guild and our allies only. Do not share this link with players outside the alliance.</div>
@@ -204,13 +199,10 @@ select option{background:var(--parchment-3);}
 <div id="app">
   <header>
     <div class="logo">
-      <svg class="logo-crest" viewBox="0 0 38 38" fill="none">
-        <polygon points="19,2 36,10 36,28 19,36 2,28 2,10" fill="#2c2618" stroke="#7a6535" stroke-width="1.5"/>
-        <line x1="19" y1="8" x2="19" y2="30" stroke="#c8922a" stroke-width="1.5"/>
-        <line x1="10" y1="13" x2="28" y2="13" stroke="#c8922a" stroke-width="1.5"/>
-        <circle cx="19" cy="19" r="3" fill="none" stroke="#e8b84b" stroke-width="1"/>
-        <polygon points="19,6 21,12 27,12 22,16 24,22 19,18 14,22 16,16 11,12 17,12" fill="#c8922a" opacity="0.5"/>
-      </svg>
+      <div class="logo-crest" style="position:relative">
+        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Cinzel;font-weight:700;color:var(--gold);font-size:.65rem;background:var(--parchment-3);border:1px solid var(--border)">AV</span>
+        <img style="width:38px;height:38px" src="https://yt3.googleusercontent.com/Ob8ym91Phkc8lSrFecoSbr_RXQZPWDBxxTT3vlouCxHfmQ5Io9pwQNykjVfFIJzQ2vvoNGbwUGg=s160-c-k-c0x00ffffff-no-rj" alt="AV" onerror="this.style.display='none'">
+      </div>
       <h1>Gloria Victis<span data-i18n="subtitle">Guild Quest Board</span></h1>
     </div>
     <div class="header-actions">
@@ -1044,13 +1036,12 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function dismissWarning(){
   sessionStorage.setItem('gv_warning','1');
   document.getElementById('warning-overlay').classList.add('hidden');
-  applyTranslations();
   initApp();
 }
 
+applyTranslations();
 if(sessionStorage.getItem('gv_warning')){
   document.getElementById('warning-overlay').classList.add('hidden');
-  applyTranslations();
   initApp();
 }
 </script>
