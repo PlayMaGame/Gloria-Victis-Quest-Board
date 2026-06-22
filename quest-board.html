@@ -238,7 +238,7 @@ select option{background:var(--parchment-3);}
         </div>
         <div class="form-group" style="max-width:140px">
           <label data-i18n="type">Type *</label>
-          <select id="f-type">
+          <select id="f-type" onchange="onTypeChange()">
             <option value="gather" data-i18n="gather">Gather</option>
             <option value="farm" data-i18n="farm">Farm</option>
             <option value="deliver" data-i18n="deliver">Deliver</option>
@@ -251,7 +251,7 @@ select option{background:var(--parchment-3);}
         <label data-i18n="description">Description</label>
         <textarea id="f-desc" data-i18n-placeholder="desc_ph"></textarea>
       </div>
-      <div class="form-row">
+      <div class="form-row" id="item-qty-row">
         <div class="form-group">
           <label data-i18n="item">Item / Resource</label>
           <input id="f-item" type="text" data-i18n-placeholder="item_ph">
@@ -261,13 +261,13 @@ select option{background:var(--parchment-3);}
           <input id="f-qty" type="text" data-i18n-placeholder="qty_ph">
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label data-i18n="deliver_to">Deliver To</label>
+      <div class="form-row" id="deliver-deadline-row">
+        <div class="form-group" id="deliver-group">
+          <label data-i18n="deliver_to" id="deliver-label">Deliver To</label>
           <input id="f-deliver" type="text" data-i18n-placeholder="deliver_ph">
         </div>
-        <div class="form-group">
-          <label data-i18n="deadline">Deadline (optional)</label>
+        <div class="form-group" id="deadline-group">
+          <label data-i18n="deadline" id="deadline-label">Deadline (optional)</label>
           <input id="f-deadline" type="text" data-i18n-placeholder="deadline_ph">
         </div>
       </div>
@@ -284,6 +284,7 @@ select option{background:var(--parchment-3);}
           <label class="reward-check"><input type="checkbox" id="r-prio">   <span data-i18n="reward_prio">&#11088; Production Priority</span></label>
         </div>
         <input id="f-reward-note" type="text" data-i18n-placeholder="reward_note_ph" style="margin-top:8px">
+        <input id="f-points-value" type="number" min="1" style="display:none;margin-top:6px;max-width:140px" data-i18n-placeholder="points_ph">
       </div>
     </div>
     <div class="modal-foot">
@@ -418,6 +419,7 @@ const TRANS = {
     admin_password:'Password',admin_unlock:'Unlock',
     award_title:'Award Points',award_points:'Points',award_reason:'Reason',
     award_reason_ph:'e.g. Event victory',award_btn:'Award',
+    event_location:'Location',event_start:'Start Time',points_ph:'Points value',
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
@@ -466,6 +468,7 @@ const TRANS = {
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
     award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
     award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
+    event_location:'\u041b\u043e\u043a\u0430\u0446\u0438\u044f',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -535,7 +538,7 @@ function dbToQ(r){
     deadline:r.deadline||'',poster:r.poster||'',rewards:r.rewards||[],
     rewardNote:r.reward_note||'',status:r.status||'open',
     claimedBy:r.claimed_by||null,postedAt:new Date(r.posted_at).getTime(),
-    participants:r.participants||[]
+    participants:r.participants||[],pointsValue:r.points_value||0
   };
 }
 
@@ -562,7 +565,8 @@ function renderRewards(q){
   const map={points:['reward-points',t('reward_points')],ticket:['reward-ticket',t('reward_ticket')],gift:['reward-gift',t('reward_gift')],prio:['reward-prio',t('reward_prio')]};
   const chips=(q.rewards||[]).map(r=>{const[cls,l]=map[r]||['',''];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
   const note=q.rewardNote?`<span class="reward-chip" style="border-color:var(--border);color:var(--text-dim)">${esc(q.rewardNote)}</span>`:'';
-  return chips+note;
+  const pts=q.pointsValue&&q.rewards.includes('points')?`<span class="reward-chip reward-points">🏅 ${q.pointsValue} pts</span>`:'';
+  return chips+note+pts;
 }
 
 function timeAgo(ts){
@@ -580,15 +584,24 @@ function renderCard(q){
   const bCls={open:'badge-open',claimed:'badge-claimed',complete:'badge-complete'}[q.status];
   const typeLabel={gather:t('gather'),farm:t('farm'),deliver:t('deliver'),craft:t('craft'),event:t('event')}[q.type]||t('event');
   const isEvent=q.type==='event';
-  const rows=[
-    q.item&&`<div class="detail-row"><span class="detail-label">${t('item_label')}</span><span class="detail-value">${esc(q.item)}</span></div>`,
-    q.qty&&`<div class="detail-row"><span class="detail-label">${t('qty_label')}</span><span class="detail-value">${esc(q.qty)}</span></div>`,
-    q.deliverTo&&`<div class="detail-row"><span class="detail-label">${t('deliver_to_label')}</span><span class="detail-value">${esc(q.deliverTo)}</span></div>`,
-    q.deadline&&`<div class="detail-row"><span class="detail-label">${t('deadline_label')}</span><span class="detail-value">${esc(q.deadline)}</span></div>`,
-    q.claimedBy&&!isEvent&&`<div class="detail-row"><span class="detail-label">${t('claimed_by_label')}</span><span class="detail-value" style="color:var(--blue-bright)">${esc(q.claimedBy)}</span></div>`,
-  ].filter(Boolean).join('');
+  const admin=isAdmin();
+  let rows=[];
+  if(isEvent){
+    if(q.deliverTo)rows.push(`<div class="detail-row"><span class="detail-label">${t('event_location')}</span><span class="detail-value">${esc(q.deliverTo)}</span></div>`);
+    if(q.deadline){
+      const dt=new Date(q.deadline+'Z');
+      const local=isNaN(dt.getTime())?esc(q.deadline):dt.toLocaleString();
+      rows.push(`<div class="detail-row"><span class="detail-label">${t('event_start')}</span><span class="detail-value">${local}</span></div>`);
+    }
+  }else{
+    if(q.item)rows.push(`<div class="detail-row"><span class="detail-label">${t('item_label')}</span><span class="detail-value">${esc(q.item)}</span></div>`);
+    if(q.qty)rows.push(`<div class="detail-row"><span class="detail-label">${t('qty_label')}</span><span class="detail-value">${esc(q.qty)}</span></div>`);
+    if(q.deliverTo)rows.push(`<div class="detail-row"><span class="detail-label">${t('deliver_to_label')}</span><span class="detail-value">${esc(q.deliverTo)}</span></div>`);
+    if(q.deadline)rows.push(`<div class="detail-row"><span class="detail-label">${t('deadline_label')}</span><span class="detail-value">${esc(q.deadline)}</span></div>`);
+    if(q.claimedBy)rows.push(`<div class="detail-row"><span class="detail-label">${t('claimed_by_label')}</span><span class="detail-value" style="color:var(--blue-bright)">${esc(q.claimedBy)}</span></div>`);
+  }
   const rHtml=renderRewards(q);
-  const rSec=rHtml&&!isEvent?`<div class="detail-row" style="align-items:flex-start"><span class="detail-label" style="padding-top:3px">${t('rewards_label')}</span><div class="rewards-row">${rHtml}</div></div>`:'';
+  const rSec=rHtml?`<div class="detail-row" style="align-items:flex-start"><span class="detail-label" style="padding-top:3px">${t('rewards_label')}</span><div class="rewards-row">${rHtml}</div></div>`:'';
   let acts='';
   if(isEvent&&q.status==='open'){
     const pCount=(q.participants||[]).length;
@@ -596,13 +609,13 @@ function renderCard(q){
     acts+=` <button class="btn btn-sm btn-success" onclick="registerForEvent('${q.id}')">Register</button>`;
   }else if(!isEvent&&q.status==='open'){
     acts=`<button class="btn btn-sm btn-success" onclick="openClaimModal('${q.id}')">${t('claim')}</button>`;
-  }else if(q.status==='claimed'){
+  }else if(q.status==='claimed'&&admin){
     acts=`<button class="btn btn-sm btn-primary" onclick="completeQuest('${q.id}')">${t('mark_complete')}</button><button class="btn btn-sm" onclick="unclaimQuest('${q.id}')">${t('unclaim')}</button>`;
   }
-  if(isEvent&&q.status==='open'&&isAdmin()){
+  if(isEvent&&q.status==='open'&&admin){
     acts+=` <button class="btn btn-sm btn-primary" onclick="closeEvent('${q.id}')">Close Event</button>`;
   }
-  if(isAdmin()){
+  if(admin&&q.status!=='complete'){
     acts+=` <button class="btn btn-sm" onclick="openEditModal('${q.id}')">\u270f</button>`;
     acts+=` <button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">${t('delete')}</button>`;
   }
@@ -619,7 +632,7 @@ function renderCard(q){
     </div>
     <div class="card-body">
       ${q.description?`<div class="card-desc">${esc(q.description)}</div>`:''}
-      <div class="card-details">${rows}${rSec}</div>
+      <div class="card-details">${rows.join('')}${rSec}</div>
       ${participantsHtml}
     </div>
     <div class="card-foot">
@@ -651,12 +664,34 @@ function showBoardError(msg){
   document.getElementById('quest-grid').innerHTML=`<div class="board-status"><div class="status-icon">\u26a0</div><p>${msg}</p><button class="btn" onclick="fetchQuests()">${t('retry')}</button></div>`;
 }
 
+function onTypeChange(){
+  const isEvent=document.getElementById('f-type').value==='event';
+  document.getElementById('item-qty-row').style.display=isEvent?'none':'';
+  const dl=document.getElementById('deliver-label');
+  const ll=document.getElementById('deadline-label');
+  const di=document.getElementById('f-deliver');
+  const li=document.getElementById('f-deadline');
+  if(isEvent){
+    dl.textContent=t('event_location');
+    ll.textContent=t('event_start');
+    di.setAttribute('type','datetime-local');
+    li.setAttribute('type','datetime-local');
+  }else{
+    dl.textContent=t('deliver_to');
+    ll.textContent=t('deadline');
+    di.setAttribute('type','text');
+    li.setAttribute('type','text');
+  }
+}
+
 function openNewQuestModal(editData){
   ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster','f-reward-note'].forEach(id=>document.getElementById(id).value='');
   ['r-points','r-ticket','r-gift','r-prio'].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById('f-points-value').value='';document.getElementById('f-points-value').style.display='none';
   document.getElementById('f-type').value='gather';
   const rw=document.getElementById('rewards-section');
   if(rw)rw.style.display=isAdmin()?'':'none';
+  onTypeChange();
   if(editData){
     document.getElementById('f-title').value=editData.title;
     document.getElementById('f-type').value=editData.type;
@@ -667,7 +702,9 @@ function openNewQuestModal(editData){
     document.getElementById('f-deadline').value=editData.deadline||'';
     document.getElementById('f-poster').value=editData.poster||'';
     document.getElementById('f-reward-note').value=editData.rewardNote||'';
+    if(editData.pointsValue)document.getElementById('f-points-value').value=editData.pointsValue;
     (editData.rewards||[]).forEach(r=>{const el=document.getElementById('r-'+r);if(el)el.checked=true;});
+    if(editData.rewards&&editData.rewards.includes('points'))document.getElementById('f-points-value').style.display='';
     document.getElementById('post-btn').textContent=editData?t('save'):t('post_quest');
     document.getElementById('post-btn').setAttribute('onclick',editData?`saveEdit('${editData.id}')`:'postQuest()');
   }else{
@@ -684,6 +721,7 @@ async function postQuest(){
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
   const rewards=isAdmin()?['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const pv=parseInt(document.getElementById('f-points-value').value)||0;
   const row={
     title,type:document.getElementById('f-type').value,
     description:document.getElementById('f-desc').value.trim(),
@@ -693,6 +731,7 @@ async function postQuest(){
     deadline:document.getElementById('f-deadline').value.trim(),
     poster,rewards,
     reward_note:isAdmin()?document.getElementById('f-reward-note').value.trim():'',
+    points_value:pv,
     status:'open',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
@@ -715,6 +754,7 @@ async function saveEdit(id){
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
   const rewards=isAdmin()?['points','ticket','gift','prio'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const pv=parseInt(document.getElementById('f-points-value').value)||0;
   const row={
     title,type:document.getElementById('f-type').value,
     description:document.getElementById('f-desc').value.trim(),
@@ -723,7 +763,8 @@ async function saveEdit(id){
     deliver_to:document.getElementById('f-deliver').value.trim(),
     deadline:document.getElementById('f-deadline').value.trim(),
     poster,rewards,
-    reward_note:isAdmin()?document.getElementById('f-reward-note').value.trim():''
+    reward_note:isAdmin()?document.getElementById('f-reward-note').value.trim():'',
+    points_value:pv
   };
   setBusy('post-btn',true);
   const{error}=await sb.from('quests').update(row).eq('id',id);
@@ -768,6 +809,7 @@ async function registerForEvent(id){
 }
 
 async function unclaimQuest(id){
+  if(!isAdmin()){toast('Admin only.');return;}
   const{error}=await sb.from('quests').update({status:'open',claimed_by:null}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
   toast(t('quest_unclaimed'));
@@ -791,9 +833,16 @@ async function closeEvent(id){
 }
 
 async function completeQuest(id){
+  if(!isAdmin()){toast('Admin only.');return;}
+  const q=quests.find(x=>x.id===id);
+  if(!q)return;
+  if(q.pointsValue>0&&q.claimedBy){
+    await sb.from('loyalty').insert({player_name:q.claimedBy,points:q.pointsValue,reason:q.title,awarded_by:'Admin',quest_id:id});
+  }
   const{error}=await sb.from('quests').update({status:'complete'}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
-  toast(t('quest_complete'));
+  if(q.pointsValue>0&&q.claimedBy){toast(q.pointsValue+' pts awarded to '+q.claimedBy+'!');}
+  else{toast(t('quest_complete'));}
 }
 
 async function deleteQuest(id){
@@ -907,6 +956,11 @@ function setBusy(id,b){const el=document.getElementById(id);if(el)el.disabled=b;
 document.querySelectorAll('.modal-overlay').forEach(el=>
   el.addEventListener('click',e=>{if(e.target===el)el.classList.add('hidden');})
 );
+
+document.getElementById('r-points').addEventListener('change',function(){
+  document.getElementById('f-points-value').style.display=this.checked?'':'none';
+  if(!this.checked)document.getElementById('f-points-value').value='';
+});
 
 let toastTimer;
 function toast(msg){
