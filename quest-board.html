@@ -1075,7 +1075,7 @@ function renderTicker(){
   document.getElementById('ticker-admin-btn').style.display=isAdmin()?'':'none';
   if(!tickerItems.length){wrap.classList.add('hidden');return;}
   wrap.classList.remove('hidden');
-  const announce=`<span class="ticker-item" style="color:var(--red-bright);font-family:Cinzel;font-size:.65rem;text-transform:uppercase;flex-shrink:0;margin-right:20px">${t('ticker_announce')}</span>`;
+  const announce=`<span class="ticker-item" style="color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;margin-right:20px">${t('ticker_announce')}</span>`;
   const items=tickerItems.map(i=>{
     const hotCls=i.hot?' ticker-item-hot':'';
     const hot=i.hot?'<span class="ticker-hot">🔥</span>':'';
@@ -1099,12 +1099,14 @@ async function clearTickerItems(){
   for(const i of tickerItems){
     await sb.from('ticker_items').delete().eq('id',i.id);
   }
+  await fetchTickerItems();
 }
 
 async function deleteTickerItem(id){
   if(!confirm('Delete this ticker item?'))return;
   const{error}=await sb.from('ticker_items').delete().eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
+  await fetchTickerItems();
 }
 
 async function toggleTickerHot(id){
@@ -1112,6 +1114,7 @@ async function toggleTickerHot(id){
   if(!item)return;
   const{error}=await sb.from('ticker_items').update({hot:!item.hot}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
+  await fetchTickerItems();
 }
 
 function openTickerModal(){
