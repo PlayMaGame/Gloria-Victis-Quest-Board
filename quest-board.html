@@ -163,6 +163,7 @@ select option{background:var(--parchment-3);}
 .board-main{flex:1;min-width:0;}
 .leaderboard{width:260px;flex-shrink:0;background:var(--parchment-2);border:1px solid var(--border);position:sticky;top:92px;}
 .lb-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-bright);text-align:center;}
+.section-header{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-bright);text-align:center;padding:12px 14px 10px;border-bottom:1px solid var(--border);}
 .lb-list{max-height:500px;overflow-y:auto;}
 .lb-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--parchment-3);font-size:.85rem;transition:background .15s;}
 .lb-row:hover{background:var(--parchment-3);}
@@ -185,6 +186,9 @@ select option{background:var(--parchment-3);}
 .event-card-meta{font-size:.7rem;color:var(--text-dim);margin-top:3px;line-height:1.5;}
 .event-card-actions{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;}
 .event-card-empty{padding:24px 14px;text-align:center;color:var(--text-faint);font-style:italic;font-size:.8rem;}
+.chat-sidebar{width:260px;flex-shrink:0;border:1px solid var(--border);border-top:none;}
+@media(max-width:1100px){.chat-sidebar{width:200px;}}
+@media(max-width:900px){.chat-sidebar{width:100%;}}
 .events-hidden{display:none !important;}
 
 @media(max-width:1100px){.board-events{width:200px;}}
@@ -305,7 +309,7 @@ select option{background:var(--parchment-3);}
   <main>
     <div class="board-layout">
       <aside class="board-events" id="board-events">
-        <div class="lb-header" data-i18n="upcoming_events">&#10022; Upcoming Events &#10022;</div>
+        <div class="section-header" data-i18n="upcoming_events">&#10022; Upcoming Events &#10022;</div>
         <div id="events-list"></div>
       </aside>
       <div class="board-main">
@@ -317,12 +321,14 @@ select option{background:var(--parchment-3);}
           <div class="board-status"><div class="status-icon">&#128176;</div><p data-i18n="shop_empty">Shop is empty.</p></div>
         </div>
       </div>
-      <aside class="leaderboard" id="leaderboard">
-        <div class="lb-header" data-i18n="leaderboard">&#127942; Leaderboard</div>
-        <div class="lb-list" id="lb-list">
-          <div class="lb-empty" data-i18n="lb_empty">No points yet</div>
+      <aside style="display:flex;flex-direction:column;gap:0;width:260px;flex-shrink:0;align-self:flex-start;position:sticky;top:92px">
+        <div class="leaderboard" id="leaderboard" style="position:static;width:auto">
+          <div class="section-header" data-i18n="leaderboard_title">&#10022; Leaderboard &#10022;</div>
+          <div class="lb-list" id="lb-list">
+            <div class="lb-empty" data-i18n="lb_empty">No points yet</div>
+          </div>
         </div>
-        <div class="chat-area" id="chat-area">
+        <div class="chat-sidebar" id="chat-area">
           <div class="chat-header" data-i18n="chat_header">&#128172; Guild Chat</div>
           <div class="chat-msgs" id="chat-msgs"></div>
           <div class="chat-input-wrap">
@@ -657,7 +663,7 @@ const TRANS = {
   en:{
     subtitle:'Guild Quest Board',live:'Live',post_quest:'Post Quest',
     filter:'Filter:',all:'All',open:'Open',claimed:'Claimed',complete:'Complete',
-    gather:'Gather',farm:'Farm',deliver:'Deliver',craft:'Craft',event:'Event',
+    gather:'Gather',farm:'Farm',deliver:'Deliver',craft:'Craft',event:'Events',
     active_contracts:'\u2726  Active Contracts  \u2726',connecting:'Connecting to database\u2026',
     new_quest_title:'Post a New Quest',edit_title:'Edit Quest',save:'Save',
     quest_title:'Quest Title *',quest_title_ph:'e.g. Iron Ore Collection',event_title_ph:'e.g. Siege of Lublin Castle',
@@ -694,7 +700,7 @@ const TRANS = {
     quest_complete:'Quest complete!',
     quest_deleted:'Quest deleted.',
     confirm_delete:'Delete this quest?',
-    leaderboard:'🏆 Leaderboard',
+    leaderboard_title:'✦ Leaderboard ✦',events_ornament:'✦ EVENTS ✦',
     lb_empty:'No points yet',
     admin_title:'Admin Access',admin_info:'Enter the admin password to unlock management controls.',
     admin_password:'Password',admin_unlock:'Unlock',
@@ -706,7 +712,7 @@ const TRANS = {
   ru:{
     subtitle:'\u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0430\u044f \u0414\u043e\u0441\u043a\u0430 \u0417\u0430\u0434\u0430\u043d\u0438\u0439',live:'\u0412 \u044d\u0444\u0438\u0440\u0435',post_quest:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c',
     filter:'\u0424\u0438\u043b\u044c\u0442\u0440:',all:'\u0412\u0441\u0435',open:'\u041e\u0442\u043a\u0440\u044b\u0442\u044b\u0435',claimed:'\u0412\u0437\u044f\u0442\u044b\u0435',complete:'\u0412\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043d\u044b\u0435',
-    gather:'\u0421\u0431\u043e\u0440',farm:'\u0424\u0435\u0440\u043c\u0430',deliver:'\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430',craft:'\u041a\u0440\u0430\u0444\u0442',event:'\u0418\u0432\u0435\u043d\u0442',
+    gather:'\u0421\u0431\u043e\u0440',farm:'\u0424\u0435\u0440\u043c\u0430',deliver:'\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430',craft:'\u041a\u0440\u0430\u0444\u0442',event:'\u0418\u0432\u0435\u043d\u0442\u044b',
     active_contracts:'\u2726  \u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u041a\u043e\u043d\u0442\u0440\u0430\u043a\u0442\u044b  \u2726',connecting:'\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043a \u0431\u0430\u0437\u0435 \u0434\u0430\u043d\u043d\u044b\u0445\u2026',
     new_quest_title:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',edit_title:'\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c',save:'\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c',
     quest_title:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 *',quest_title_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0421\u0431\u043e\u0440 \u0436\u0435\u043b\u0435\u0437\u043d\u043e\u0439 \u0440\u0443\u0434\u044b',event_title_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041e\u0441\u0430\u0434\u0430 \u0437\u0430\u043c\u043a\u0430 \u041b\u044e\u0431\u043b\u0438\u043d',
@@ -743,7 +749,7 @@ const TRANS = {
     quest_complete:'\u0417\u0430\u0434\u0430\u043d\u0438\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e!',
     quest_deleted:'\u0417\u0430\u0434\u0430\u043d\u0438\u0435 \u0443\u0434\u0430\u043b\u0435\u043d\u043e.',
     confirm_delete:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u044d\u0442\u043e \u0437\u0430\u0434\u0430\u043d\u0438\u0435?',
-    leaderboard:'🏆 \u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432',
+    leaderboard_title:'✦ \u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432 ✦',events_ornament:'✦ \u0418\u0412\u0415\u041d\u0422\u042b ✦',
     lb_empty:'\u041e\u0447\u043a\u043e\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442',
     admin_title:'\u0414\u043e\u0441\u0442\u0443\u043f \u0430\u0434\u043c\u0438\u043d\u0430',admin_info:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u0430 \u0434\u043b\u044f \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f.',
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
@@ -954,7 +960,7 @@ function renderUpcomingEvents(){
   const col=document.getElementById('board-events');
   if(!el||!col)return;
   const events=quests.filter(q=>q.type==='event'&&q.status==='open');
-  if(!events.length||currentView==='shop'){
+  if(!events.length||currentView==='shop'||currentFilter==='event'){
     col.style.display='none';
     return;
   }
@@ -982,6 +988,8 @@ function renderUpcomingEvents(){
 
 function render(){
   const admin=isAdmin();
+  const ornament=document.getElementById('main-ornament');
+  if(ornament&&currentView!=='shop')ornament.innerHTML=currentFilter==='event'?t('events_ornament'):'✦ '+t('active_contracts');
   document.getElementById('admin-badge').classList.toggle('show',admin);
   const tBtn=document.getElementById('ticker-admin-btn');
   if(tBtn)tBtn.style.display=admin?'':'none';
@@ -1417,7 +1425,7 @@ function renderLeaderboard(){
   if(!list)return;
   const map={};
   (loyaltyData||[]).forEach(r=>{map[r.player_name]=(map[r.player_name]||0)+r.points;});
-  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
   if(!sorted.length){
     list.innerHTML=`<div class="lb-empty" data-i18n="lb_empty">No points yet</div>`;
     applyTranslations();
