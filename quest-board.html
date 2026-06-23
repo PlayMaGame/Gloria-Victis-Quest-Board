@@ -47,8 +47,7 @@ header{background:var(--parchment-2);border-bottom:2px solid var(--border);paddi
 
 /* GRID */
 main{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
-.quest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-@media(max-width:900px){.quest-grid{grid-template-columns:repeat(2,1fr);}}
+.quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;}
 @media(max-width:600px){.quest-grid{grid-template-columns:1fr;}}
 
 /* CARD */
