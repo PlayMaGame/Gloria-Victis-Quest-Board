@@ -55,6 +55,8 @@ main{margin:0 auto;padding:28px 24px 60px;}
 .quest-card:hover{border-color:var(--border-light);}
 .quest-card.status-claimed{opacity:.78;}
 .quest-card.status-complete{opacity:.5;}
+.quest-card.status-cancelled{opacity:.45;}
+.event-started-glow{box-shadow:0 0 10px rgba(0,255,0,.4);border-color:var(--green-bright);}
 .card-type-bar{height:4px;width:100%;}
 .type-gather .card-type-bar{background:var(--gold);}
 .type-farm .card-type-bar{background:var(--green-bright);}
@@ -295,7 +297,6 @@ select option{background:var(--parchment-3);}
     <button class="filter-btn" onclick="setFilter('claimed',this)" data-i18n="claimed">Claimed</button>
     <button class="filter-btn" onclick="setFilter('complete',this)" data-i18n="complete">Complete</button>
     <button class="filter-btn" onclick="setFilter('pending',this)" id="pending-btn" style="display:none" data-i18n="pending">&#9203; Pending</button>
-    <button class="filter-btn" onclick="setFilter('cancelled',this)" id="cancelled-btn" style="display:none" data-i18n="cancelled">&#10060; Cancelled</button>
     <span style="width:1px;height:16px;background:var(--border);margin:0 4px"></span>
     <button class="filter-btn" onclick="setFilter('gather',this)">&#9935; <span data-i18n="gather">Gather</span></button>
     <button class="filter-btn" onclick="setFilter('farm',this)">&#127806; <span data-i18n="farm">Farm</span></button>
@@ -951,7 +952,7 @@ function renderCard(q){
     acts+=` <button class="btn btn-sm" onclick="openEditModal('${q.id}')">\u270f</button>`;
     acts+=` <button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">${t('delete')}</button>`;
   }
-  if(admin&&q.status==='complete'){
+  if(admin&&(q.status==='complete'||q.status==='cancelled')){
     acts+=` <button class="btn btn-sm" onclick="repeatQuest('${q.id}')">🔄 <span>${t('repeat_title')}</span></button>`;
     acts+=` <button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">${t('delete')}</button>`;
   }
@@ -961,7 +962,8 @@ function renderCard(q){
   }
   const hotCls=(q.rewards||[]).includes('hot')?' card-hot-deal':'';
   const pendingCls=q.status==='pending'?' card-pending':q.status==='claimed'&&currentFilter==='_admin_pending'?' card-claimed-pending':'';
-  return`<div class="quest-card type-${q.type} status-${q.status}${hotCls}${pendingCls}" id="card-${q.id}">
+  const startedCls=isEvent&&q.status==='open'&&q.deadline&&new Date(q.deadline).getTime()<Date.now()?' event-started-glow':'';
+  return`<div class="quest-card type-${q.type} status-${q.status}${hotCls}${pendingCls}${startedCls}" id="card-${q.id}">
     <div class="card-type-bar"></div>
     <div class="card-head">
       <div class="card-type-icon">${TYPE_ICONS[q.type]||'📜'}</div>
@@ -1006,8 +1008,6 @@ function render(){
   document.getElementById('admin-badge').classList.toggle('show',admin);
   const tBtn=document.getElementById('ticker-admin-btn');
   if(tBtn)tBtn.style.display=admin?'':'none';
-  const cBtn=document.getElementById('cancelled-btn');
-  if(cBtn)cBtn.style.display=admin?'':'none';
   const pBadge=document.getElementById('pending-badge');
   if(pBadge){
     const pCnt=quests.filter(q=>q.status==='pending').length;
