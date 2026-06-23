@@ -780,7 +780,7 @@ function filtered(){
 
 function renderRewards(q){
   const map={points:['reward-points',t('reward_points')],gift:['reward-gift',t('reward_gift')]};
-  const chips=(q.rewards||[]).map(r=>{const[cls,l]=map[r]||['',''];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
+  const chips=(q.rewards||[]).filter(r=>map[r]).map(r=>{const[cls,l]=map[r];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
   const note=q.rewardNote?`<span class="reward-chip" style="border-color:var(--border);color:var(--text-dim)">${esc(q.rewardNote)}</span>`:'';
   const pts=q.pointsValue&&q.rewards.includes('points')?`<span class="reward-chip reward-points">🏅 ${q.pointsValue} pts</span>`:'';
   return chips+note+pts;
