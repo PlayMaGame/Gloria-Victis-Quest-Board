@@ -692,7 +692,7 @@ const TRANS = {
     claim:'Claim',mark_complete:'Mark Complete',unclaim:'Unclaim',delete:'Delete',
     posted_by_text:'Posted by',
     quest_one:'1 quest',quest_many:'{n} quests',
-    no_quests:'No quests found',post_first_quest:'Post the first quest',
+    no_quests:'No quests found',post_first_quest:'Post the first quest',post_first_event:'Post first event',
     retry:'Retry',
     just_now:'just now',m_ago:'{n}m ago',h_ago:'{n}h ago',d_ago:'{n}d ago',
     required_title_poster:'Title and Posted By are required.',
@@ -741,7 +741,7 @@ const TRANS = {
     claim:'\u0412\u0437\u044f\u0442\u044c',mark_complete:'\u0413\u043e\u0442\u043e\u0432\u043e',unclaim:'\u0412\u0435\u0440\u043d\u0443\u0442\u044c',delete:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',
     posted_by_text:'\u0410\u0432\u0442\u043e\u0440',
     quest_one:'1 \u0437\u0430\u0434\u0430\u043d\u0438\u0435',quest_many:'{n} \u0437\u0430\u0434\u0430\u043d\u0438\u0439',
-    no_quests:'\u0417\u0430\u0434\u0430\u043d\u0438\u0439 \u043d\u0435\u0442',post_first_quest:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u043f\u0435\u0440\u0432\u043e\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0435',
+    no_quests:'\u0417\u0430\u0434\u0430\u043d\u0438\u0439 \u043d\u0435\u0442',post_first_quest:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u043f\u0435\u0440\u0432\u043e\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0435',post_first_event:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u043f\u0435\u0440\u0432\u044b\u0439 \u0438\u0432\u0435\u043d\u0442',
     retry:'\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c',
     just_now:'\u0442\u043e\u043b\u044c\u043a\u043e \u0447\u0442\u043e',m_ago:'{n}\u043c \u043d\u0430\u0437\u0430\u0434',h_ago:'{n}\u0447 \u043d\u0430\u0437\u0430\u0434',d_ago:'{n}\u0434 \u043d\u0430\u0437\u0430\u0434',
     required_title_poster:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0438 \u0430\u0432\u0442\u043e\u0440 \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u044b.',
@@ -1027,7 +1027,8 @@ function render(){
   const cnt=list.length;
   document.getElementById('quest-count').textContent=cnt===1?t('quest_one'):t('quest_many',cnt);
   if(!cnt){
-    grid.innerHTML=`<div class="board-status"><div class="status-icon">📜</div><p>${t('no_quests')}</p><button class="btn btn-primary" onclick="openNewQuestModal()">${t('post_first_quest')}</button></div>`;
+    const firstBtn=currentFilter==='event'?t('post_first_event'):t('post_first_quest');
+    grid.innerHTML=`<div class="board-status"><div class="status-icon">📜</div><p>${t('no_quests')}</p><button class="btn btn-primary" onclick="openNewQuestModal()">${firstBtn}</button></div>`;
     applyTranslations();
     return;
   }
@@ -1075,7 +1076,7 @@ function openNewQuestModal(editData){
   ['r-hot','r-points','r-gift'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('f-points-value').value='';document.getElementById('f-points-value').style.display='none';
   document.getElementById('f-gift-desc').value='';document.getElementById('f-gift-desc').style.display='none';
-  document.getElementById('f-type').value='gather';
+  document.getElementById('f-type').value=currentFilter==='event'?'event':'gather';
   const rw=document.getElementById('rewards-section');
   if(rw)rw.style.display=isAdmin()?'':'none';
   onTypeChange();
