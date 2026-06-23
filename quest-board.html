@@ -480,7 +480,7 @@ select option{background:var(--parchment-3);}
       <div class="form-row">
         <div class="form-group" style="flex:1">
           <label data-i18n="award_points">Points</label>
-          <input id="award-points" type="number" value="10" min="1">
+          <input id="award-points" type="number" value="10">
         </div>
         <div class="form-group" style="flex:2">
           <label data-i18n="award_reason">Reason</label>
@@ -1295,19 +1295,26 @@ function logoutAdmin(){
   toast('Admin mode off.');
 }
 
-function openAwardModal(playerName){
+function openAwardModal(playerName, deduct){
   document.getElementById('award-player-name').textContent=playerName;
-  document.getElementById('award-points').value=10;
-  document.getElementById('award-reason').value='';
+  document.getElementById('award-points').value=deduct?-10:10;
+  document.getElementById('award-reason').value=deduct?'Deduction':'Manual award';
   applyTranslations();
   openModal('award-modal');
+}
+
+async function deletePlayer(name){
+  if(!isAdmin())return;
+  if(!confirm('Delete all points for '+name+'?'))return;
+  await sb.from('loyalty').delete().eq('player_name',name);
+  toast('Deleted: '+name);
 }
 
 async function confirmAward(){
   const name=document.getElementById('award-player-name').textContent;
   const pts=parseInt(document.getElementById('award-points').value);
   const reason=document.getElementById('award-reason').value.trim()||'Manual award';
-  if(isNaN(pts)||pts<1){toast('Enter a valid point amount.');return;}
+  if(isNaN(pts)||pts===0){toast('Enter a valid point amount.');return;}
   const{error}=await sb.from('loyalty').insert({player_name:name,points:pts,reason,awarded_by:'Admin'});
   if(error){toast(t('err_prefix')+error.message);return;}
   closeModal('award-modal');
@@ -1340,7 +1347,7 @@ function renderLeaderboard(){
   list.innerHTML=sorted.map(([name,pts],i)=>{
     const rank=i+1;
     const rCls=rank===1?'lb-rank-1':rank===2?'lb-rank-2':rank===3?'lb-rank-3':'';
-    const awardBtn=admin?` <button class="lb-award-btn" onclick="openAwardModal('${esc(name)}')">+</button>`:'';
+    const awardBtn=admin?` <button class="lb-award-btn" onclick="openAwardModal('${esc(name)}')">+</button> <button class="lb-award-btn" onclick="openAwardModal('${esc(name)}',true)">−</button> <button class="lb-award-btn" style="color:var(--red-bright);border-color:var(--red)" onclick="deletePlayer('${esc(name)}')">🗑</button>`:'';
     return`<div class="lb-row"><span class="lb-rank ${rCls}">#${rank}</span><span class="lb-name">${esc(name)}${awardBtn}</span><span class="lb-points">${pts}</span></div>`;
   }).join('');
 }
