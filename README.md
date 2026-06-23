@@ -106,6 +106,20 @@ create table chat_messages (
 alter table chat_messages enable row level security;
 create policy "public access" on chat_messages for all using (true) with check (true);
 alter publication supabase_realtime add table chat_messages;
+
+create table shop_items (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text default '',
+  price integer not null default 0,
+  stock integer not null default 1,
+  sponsor text default '',
+  hot boolean default false,
+  created_at timestamptz default now()
+);
+alter table shop_items enable row level security;
+create policy "public access" on shop_items for all using (true) with check (true);
+alter publication supabase_realtime add table shop_items;
 ```
 
 5. Go to **Project Settings → API** and copy:

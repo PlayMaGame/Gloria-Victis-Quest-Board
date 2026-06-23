@@ -25,6 +25,8 @@ header{background:var(--parchment-2);border-bottom:2px solid var(--border);paddi
 
 /* BUTTONS */
 .btn{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;border:1px solid var(--border);background:var(--parchment-3);color:var(--text-dim);padding:7px 14px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.btn-shop{border-color:var(--green);color:var(--green-bright);}
+.btn-shop:hover,.btn-shop.active{background:var(--green);color:#fff;border-color:var(--green-bright);}
 .btn:hover{border-color:var(--gold);color:var(--gold);}
 .btn:disabled{opacity:.4;cursor:not-allowed;}
 .btn-primary{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-bright);}
@@ -92,6 +94,27 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px;}
 .card-poster{font-size:.78rem;color:var(--text-faint);}
 .card-poster strong{color:var(--text-dim);font-weight:600;font-style:normal;}
 .card-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* SHOP */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;}
+.shop-card{background:var(--parchment-2);border:1px solid var(--border);display:flex;flex-direction:column;transition:border-color .15s;}
+.shop-card:hover{border-color:var(--border-light);}
+.shop-card-out{opacity:.45;}
+.shop-hot-bar{height:4px;width:100%;background:linear-gradient(90deg,#ff4400,#ff8800,#ff4400);background-size:200% 100%;animation:fireGlow 2s ease infinite;}
+.shop-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);}
+.shop-name{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--gold-bright);word-break:break-word;}
+.shop-hot-tag{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--red-bright);margin-left:8px;}
+.shop-body{padding:12px 16px;flex:1;display:flex;flex-direction:column;gap:8px;}
+.shop-desc{font-style:italic;color:var(--text-dim);font-size:.88rem;line-height:1.4;}
+.shop-meta{display:flex;align-items:center;gap:12px;font-size:.85rem;}
+.shop-price{font-family:'Cinzel',serif;color:var(--gold-bright);font-weight:600;}
+.shop-stock{color:var(--text-faint);}
+.shop-stock-out{color:var(--red-bright);font-style:italic;}
+.shop-sponsor{font-size:.75rem;color:var(--text-faint);}
+.shop-sponsor strong{color:var(--text-dim);}
+.shop-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.shop-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.ornament.shop-ornament{color:var(--green-bright);}
 
 /* STATUS */
 .board-status{grid-column:1/-1;text-align:center;padding:80px 24px;color:var(--text-faint);}
@@ -259,15 +282,19 @@ select option{background:var(--parchment-3);}
     <span style="width:1px;height:16px;background:var(--border);margin:0 4px"></span>
     <button class="filter-btn" onclick="setFilter('event',this)">&#128220; <span data-i18n="event">Event</span></button>
     <span class="spacer"></span>
+    <button class="filter-btn btn-shop" onclick="switchView('shop')" id="shop-tab-btn">&#128176; <span data-i18n="shop_tab">Point Shop</span></button>
     <span class="quest-count" id="quest-count"></span>
   </div>
 
   <main>
     <div class="board-layout">
       <div class="board-main">
-        <div class="ornament" data-i18n="active_contracts">&#10022; &nbsp; Active Contracts &nbsp; &#10022;</div>
+        <div class="ornament" id="main-ornament" data-i18n="active_contracts">&#10022; &nbsp; Active Contracts &nbsp; &#10022;</div>
         <div class="quest-grid" id="quest-grid">
           <div class="board-status"><div class="spinner"></div><p data-i18n="connecting">Connecting to database&hellip;</p></div>
+        </div>
+        <div class="shop-grid" id="shop-grid" style="display:none">
+          <div class="board-status"><div class="status-icon">&#128176;</div><p data-i18n="shop_empty">Shop is empty.</p></div>
         </div>
       </div>
       <aside class="leaderboard" id="leaderboard">
@@ -496,6 +523,47 @@ select option{background:var(--parchment-3);}
   </div>
 </div>
 
+<!-- SHOP ADD/EDIT MODAL -->
+<div class="modal-overlay hidden" id="shop-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title" id="shop-modal-title" data-i18n="shop_add">&#128176; Add Item</span>
+      <button class="modal-close" onclick="closeModal('shop-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label data-i18n="shop_name">Item Name</label>
+        <input id="s-name" type="text">
+      </div>
+      <div class="form-group">
+        <label data-i18n="description">Description</label>
+        <textarea id="s-desc"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label data-i18n="shop_price_label">Price (pts)</label>
+          <input id="s-price" type="number" min="1">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label data-i18n="shop_stock_label">Stock</label>
+          <input id="s-stock" type="number" min="1" value="1">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label data-i18n="shop_sponsor_label">Sponsor</label>
+          <input id="s-sponsor" type="text">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+        <label class="reward-check"><input type="checkbox" id="s-hot"> <span data-i18n="ticker_add_hot">&#128293; Hot</span></label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('shop-modal')" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-primary" id="shop-save-btn" onclick="saveShopItem()" data-i18n="shop_save">Save</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -551,7 +619,7 @@ const TRANS = {
     admin_password:'Password',admin_unlock:'Unlock',
     award_title:'Award Points',award_points:'Points',award_reason:'Reason',
     award_reason_ph:'e.g. Event victory',award_btn:'Award',
-    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',chat_header:'💬 Guild Chat',chat_placeholder:'Type a message...',chat_send:'Send',chat_name_prompt:'Enter your in-game name for chat:',chat_cooldown:'Wait {n}s',ticker_title:'Ticker Items',ticker_click_hint:'Click an item below to add it to the scrolling ticker:',ticker_add_hot:'🔥 Add as hot',ticker_active:'Active ticker items:',ticker_clear:'Clear All',ticker_del:'Delete',ticker_announce:'🔥 Items in need:',guide_btn:'Guide',guide_title:'How to Use',guide_p1_title:'Post a quest',guide_p1_desc:'Click "Post Quest", fill in title, type, description and rewards. Only admins can set rewards.',guide_p2_title:'Claim a quest',guide_p2_desc:'Enter your in-game name to mark it as taken. All members see it in real time.',guide_p3_title:'Events',guide_p3_desc:'Register for guild events with your IGN. Admin closes the event and awards loyalty points.',guide_p4_title:'Leaderboard',guide_p4_desc:'Earn loyalty points by completing quests and participating in events. Top players are shown on the right.',
+    event_location:'Start Location',event_start:'Start Time',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',chat_header:'💬 Guild Chat',chat_placeholder:'Type a message...',chat_send:'Send',chat_name_prompt:'Enter your in-game name for chat:',chat_cooldown:'Wait {n}s',shop_tab:'💰 Point Shop',shop_empty:'Shop is empty.',shop_add:'Add Item',shop_edit:'Edit Item',shop_save:'Save',shop_name:'Item Name',shop_price_label:'Price (pts)',shop_stock_label:'Stock',shop_sponsor_label:'Sponsor',shop_buy:'Buy',shop_out:'Out of stock',shop_stock:'{n} left',shop_price:'{n} pts',shop_sponsor:'Sponsored by: {name}',shop_buy_title:'Confirm Purchase',shop_buy_prompt:'Your IGN',shop_buy_confirm:'Buy {item} for {n} pts?',shop_no_points:'Not enough points! You have {n}.',shop_thanks:'Item purchased! Enjoy!',shop_hot:'🔥 Hot Deal',ticker_title:'Ticker Items',ticker_click_hint:'Click an item below to add it to the scrolling ticker:',ticker_add_hot:'🔥 Add as hot',ticker_active:'Active ticker items:',ticker_clear:'Clear All',ticker_del:'Delete',ticker_announce:'🔥 Items in need:',guide_btn:'Guide',guide_title:'How to Use',guide_p1_title:'Post a quest',guide_p1_desc:'Click "Post Quest", fill in title, type, description and rewards. Only admins can set rewards.',guide_p2_title:'Claim a quest',guide_p2_desc:'Enter your in-game name to mark it as taken. All members see it in real time.',guide_p3_title:'Events',guide_p3_desc:'Register for guild events with your IGN. Admin closes the event and awards loyalty points.',guide_p4_title:'Leaderboard',guide_p4_desc:'Earn loyalty points by completing quests and participating in events. Top players are shown on the right.',
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
@@ -600,7 +668,7 @@ const TRANS = {
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
     award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
     award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
-    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',chat_header:'💬 \u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0439 \u0447\u0430\u0442',chat_placeholder:'\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435...',chat_send:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c',chat_name_prompt:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f \u0434\u043b\u044f \u0447\u0430\u0442\u0430:',chat_cooldown:'\u041f\u043e\u0434\u043e\u0436\u0434\u0438\u0442\u0435 {n}\u0441',ticker_title:'\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b \u0431\u0435\u0433\u0443\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438',ticker_click_hint:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442, \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0435\u0433\u043e \u0432 \u0431\u0435\u0433\u0443\u0449\u0443\u044e \u0441\u0442\u0440\u043e\u043a\u0443:',ticker_add_hot:'🔥 \u041a\u0430\u043a \u0433\u043e\u0440\u044f\u0447\u0435\u0435',ticker_active:'\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u044b:',ticker_clear:'\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c',ticker_del:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',ticker_announce:'🔥 \u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b:',guide_btn:'\u0413\u0430\u0439\u0434',guide_title:'\u041a\u0430\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c\u0441\u044f',guide_p1_title:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p1_desc:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 "\u0421\u043e\u0437\u0434\u0430\u0442\u044c", \u0437\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435, \u0442\u0438\u043f, \u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0438 \u043d\u0430\u0433\u0440\u0430\u0434\u044b. \u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d \u043c\u043e\u0436\u0435\u0442 \u0443\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0442\u044c \u043d\u0430\u0433\u0440\u0430\u0434\u044b.',guide_p2_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p2_desc:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043c\u0435\u0442\u0438\u0442\u044c \u0435\u0433\u043e \u043a\u0430\u043a \u0432\u0437\u044f\u0442\u043e\u0435. \u0412\u0441\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u0432\u0438\u0434\u044f\u0442 \u044d\u0442\u043e \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438.',guide_p3_title:'\u0418\u0432\u0435\u043d\u0442\u044b',guide_p3_desc:'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044c \u043d\u0430 \u0433\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0435 \u0438\u0432\u0435\u043d\u0442\u044b \u0441 \u0432\u0430\u0448\u0438\u043c IGN. \u0410\u0434\u043c\u0438\u043d \u0437\u0430\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u0438\u0432\u0435\u043d\u0442 \u0438 \u043d\u0430\u0447\u0438\u0441\u043b\u044f\u0435\u0442 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438.',guide_p4_title:'\u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432',guide_p4_desc:'\u0417\u0430\u0440\u0430\u0431\u0430\u0442\u044b\u0432\u0430\u0439\u0442\u0435 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438 \u0437\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0439 \u0438 \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 \u0438\u0432\u0435\u043d\u0442\u0430\u0445. \u041b\u0443\u0447\u0448\u0438\u0435 \u0438\u0433\u0440\u043e\u043a\u0438 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u044b \u0441\u043f\u0440\u0430\u0432\u0430.',
+    event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',chat_header:'💬 \u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0439 \u0447\u0430\u0442',chat_placeholder:'\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435...',chat_send:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c',chat_name_prompt:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f \u0434\u043b\u044f \u0447\u0430\u0442\u0430:',chat_cooldown:'\u041f\u043e\u0434\u043e\u0436\u0434\u0438\u0442\u0435 {n}\u0441',shop_tab:'💰 \u041c\u0430\u0433\u0430\u0437\u0438\u043d \u043e\u0447\u043a\u043e\u0432',shop_empty:'\u041c\u0430\u0433\u0430\u0437\u0438\u043d \u043f\u0443\u0441\u0442.',shop_add:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c',shop_edit:'\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c',shop_save:'\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c',shop_name:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',shop_price_label:'\u0426\u0435\u043d\u0430 (\u043e\u0447\u043a\u0438)',shop_stock_label:'\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',shop_sponsor_label:'\u0421\u043f\u043e\u043d\u0441\u043e\u0440',shop_buy:'\u041a\u0443\u043f\u0438\u0442\u044c',shop_out:'\u041d\u0435\u0442 \u0432 \u043d\u0430\u043b\u0438\u0447\u0438\u0438',shop_stock:'\u043e\u0441\u0442\u0430\u043b\u043e\u0441\u044c {n}',shop_price:'{n} \u043e\u0447\u043a\u043e\u0432',shop_sponsor:'\u0421\u043f\u043e\u043d\u0441\u043e\u0440: {name}',shop_buy_title:'\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435',shop_buy_prompt:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',shop_buy_confirm:'\u041a\u0443\u043f\u0438\u0442\u044c {item} \u0437\u0430 {n} \u043e\u0447\u043a\u043e\u0432?',shop_no_points:'\u041d\u0435\u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u043e\u0447\u043a\u043e\u0432! \u0423 \u0432\u0430\u0441 {n}.',shop_thanks:'\u041f\u043e\u043a\u0443\u043f\u043a\u0430 \u0441\u043e\u0432\u0435\u0440\u0448\u0435\u043d\u0430! \u041d\u0430\u0441\u043b\u0430\u0436\u0434\u0430\u0439\u0442\u0435\u0441\u044c!',shop_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',ticker_title:'\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b \u0431\u0435\u0433\u0443\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438',ticker_click_hint:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442, \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0435\u0433\u043e \u0432 \u0431\u0435\u0433\u0443\u0449\u0443\u044e \u0441\u0442\u0440\u043e\u043a\u0443:',ticker_add_hot:'🔥 \u041a\u0430\u043a \u0433\u043e\u0440\u044f\u0447\u0435\u0435',ticker_active:'\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u044b:',ticker_clear:'\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c',ticker_del:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',ticker_announce:'🔥 \u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b:',guide_btn:'\u0413\u0430\u0439\u0434',guide_title:'\u041a\u0430\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c\u0441\u044f',guide_p1_title:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p1_desc:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 "\u0421\u043e\u0437\u0434\u0430\u0442\u044c", \u0437\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435, \u0442\u0438\u043f, \u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0438 \u043d\u0430\u0433\u0440\u0430\u0434\u044b. \u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d \u043c\u043e\u0436\u0435\u0442 \u0443\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0442\u044c \u043d\u0430\u0433\u0440\u0430\u0434\u044b.',guide_p2_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p2_desc:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043c\u0435\u0442\u0438\u0442\u044c \u0435\u0433\u043e \u043a\u0430\u043a \u0432\u0437\u044f\u0442\u043e\u0435. \u0412\u0441\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u0432\u0438\u0434\u044f\u0442 \u044d\u0442\u043e \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438.',guide_p3_title:'\u0418\u0432\u0435\u043d\u0442\u044b',guide_p3_desc:'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044c \u043d\u0430 \u0433\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0435 \u0438\u0432\u0435\u043d\u0442\u044b \u0441 \u0432\u0430\u0448\u0438\u043c IGN. \u0410\u0434\u043c\u0438\u043d \u0437\u0430\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u0438\u0432\u0435\u043d\u0442 \u0438 \u043d\u0430\u0447\u0438\u0441\u043b\u044f\u0435\u0442 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438.',guide_p4_title:'\u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432',guide_p4_desc:'\u0417\u0430\u0440\u0430\u0431\u0430\u0442\u044b\u0432\u0430\u0439\u0442\u0435 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438 \u0437\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0439 \u0438 \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 \u0438\u0432\u0435\u043d\u0442\u0430\u0445. \u041b\u0443\u0447\u0448\u0438\u0435 \u0438\u0433\u0440\u043e\u043a\u0438 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u044b \u0441\u043f\u0440\u0430\u0432\u0430.',
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -657,6 +725,7 @@ async function initApp(){
     fetchLeaderboard();
     fetchTickerItems();
     fetchChat();
+    fetchShopItems();
   }catch(e){
     showBoardError(t('connect_error'));
     console.error(e);
@@ -697,6 +766,9 @@ function subscribeRealtime(){
     .subscribe();
   sb.channel('chat-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'chat_messages'},()=>{fetchChat();})
+    .subscribe();
+  sb.channel('shop-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'shop_items'},()=>{fetchShopItems();})
     .subscribe();
 }
 
@@ -1185,6 +1257,137 @@ async function renameChat(id,oldName){
   const name=prompt('Rename player:',oldName);
   if(!name||name===oldName)return;
   await sb.from('chat_messages').update({player_name:name.trim()}).eq('id',id);
+}
+
+// SHOP
+let currentView='quests';
+let shopItems=[];
+let editingShopId=null;
+
+function switchView(view){
+  currentView=view;
+  const isShop=view==='shop';
+  document.getElementById('quest-grid').style.display=isShop?'none':'';
+  document.getElementById('shop-grid').style.display=isShop?'':'none';
+  document.getElementById('main-ornament').innerHTML=isShop?'💰 '+t('shop_tab'):'✦ '+t('active_contracts');
+  document.getElementById('shop-tab-btn').classList.toggle('active',isShop);
+  document.querySelectorAll('.filter-btn:not(.btn-shop)').forEach(b=>b.classList.toggle('hidden',isShop));
+  if(isShop)renderShop();
+  else render();
+}
+
+async function fetchShopItems(){
+  if(!sb)return;
+  const{data,error}=await sb.from('shop_items').select('*').order('created_at',{ascending:false});
+  if(error&&error.message.includes('does not exist'))return;
+  if(error)return;
+  shopItems=data||[];
+  if(currentView==='shop')renderShop();
+}
+
+async function getPlayerPoints(name){
+  const{data}=await sb.from('loyalty').select('points').eq('player_name',name);
+  return (data||[]).reduce((s,r)=>s+(r.points||0),0);
+}
+
+function renderShop(){
+  const grid=document.getElementById('shop-grid');
+  const admin=isAdmin();
+  if(!shopItems.length){
+    grid.innerHTML=`<div class="board-status"><div class="status-icon">💰</div><p>${t('shop_empty')}</p><button class="btn btn-primary" onclick="openShopModal()" style="${admin?'':'display:none'}">${t('shop_add')}</button></div>`;
+    return;
+  }
+  const sorted=[...shopItems].sort((a,b)=>{
+    if(a.hot&&!b.hot)return -1;
+    if(!a.hot&&b.hot)return 1;
+    return (b.stock>0?a.price:999999)-(a.stock>0?b.price:999999);
+  });
+  grid.innerHTML=sorted.map(i=>{
+    const out=i.stock<=0;
+    const hot=i.hot&&!out;
+    const hotBar=hot?'<div class="shop-hot-bar"></div>':'';
+    const hotTag=hot?`<span class="shop-hot-tag">${t('shop_hot')}</span>`:'';
+    const stockHtml=out?`<span class="shop-stock-out">${t('shop_out')}</span>`:`<span class="shop-stock">${t('shop_stock',i.stock)}</span>`;
+    const sponsorHtml=i.sponsor?`<div class="shop-sponsor">${t('shop_sponsor',i.sponsor)}</div>`:'';
+    const buyHtml=out?`<button class="btn btn-sm" disabled>${t('shop_out')}</button>`:`<button class="btn btn-sm btn-success" onclick="buyShopItem('${i.id}')">${t('shop_buy')}</button>`;
+    const editHtml=admin?`<button class="btn btn-sm" onclick="openShopModal('${i.id}')">✏️</button>`:'';
+    const delHtml=admin?`<button class="btn btn-sm btn-danger" onclick="deleteShopItem('${i.id}')">🗑</button>`:'';
+    return`<div class="shop-card${out?' shop-card-out':''}" id="shop-${i.id}">
+      ${hotBar}
+      <div class="shop-head">
+        <div class="shop-name">${esc(i.name)}${hotTag}</div>
+      </div>
+      <div class="shop-body">
+        ${i.description?`<div class="shop-desc">${esc(i.description)}</div>`:''}
+        <div class="shop-meta"><span class="shop-price">${t('shop_price',i.price)}</span>${stockHtml}</div>
+        ${sponsorHtml}
+      </div>
+      <div class="shop-foot">
+        <div class="shop-actions">${buyHtml}${editHtml}${delHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+  applyTranslations();
+  if(admin&&shopItems.length){
+    const addBtn=document.createElement('div');
+    addBtn.style.cssText='grid-column:1/-1;text-align:center;padding:8px';
+    addBtn.innerHTML=`<button class="btn btn-primary" onclick="openShopModal()">+ ${t('shop_add')}</button>`;
+    grid.insertAdjacentElement('beforeend',addBtn);
+  }
+}
+
+function openShopModal(id){
+  editingShopId=id||null;
+  const item=id?shopItems.find(i=>i.id===id):null;
+  document.getElementById('s-name').value=item?item.name:'';
+  document.getElementById('s-desc').value=item?item.description:'';
+  document.getElementById('s-price').value=item?item.price:'';
+  document.getElementById('s-stock').value=item?item.stock:1;
+  document.getElementById('s-sponsor').value=item?item.sponsor:'';
+  document.getElementById('s-hot').checked=item?item.hot:false;
+  document.querySelector('.modal-title').textContent=item?t('shop_edit'):t('shop_add');
+  applyTranslations();
+  openModal('shop-modal');
+}
+
+async function saveShopItem(){
+  const name=document.getElementById('s-name').value.trim();
+  const desc=document.getElementById('s-desc').value.trim();
+  const price=parseInt(document.getElementById('s-price').value);
+  const stock=parseInt(document.getElementById('s-stock').value);
+  const sponsor=document.getElementById('s-sponsor').value.trim();
+  const hot=document.getElementById('s-hot').checked;
+  if(!name||!price||price<1||!stock||stock<1){toast('Name, price and stock required.');return;}
+  const data={name,description:desc,price,stock,sponsor,hot};
+  if(editingShopId){
+    const{error}=await sb.from('shop_items').update(data).eq('id',editingShopId);
+    if(error){toast(t('err_prefix')+error.message);return;}
+  }else{
+    const{error}=await sb.from('shop_items').insert(data);
+    if(error){toast(t('err_prefix')+error.message);return;}
+  }
+  closeModal('shop-modal');
+  toast(editingShopId?'Item updated!':'Item added!');
+}
+
+async function deleteShopItem(id){
+  if(!isAdmin()||!confirm(t('confirm_delete')))return;
+  const{error}=await sb.from('shop_items').delete().eq('id',id);
+  if(error){toast(t('err_prefix')+error.message);return;}
+}
+
+async function buyShopItem(id){
+  const item=shopItems.find(i=>i.id===id);
+  if(!item||item.stock<=0)return;
+  const defaultName=localStorage.getItem('gv_chat_name')||'';
+  const name=prompt(t('shop_buy_prompt')+':',defaultName);
+  if(!name||!name.trim())return;
+  const pts=await getPlayerPoints(name.trim());
+  if(pts<item.price){toast(t('shop_no_points',pts));return;}
+  if(!confirm(t('shop_buy_confirm',item.name,item.price)))return;
+  await sb.from('loyalty').insert({player_name:name.trim(),points:-item.price,reason:'Purchased: '+item.name,awarded_by:'Shop'});
+  await sb.from('shop_items').update({stock:item.stock-1}).eq('id',id);
+  toast(t('shop_thanks'));
 }
 
 // TICKER
