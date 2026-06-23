@@ -1365,7 +1365,11 @@ function switchView(view){
   document.getElementById('shop-grid').style.display=isShop?'':'none';
   document.getElementById('main-ornament').innerHTML=isShop?'💰 '+t('shop_tab'):'✦ '+t('active_contracts');
   document.getElementById('shop-tab-btn').classList.toggle('active',isShop);
-  document.querySelectorAll('.filter-btn:not(.btn-shop)').forEach(b=>b.classList.toggle('hidden',isShop));
+  document.querySelectorAll('.filter-btn:not(.btn-shop)').forEach(b=>{
+    b.classList.toggle('hidden',isShop);
+    if(isShop)b.classList.remove('active');
+    else if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("setFilter('"+currentFilter+"'"))b.classList.add('active');
+  });
   if(isShop)renderShop();
   else render();
 }
