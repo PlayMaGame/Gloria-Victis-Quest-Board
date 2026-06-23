@@ -175,7 +175,8 @@ select option{background:var(--parchment-3);}
 .lb-empty{padding:24px 14px;text-align:center;color:var(--text-faint);font-style:italic;font-size:.85rem;}
 .lb-award-btn{background:none;border:1px solid var(--border);color:var(--gold);font-size:.6rem;padding:1px 6px;cursor:pointer;font-family:'Cinzel',serif;}
 .lb-award-btn:hover{background:var(--gold-dim);color:var(--gold-bright);}
-.lb-actions{display:flex;gap:2px;flex-shrink:0;margin-left:auto;}
+.lb-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.lb-actions{display:flex;gap:2px;flex-shrink:0;}
 
 @media(max-width:900px){
   .board-layout{flex-direction:column;}
@@ -1348,8 +1349,9 @@ function renderLeaderboard(){
   list.innerHTML=sorted.map(([name,pts],i)=>{
     const rank=i+1;
     const rCls=rank===1?'lb-rank-1':rank===2?'lb-rank-2':rank===3?'lb-rank-3':'';
-    const awardBtn=admin?`<div class="lb-actions"><button class="lb-award-btn" onclick="openAwardModal('${esc(name)}')">+</button><button class="lb-award-btn" onclick="openAwardModal('${esc(name)}',true)">−</button><button class="lb-award-btn" style="color:var(--red-bright);border-color:var(--red)" onclick="deletePlayer('${esc(name)}')">🗑</button></div>`:'';
-    return`<div class="lb-row"><span class="lb-rank ${rCls}">#${rank}</span><span class="lb-name">${esc(name)}</span>${awardBtn}<span class="lb-points">${pts}</span></div>`;
+    const actions=admin?`<div class="lb-actions"><button class="lb-award-btn" onclick="openAwardModal('${esc(name)}')">+</button><button class="lb-award-btn" onclick="openAwardModal('${esc(name)}',true)">−</button><button class="lb-award-btn" style="color:var(--red-bright);border-color:var(--red)" onclick="deletePlayer('${esc(name)}')">🗑</button></div>`:'';
+    const rightHtml='<span class="lb-right">'+actions+'<span class="lb-points">'+pts+'</span></span>';
+    return`<div class="lb-row"><span class="lb-rank ${rCls}">#${rank}</span><span class="lb-name">${esc(name)}</span>${rightHtml}</div>`;
   }).join('');
 }
 
