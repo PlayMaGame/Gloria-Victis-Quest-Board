@@ -1622,6 +1622,7 @@ async function pmAward(){
   const name=document.getElementById('pm-name').value.trim();
   const pts=parseInt(document.getElementById('pm-add').value);
   if(isNaN(pts)||pts<1)return;
+  if(!confirm('Add '+pts+' pts to '+name+'?'))return;
   const{error}=await sb.from('loyalty').insert({player_name:name,points:pts,reason:'Manual award',awarded_by:'Admin'});
   if(error){toast(t('err_prefix')+error.message);return;}
   toast('Added '+pts+' pts');
@@ -1631,6 +1632,7 @@ async function pmDeduct(){
   const name=document.getElementById('pm-name').value.trim();
   const pts=parseInt(document.getElementById('pm-rem').value);
   if(isNaN(pts)||pts<1)return;
+  if(!confirm('Remove '+pts+' pts from '+name+'?'))return;
   const{error}=await sb.from('loyalty').insert({player_name:name,points:-pts,reason:'Deduction',awarded_by:'Admin'});
   if(error){toast(t('err_prefix')+error.message);return;}
   toast('Removed '+pts+' pts');
