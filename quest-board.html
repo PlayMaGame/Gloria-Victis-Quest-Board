@@ -1225,12 +1225,12 @@ async function toggleEventReg(id){
     if(error){toast(t('err_prefix')+error.message);}
     return;
   }
-  registerForEvent(id);
+  registerForEvent(id, myName);
 }
 
-async function registerForEvent(id){
-  const name=prompt(t('enter_name'));
-  if(!name)return;
+async function registerForEvent(id, forcedName){
+  const name=forcedName||(isAdmin()?prompt(t('enter_name')):localStorage.getItem('gv_chat_name'));
+  if(!name||!name.trim())return;
   const q=quests.find(x=>x.id===id);
   if(!q)return;
   const parts=q.participants||[];
