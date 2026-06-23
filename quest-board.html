@@ -47,7 +47,9 @@ header{background:var(--parchment-2);border-bottom:2px solid var(--border);paddi
 
 /* GRID */
 main{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
-.quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;}
+.quest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:900px){.quest-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.quest-grid{grid-template-columns:1fr;}}
 
 /* CARD */
 .quest-card{background:var(--parchment-2);border:1px solid var(--border);display:flex;flex-direction:column;transition:border-color .15s;}
@@ -163,7 +165,7 @@ select option{background:var(--parchment-3);}
 .board-main{flex:1;min-width:0;}
 .leaderboard{width:260px;flex-shrink:0;background:var(--parchment-2);border:1px solid var(--border);position:sticky;top:92px;}
 .lb-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-bright);text-align:center;}
-.section-header{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-bright);text-align:center;padding:12px 14px 10px;border-bottom:1px solid var(--border);}
+.section-header{font-family:'Cinzel',serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-bright);text-align:center;padding:12px 14px 10px;}
 .lb-list{max-height:500px;overflow-y:auto;}
 .lb-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--parchment-3);font-size:.85rem;transition:background .15s;}
 .lb-row:hover{background:var(--parchment-3);}
@@ -179,19 +181,17 @@ select option{background:var(--parchment-3);}
 .lb-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .lb-actions{display:flex;gap:2px;flex-shrink:0;}
 
-.board-events{width:260px;flex-shrink:0;position:sticky;top:92px;}
-.event-card{background:var(--parchment-2);border:1px solid var(--border);margin-bottom:8px;padding:10px 12px;}
-.event-card-bar{height:3px;width:100%;background:#c06020;margin-bottom:6px;}
-.event-card-title{font-family:'Cinzel',serif;font-size:.78rem;color:var(--gold-bright);word-break:break-word;}
-.event-card-meta{font-size:.7rem;color:var(--text-dim);margin-top:3px;line-height:1.5;}
-.event-card-actions{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;}
+.board-events{width:340px;flex-shrink:0;position:sticky;top:92px;overflow-y:auto;max-height:calc(100vh - 120px);}
 .event-card-empty{padding:24px 14px;text-align:center;color:var(--text-faint);font-style:italic;font-size:.8rem;}
+.board-events .quest-card{font-size:.85rem;}
+.board-events .quest-card .card-title{font-size:.85rem;}
+.board-events .quest-card .btn{font-size:.58rem;padding:3px 8px;}
 .chat-sidebar{width:260px;flex-shrink:0;border:1px solid var(--border);border-top:none;}
 @media(max-width:1100px){.chat-sidebar{width:200px;}}
 @media(max-width:900px){.chat-sidebar{width:100%;}}
 .events-hidden{display:none !important;}
 
-@media(max-width:1100px){.board-events{width:200px;}}
+@media(max-width:1100px){.board-events{width:300px;}}
 @media(max-width:900px){
   .board-layout{flex-direction:column;}
   .leaderboard{width:100%;position:static;}
@@ -388,6 +388,10 @@ select option{background:var(--parchment-3);}
         <div class="form-group" id="deadline-group">
           <label data-i18n="deadline" id="deadline-label">Deadline (optional)</label>
           <input id="f-deadline" type="text" data-i18n-placeholder="deadline_ph">
+          <div id="event-datetime" style="display:none;gap:6px">
+            <input id="f-event-date" type="date" style="flex:1">
+            <input id="f-event-time" type="time" step="60" style="flex:1">
+          </div>
         </div>
       </div>
       <div class="form-group">
@@ -970,19 +974,7 @@ function renderUpcomingEvents(){
     const bt=b.deadline?new Date(b.deadline).getTime():9999999999999;
     return at-bt;
   }).slice(0,2);
-  el.innerHTML=sorted.map(q=>{
-    const pCount=(q.participants||[]).length;
-    const startTime=q.deadline?new Date(q.deadline+'Z').toLocaleString():'TBD';
-    return`<div class="event-card">
-      <div class="event-card-bar"></div>
-      <div class="event-card-title">${esc(q.title)}</div>
-      <div class="event-card-meta">📅 ${startTime}</div>
-      <div class="event-card-meta" style="cursor:pointer" onclick="openParticipantsModal('${q.id}')">👥 ${pCount} ${pCount===1?'player':'players'}</div>
-      <div class="event-card-actions">
-        <button class="btn btn-sm btn-success" onclick="registerForEvent('${q.id}')">${t('event_register')}</button>
-      </div>
-    </div>`;
-  }).join('');
+  el.innerHTML=sorted.map(q=>renderCard(q)).join('');
   applyTranslations();
 }
 
@@ -1038,15 +1030,18 @@ function onTypeChange(){
   const dl=document.getElementById('deliver-label');
   const ll=document.getElementById('deadline-label');
   const li=document.getElementById('f-deadline');
+  const edt=document.getElementById('event-datetime');
   if(isEvent){
     dl.setAttribute('data-i18n','event_location');
     ll.setAttribute('data-i18n','event_start');
-    li.setAttribute('type','datetime-local');
+    li.style.display='none';
+    edt.style.display='flex';
     document.getElementById('f-title').setAttribute('data-i18n-placeholder','event_title_ph');
   }else{
     dl.setAttribute('data-i18n','deliver_to');
     ll.setAttribute('data-i18n','deadline');
-    li.setAttribute('type','text');
+    li.style.display='';
+    edt.style.display='none';
     document.getElementById('f-title').setAttribute('data-i18n-placeholder','quest_title_ph');
   }
   applyTranslations();
@@ -1075,8 +1070,14 @@ function openNewQuestModal(editData){
     (editData.rewards||[]).forEach(r=>{const el=document.getElementById('r-'+r);if(el)el.checked=true;});
     if(editData.rewards&&editData.rewards.includes('points'))document.getElementById('f-points-value').style.display='';
     if(editData.rewards&&editData.rewards.includes('gift')&&editData.rewardNote)document.getElementById('f-gift-desc').style.display='';
-    document.getElementById('post-btn').textContent=editData?t('save'):t('post_quest');
-    document.getElementById('post-btn').setAttribute('onclick',editData?`saveEdit('${editData.id}')`:'postQuest()');
+    document.getElementById('post-btn').textContent=t('save');
+    document.getElementById('post-btn').setAttribute('onclick',`saveEdit('${editData.id}')`);
+    onTypeChange();
+    if(editData.type==='event'&&editData.deadline&&editData.deadline.includes('T')){
+      const parts=editData.deadline.split('T');
+      document.getElementById('f-event-date').value=parts[0];
+      document.getElementById('f-event-time').value=parts[1].substring(0,5);
+    }
   }else{
     document.getElementById('post-btn').textContent=t('post_quest');
     document.getElementById('post-btn').setAttribute('onclick','postQuest()');
@@ -1091,6 +1092,8 @@ async function postQuest(){
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
   const rewards=isAdmin()?['hot','points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const isEventType=document.getElementById('f-type').value==='event';
+  const deadlineVal=isEventType?(document.getElementById('f-event-date').value+'T'+document.getElementById('f-event-time').value+':00'):document.getElementById('f-deadline').value.trim();
   const pv=parseInt(document.getElementById('f-points-value').value)||0;
   const giftNote=isAdmin()?document.getElementById('f-gift-desc').value.trim():'';
   const row={
@@ -1099,7 +1102,7 @@ async function postQuest(){
     item:document.getElementById('f-item').value.trim(),
     qty:document.getElementById('f-qty').value.trim(),
     deliver_to:document.getElementById('f-deliver').value.trim(),
-    deadline:document.getElementById('f-deadline').value.trim(),
+    deadline:deadlineVal,
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
@@ -1126,6 +1129,8 @@ async function saveEdit(id){
   const poster=document.getElementById('f-poster').value.trim();
   if(!title||!poster){toast(t('required_title_poster'));return;}
   const rewards=isAdmin()?['hot','points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
+  const isEventType=document.getElementById('f-type').value==='event';
+  const deadlineVal=isEventType?(document.getElementById('f-event-date').value+'T'+document.getElementById('f-event-time').value+':00'):document.getElementById('f-deadline').value.trim();
   const pv=parseInt(document.getElementById('f-points-value').value)||0;
   const giftNote=isAdmin()?document.getElementById('f-gift-desc').value.trim():'';
   const row={
@@ -1134,7 +1139,7 @@ async function saveEdit(id){
     item:document.getElementById('f-item').value.trim(),
     qty:document.getElementById('f-qty').value.trim(),
     deliver_to:document.getElementById('f-deliver').value.trim(),
-    deadline:document.getElementById('f-deadline').value.trim(),
+    deadline:deadlineVal,
     poster,rewards,
     reward_note:giftNote,
     points_value:pv
@@ -1338,6 +1343,8 @@ async function deleteQuest(id){
 function setFilter(f,btn){
   if(currentView==='shop')switchView('quests');
   currentFilter=f;
+  const orn=document.getElementById('main-ornament');
+  if(orn)orn.innerHTML=f==='event'?t('events_ornament'):'✦ '+t('active_contracts');
   document.querySelectorAll('.filter-btn:not(.btn-shop)').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   render();
