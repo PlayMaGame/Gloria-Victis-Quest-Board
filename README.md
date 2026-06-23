@@ -96,6 +96,16 @@ create policy "public access" on ticker_items
 
 -- Enable realtime for ticker
 alter publication supabase_realtime add table ticker_items;
+
+create table chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  player_name text not null,
+  message text not null,
+  created_at timestamptz default now()
+);
+alter table chat_messages enable row level security;
+create policy "public access" on chat_messages for all using (true) with check (true);
+alter publication supabase_realtime add table chat_messages;
 ```
 
 5. Go to **Project Settings → API** and copy:
