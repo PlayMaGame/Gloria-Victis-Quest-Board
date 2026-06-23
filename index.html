@@ -1122,7 +1122,7 @@ async function completeQuest(id){
   if(q&&q.claimedBy){
     const hours=Math.max(1,Math.floor((Date.now()-q.postedAt)/3600000));
     const target=q.deliverTo||(lang==='ru'?'гильдии':'the guild');
-    const sysMsg='📢 '+q.title+' was completed in '+hours+'h by '+q.claimedBy+' for '+target+'.';
+    const sysMsg=lang==='ru'?'📢 '+q.title+' был выполнен за '+hours+'ч игроком '+q.claimedBy+' для '+target+'.':'📢 '+q.title+' was completed in '+hours+'h by '+q.claimedBy+' for '+target+'.';
     await sb.from('chat_messages').insert({player_name:'📢 System',message:sysMsg});
   }
 }
