@@ -779,7 +779,7 @@ function filtered(){
 }
 
 function renderRewards(q){
-  const map={hot:['reward-points',t('reward_hot')],points:['reward-points',t('reward_points')],gift:['reward-gift',t('reward_gift')]};
+  const map={points:['reward-points',t('reward_points')],gift:['reward-gift',t('reward_gift')]};
   const chips=(q.rewards||[]).map(r=>{const[cls,l]=map[r]||['',''];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
   const note=q.rewardNote?`<span class="reward-chip" style="border-color:var(--border);color:var(--text-dim)">${esc(q.rewardNote)}</span>`:'';
   const pts=q.pointsValue&&q.rewards.includes('points')?`<span class="reward-chip reward-points">🏅 ${q.pointsValue} pts</span>`:'';
@@ -1094,8 +1094,9 @@ async function deleteQuest(id){
 }
 
 function setFilter(f,btn){
+  if(currentView==='shop')switchView('quests');
   currentFilter=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn:not(.btn-shop)').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   render();
 }
