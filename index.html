@@ -46,7 +46,7 @@ header{background:var(--parchment-2);border-bottom:2px solid var(--border);paddi
 .quest-count{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-faint);letter-spacing:.05em;}
 
 /* GRID */
-main{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
+main{margin:0 auto;padding:28px 24px 60px;}
 .quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;}
 @media(max-width:600px){.quest-grid{grid-template-columns:1fr;}}
 
@@ -180,17 +180,16 @@ select option{background:var(--parchment-3);}
 .lb-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .lb-actions{display:flex;gap:2px;flex-shrink:0;}
 
-.board-events{width:340px;flex-shrink:0;position:sticky;top:92px;overflow-y:auto;max-height:calc(100vh - 120px);}
-.event-card-empty{padding:24px 14px;text-align:center;color:var(--text-faint);font-style:italic;font-size:.8rem;}
+.board-events{width:280px;flex-shrink:0;position:sticky;top:92px;overflow-y:auto;max-height:calc(100vh - 120px);}
 .board-events .quest-card{font-size:.85rem;}
 .board-events .quest-card .card-title{font-size:.85rem;}
 .board-events .quest-card .btn{font-size:.58rem;padding:3px 8px;}
-.chat-sidebar{width:260px;flex-shrink:0;border:1px solid var(--border);border-top:none;}
+.chat-sidebar{width:240px;flex-shrink:0;border:1px solid var(--border);border-top:none;}
 @media(max-width:1100px){.chat-sidebar{width:200px;}}
 @media(max-width:900px){.chat-sidebar{width:100%;}}
 .events-hidden{display:none !important;}
 
-@media(max-width:1100px){.board-events{width:300px;}}
+@media(max-width:1100px){.board-events{width:280px;}}
 @media(max-width:900px){
   .board-layout{flex-direction:column;}
   .leaderboard{width:100%;position:static;}
@@ -320,7 +319,7 @@ select option{background:var(--parchment-3);}
           <div class="board-status"><div class="status-icon">&#128176;</div><p data-i18n="shop_empty">Shop is empty.</p></div>
         </div>
       </div>
-      <aside style="display:flex;flex-direction:column;gap:0;width:260px;flex-shrink:0;align-self:flex-start;position:sticky;top:92px">
+      <aside style="display:flex;flex-direction:column;gap:0;width:240px;flex-shrink:0;align-self:flex-start;position:sticky;top:92px">
         <div class="leaderboard" id="leaderboard" style="position:static;width:auto">
           <div class="section-header" data-i18n="leaderboard_title">&#10022; Leaderboard &#10022;</div>
           <div class="lb-list" id="lb-list">
