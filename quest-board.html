@@ -194,7 +194,7 @@ select option{background:var(--parchment-3);}
 
 /* TICKER */
 #ticker-wrap{position:fixed;bottom:0;left:0;right:0;z-index:800;background:var(--parchment-2);border-top:2px solid var(--border);height:52px;overflow:hidden;display:flex;align-items:center;}
-#ticker-track{display:flex;gap:40px;width:max-content;animation:ticker 30s linear infinite;}
+#ticker-track{display:flex;gap:40px;width:max-content;will-change:transform;}
 .ticker-item{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text);flex-shrink:0;}
 .ticker-item img{width:32px;height:32px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
 .ticker-item .ticker-hot{color:var(--red-bright);font-size:.7rem;margin-left:2px;}
@@ -203,7 +203,6 @@ select option{background:var(--parchment-3);}
 .ti-grid-item:hover{border-color:var(--gold);}
 .ti-grid-item img{max-width:100%;max-height:100%;object-fit:contain;padding:2px;}
 .ticker-item-hot{box-shadow:0 0 8px rgba(255,100,0,.6),0 0 16px rgba(255,50,0,.3);border:1px solid #ff6600;padding:2px;}
-@keyframes ticker{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
 
 /* CHAT */
 .chat-area{border-top:1px solid var(--border);padding:8px 14px;}
@@ -1556,6 +1555,8 @@ async function buyShopItem(id){
 
 // TICKER
 let tickerItems=[];
+let tickerPos=window.innerWidth;
+let tickerRunning=false;
 
 async function fetchTickerItems(){
   if(!sb)return;
@@ -1569,7 +1570,29 @@ async function fetchTickerItems(){
   renderTicker();
 }
 
+function stopTicker(){tickerRunning=false;}
+
+function startTicker(){
+  const track=document.getElementById('ticker-track');
+  if(!track||!track.children.length||tickerRunning)return;
+  tickerRunning=true;
+  tickerPos=window.innerWidth;
+  function step(){
+    if(!tickerRunning)return;
+    tickerPos-=1.5;
+    const first=track.firstElementChild;
+    if(first&&tickerPos+first.offsetWidth+40<0){
+      track.appendChild(first);
+      tickerPos+=first.offsetWidth+40;
+    }
+    track.style.transform='translateX('+tickerPos+'px)';
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 function renderTicker(){
+  stopTicker();
   const wrap=document.getElementById('ticker-wrap');
   const track=document.getElementById('ticker-track');
   document.getElementById('ticker-admin-btn').style.display=isAdmin()?'':'none';
@@ -1583,6 +1606,7 @@ function renderTicker(){
     return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${esc(tName)}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${esc(tName[0])}</text></svg>'">${esc(tName)}${hot}</div>`;
   }).join('');
   track.innerHTML=announce+items;
+  startTicker();
 }
 
 async function addTickerItem(image, name){
