@@ -18,7 +18,7 @@ if (WinX < 0)
 if (A_TickCount < cooldown)
     return
 
-ImageSearch, FoundX, FoundY, % WinX+1136, % WinY+1177, % WinX+1419, % WinY+1208, *5 %A_ScriptDir%\mini_game.png
+ImageSearch, FoundX, FoundY, % WinX+1128, % WinY+1177, % WinX+1428, % WinY+1209, *45 %A_ScriptDir%\mini_game.png
 if (ErrorLevel = 0)
 {
     Send, e

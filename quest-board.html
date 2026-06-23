@@ -1064,8 +1064,14 @@ function openParticipantsModal(id){
   const parts=(q.participants||[]);
   const list=document.getElementById('participants-list');
   const admin=isAdmin();
+  const myName=localStorage.getItem('gv_chat_name')||'';
   if(!parts.length){list.innerHTML=`<p style="font-style:italic;color:var(--text-faint)" data-i18n="no_participants">No one registered yet.</p>`;}
-  else{list.innerHTML=parts.map((n,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment-3);font-size:.9rem"><span style="color:var(--text-faint);font-family:Cinzel;font-size:.7rem;min-width:20px">#${i+1}</span><span style="flex:1">${esc(n)}</span>${admin?` <button class="lb-award-btn" onclick="closeModal('participants-modal');openAwardModal('${esc(n)}')">+</button>`:''}</div>`).join('');}
+  else{list.innerHTML=parts.map((n,i)=>{
+    const canRemove=admin||n===myName;
+    const awardBtn=admin?` <button class="lb-award-btn" onclick="closeModal('participants-modal');openAwardModal('${esc(n)}')">+</button>`:'';
+    const removeBtn=canRemove?` <button class="lb-award-btn" style="color:var(--red-bright);border-color:var(--red)" onclick="closeModal('participants-modal');unregisterFromEvent('${id}','${esc(n)}')">✕</button>`:'';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment-3);font-size:.9rem"><span style="color:var(--text-faint);font-family:Cinzel;font-size:.7rem;min-width:20px">#${i+1}</span><span style="flex:1">${esc(n)}</span>${awardBtn}${removeBtn}</div>`;
+  }).join('');}
   applyTranslations();
   openModal('participants-modal');
 }
@@ -1081,6 +1087,15 @@ async function registerForEvent(id){
   const{error}=await sb.from('quests').update({participants:parts}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
   toast(t('event_done'));
+}
+
+async function unregisterFromEvent(id,name){
+  const q=quests.find(x=>x.id===id);
+  if(!q)return;
+  const parts=(q.participants||[]).filter(p=>p!==name);
+  const{error}=await sb.from('quests').update({participants:parts}).eq('id',id);
+  if(error){toast(t('err_prefix')+error.message);return;}
+  toast('Removed: '+name);
 }
 
 async function unclaimQuest(id){
