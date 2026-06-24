@@ -6,7 +6,7 @@
 <title>Guild Requisition Board — Gloria Victis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--parchment:#1a1610;--parchment-2:#221e15;--parchment-3:#2c2618;--border:#5a4a2a;--border-light:#7a6535;--gold:#c8922a;--gold-bright:#e8b84b;--gold-dim:#6b4e1a;--text:#e8dfc0;--text-dim:#a09060;--text-faint:#5a5030;--red:#8b2020;--red-bright:#c43030;--green:#2a6b2a;--green-bright:#3a9a3a;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -362,8 +362,8 @@ let isAdmin = false;
 let currentLang = localStorage.getItem(LANG_KEY) || 'en';
 const tableSorts = { crafting: { by: 'name', dir: 'asc' }, cooking: { by: 'name', dir: 'asc' }, other: { by: 'name', dir: 'asc' } };
 
-const supabase = window.supabase?.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
-const useSupabase = !!supabase;
+const supabaseClient = window.supabase?.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+const useSupabase = !!supabaseClient;
 
 // --- HELPERS ---
 function t(key) { return (LANG[currentLang] && LANG[currentLang][key]) || key; }
@@ -394,7 +394,7 @@ function migrateItem(item) {
 }
 async function fetchItems() {
   if (!useSupabase) return [];
-  const { data, error } = await supabase.from('guild_items').select('*').order('sort_order', { ascending: true });
+  const { data, error } = await supabaseClient.from('guild_items').select('*').order('sort_order', { ascending: true });
   if (!error && data) { items = data.map(migrateItem); return items; }
   console.warn('Supabase fetch failed:', error);
   return [];
@@ -410,7 +410,7 @@ async function addItem(item) {
     is_hot: Boolean(item.is_hot), image: item.image || null
   };
   if (!useSupabase) return;
-  const { data } = await supabase.from('guild_items').insert(record).select();
+  const { data } = await supabaseClient.from('guild_items').insert(record).select();
   if (data?.length) { items.unshift(data[0]); return data[0]; }
 }
 async function updateItem(id, updates) {
@@ -423,7 +423,7 @@ async function updateItem(id, updates) {
     is_hot: Boolean(updates.is_hot), image: updates.image || null
   };
   if (!useSupabase) return;
-  const { data } = await supabase.from('guild_items').update(record).eq('id', id).select();
+  const { data } = await supabaseClient.from('guild_items').update(record).eq('id', id).select();
   if (data?.length) {
     const idx = items.findIndex(i => i.id === id);
     if (idx !== -1) items[idx] = data[0];
@@ -431,7 +431,7 @@ async function updateItem(id, updates) {
   }
 }
 async function deleteItem(id) {
-  if (useSupabase) await supabase.from('guild_items').delete().eq('id', id);
+  if (useSupabase) await supabaseClient.from('guild_items').delete().eq('id', id);
   items = items.filter(i => i.id !== id);
 }
 
@@ -539,7 +539,7 @@ function toggleHot(id) {
   const item = items.find(i => i.id === id);
   if (!item) return;
   item.is_hot = !item.is_hot;
-  if (useSupabase) supabase.from('guild_items').update({ is_hot: item.is_hot }).eq('id', id).then();
+  if (useSupabase) supabaseClient.from('guild_items').update({ is_hot: item.is_hot }).eq('id', id).then();
   renderAdminList();
   renderTables();
 }
@@ -586,8 +586,8 @@ function reorderItem(id, dir) {
   items[idx].sort_order = items[si].sort_order;
   items[si].sort_order = t;
   if (useSupabase) {
-    supabase.from('guild_items').update({ sort_order: items[idx].sort_order }).eq('id', items[idx].id).then();
-    supabase.from('guild_items').update({ sort_order: items[si].sort_order }).eq('id', items[si].id).then();
+    supabaseClient.from('guild_items').update({ sort_order: items[idx].sort_order }).eq('id', items[idx].id).then();
+    supabaseClient.from('guild_items').update({ sort_order: items[si].sort_order }).eq('id', items[si].id).then();
   }
   renderAdminList();
   renderTables();
