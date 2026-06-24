@@ -219,6 +219,7 @@ select option{background:var(--parchment-3);}
 .ticker-item img{width:32px;height:32px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
 .ticker-item .ticker-hot{color:var(--red-bright);font-size:.7rem;margin-left:2px;}
 .ticker-item-hot{box-shadow:0 0 8px rgba(255,100,0,.6),0 0 16px rgba(255,50,0,.3);border:1px solid #ff6600;padding:2px;}
+.ticker-announce{color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;}
 
 /* CHAT */
 .chat-area{border-top:1px solid var(--border);padding:8px 14px;}
@@ -1792,7 +1793,7 @@ function renderTicker(){
   const track=document.getElementById('ticker-track');
   if(!tickerItems.length){wrap.classList.add('hidden');return;}
   wrap.classList.remove('hidden');
-  const announce=`<span class="ticker-item" style="color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;margin-right:20px">${t('ticker_announce')}</span>`;
+  const announce=`<span class="ticker-announce">${t('ticker_announce')}</span>`;
   const items=tickerItems.map(i=>{
     const hotCls=i.hot?' ticker-item-hot':'';
     const hot=i.hot?'<span class="ticker-hot">🔥</span>':'';
