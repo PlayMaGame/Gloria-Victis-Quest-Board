@@ -6,7 +6,7 @@
 <title>Guild Requisition Board — Gloria Victis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root{--parchment:#1a1610;--parchment-2:#221e15;--parchment-3:#2c2618;--border:#5a4a2a;--border-light:#7a6535;--gold:#c8922a;--gold-bright:#e8b84b;--gold-dim:#6b4e1a;--text:#e8dfc0;--text-dim:#a09060;--text-faint:#5a5030;--red:#8b2020;--red-bright:#c43030;--green:#2a6b2a;--green-bright:#3a9a3a;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -261,73 +261,627 @@ select option{background:var(--parchment-3)}
 
 <footer><p data-i18n="footer">For the glory of the guild</p></footer>
 <script>
-const CONFIG={supabaseUrl:'https://dnwitnnzrkcismsbxfcg.supabase.co',supabaseAnonKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRud2l0bm56cmtjaXNtc2J4ZmNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjY0MTYsImV4cCI6MjA5NzUwMjQxNn0.z75KyvMaNTj9ORWrUguEJqHmdtjWrdlIwvedWvB5OFE',adminPassword:'gvadmin2023'};
-const LANG_KEY='gv_lang';
-const LANG={en:{boardTitle:'Guild Requisition Board',subtitle:'Gloria Victis \u2014 Supply Registry',addItem:'+ Add Item',crafting:'\u2726 Crafting Materials \u2726',cooking:'\u2726 Cooking Ingredients \u2726',other:'\u2726 Other \u2726',colIcon:'Icon',colItem:'Item',colPrice:'Price',colNeed:'Need',emptyCraft:'No crafting items needed.',emptyCook:'No cooking items needed.',emptyOther:'No other items needed.',loading:'Loading\u2026',pwdTitle:"Commander's Access",pwdDesc:'Speak the password to open the ledger:',pwdPlaceholder:'Password',pwdCancel:'Cancel',pwdUnlock:'Unlock',pwdError:'Wrong password. Try again.',adminTitle:'Requisition Ledger',adminLogout:'[ Logout ]',newReq:'New Requisition',currentReqs:'Current Requisitions',labelItem:'Item',selectPlaceholder:'\u2014 Select item \u2014',orCustom:'Or type custom name for',nameEn:'Name (EN)',nameRu:'Name (RU)',labelGold:'Gold',labelSilver:'Silver',labelIron:'Iron',labelCopper:'Copper',labelAmount:'Amount needed',labelCraft:'\uD83D\uDD28 Crafting',labelCook:'\uD83C\uDF68 Cooking',labelOther:'\uD83D\uDCE6 Other',labelPriority:'\uD83D\uDD25 Priority',btnAdd:'Add Requisition',btnEdit:'Edit Requisition',btnSave:'Save Changes',btnRemove:'Remove',btnCancel:'Cancel',alertName:'Enter at least one name (EN or RU).',alertAmount:'Enter amount needed.',emptyAdmin:'No requisitions yet.',footer:'For the glory of the guild',delConfirm:'Remove this item from the board?',alreadyIn:'Already in:',langEn:'EN',langRu:'RU'},
-ru:{boardTitle:'\u0414\u043E\u0441\u043A\u0430 \u0437\u0430\u043A\u0430\u0437\u043E\u0432 \u0433\u0438\u043B\u044C\u0434\u0438\u0438',subtitle:'Gloria Victis \u2014 \u0420\u0435\u0435\u0441\u0442\u0440 \u043F\u043E\u0441\u0442\u0430\u0432\u043E\u043A',addItem:'+ \u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u0440\u0435\u0434\u043C\u0435\u0442',crafting:'\u2726 \u041A\u0443\u0437\u043D\u0435\u0447\u043D\u044B\u0435 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u2726',cooking:'\u2726 \u041A\u0443\u043B\u0438\u043D\u0430\u0440\u043D\u044B\u0435 \u0438\u043D\u0433\u0440\u0435\u0434\u0438\u0435\u043D\u0442\u044B \u2726',other:'\u2726 \u0414\u0440\u0443\u0433\u043E\u0435 \u2726',colIcon:'\u0418\u043A\u043E\u043D\u043A\u0430',colItem:'\u041F\u0440\u0435\u0434\u043C\u0435\u0442',colPrice:'\u0426\u0435\u043D\u0430',colNeed:'\u041D\u0443\u0436\u043D\u043E',emptyCraft:'\u041A\u0443\u0437\u043D\u0435\u0447\u043D\u044B\u0435 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u043D\u0435 \u0442\u0440\u0435\u0431\u0443\u044E\u0442\u0441\u044F.',emptyCook:'\u041A\u0443\u043B\u0438\u043D\u0430\u0440\u043D\u044B\u0435 \u0438\u043D\u0433\u0440\u0435\u0434\u0438\u0435\u043D\u0442\u044B \u043D\u0435 \u0442\u0440\u0435\u0431\u0443\u044E\u0442\u0441\u044F.',emptyOther:'\u0414\u0440\u0443\u0433\u0438\u0435 \u043F\u0440\u0435\u0434\u043C\u0435\u0442\u044B \u043D\u0435 \u0442\u0440\u0435\u0431\u0443\u044E\u0442\u0441\u044F.',loading:'\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430\u2026',pwdTitle:'\u0414\u043E\u0441\u0442\u0443\u043F \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430',pwdDesc:'\u041D\u0430\u0437\u043E\u0432\u0438\u0442\u0435 \u043F\u0430\u0440\u043E\u043B\u044C, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u0440\u044B\u0442\u044C \u043A\u043D\u0438\u0433\u0443:',pwdPlaceholder:'\u041F\u0430\u0440\u043E\u043B\u044C',pwdCancel:'\u041E\u0442\u043C\u0435\u043D\u0430',pwdUnlock:'\u0412\u043E\u0439\u0442\u0438',pwdError:'\u041D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043F\u0430\u0440\u043E\u043B\u044C. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0441\u043D\u043E\u0432\u0430.',adminTitle:'\u041A\u043D\u0438\u0433\u0430 \u0437\u0430\u043A\u0430\u0437\u043E\u0432',adminLogout:'[ \u0412\u044B\u0439\u0442\u0438 ]',newReq:'\u041D\u043E\u0432\u044B\u0439 \u0437\u0430\u043A\u0430\u0437',currentReqs:'\u0422\u0435\u043A\u0443\u0449\u0438\u0435 \u0437\u0430\u043A\u0430\u0437\u044B',labelItem:'\u041F\u0440\u0435\u0434\u043C\u0435\u0442',selectPlaceholder:'\u2014 \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u043F\u0440\u0435\u0434\u043C\u0435\u0442 \u2014',orCustom:'\u0418\u043B\u0438 \u0432\u0432\u0435\u0434\u0438\u0442\u0435 \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u0434\u043B\u044F',nameEn:'\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 (EN)',nameRu:'\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 (RU)',labelGold:'\u0417\u043E\u043B\u043E\u0442\u043E',labelSilver:'\u0421\u0435\u0440\u0435\u0431\u0440\u043E',labelIron:'\u0416\u0435\u043B\u0435\u0437\u043E',labelCopper:'\u041C\u0435\u0434\u044C',labelAmount:'\u0422\u0440\u0435\u0431\u0443\u0435\u043C\u043E\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E',labelCraft:'\uD83D\uDD28 \u041A\u0443\u0437\u043D\u0438\u0446\u0430',labelCook:'\uD83C\uDF68 \u041A\u0443\u043B\u0438\u043D\u0430\u0440\u0438\u044F',labelOther:'\uD83D\uDCE6 \u0414\u0440\u0443\u0433\u043E\u0435',labelPriority:'\uD83D\uDD25 \u041F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442',btnAdd:'\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0437\u0430\u043A\u0430\u0437',btnEdit:'\u0420\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0437\u0430\u043A\u0430\u0437',btnSave:'\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C',btnRemove:'\u0423\u0434\u0430\u043B\u0438\u0442\u044C',btnCancel:'\u041E\u0442\u043C\u0435\u043D\u0430',alertName:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0445\u043E\u0442\u044F \u0431\u044B \u043E\u0434\u043D\u043E \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 (EN \u0438\u043B\u0438 RU).',alertAmount:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0442\u0440\u0435\u0431\u0443\u0435\u043C\u043E\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E.',emptyAdmin:'\u0417\u0430\u043A\u0430\u0437\u043E\u0432 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.',footer:'\u0412\u043E \u0441\u043B\u0430\u0432\u0443 \u0433\u0438\u043B\u044C\u0434\u0438\u0438',delConfirm:'\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u044D\u0442\u043E\u0442 \u043F\u0440\u0435\u0434\u043C\u0435\u0442 \u0441 \u0434\u043E\u0441\u043A\u0438?',alreadyIn:'\u0423\u0436\u0435 \u0432:',langEn:'EN',langRu:'RU'}};
-const ITEM_CATALOG=[{name_en:'Aqua Fortis',name_ru:'\u041A\u0440\u0435\u043F\u043A\u0430\u044F \u0432\u043E\u0434\u043A\u0430',image:'Aqua Fortis.jpg'},{name_en:'Aqua Regia',name_ru:'\u0426\u0430\u0440\u0441\u043A\u0430\u044F \u0432\u043E\u0434\u043A\u0430',image:'Aqua Regia.jpg'},{name_en:'Beast Leather',name_ru:'\u0428\u043A\u0443\u0440\u0430 \u0437\u0432\u0435\u0440\u044F',image:'Beast Leather.jpg'},{name_en:'Beeswax',name_ru:'\u041F\u0447\u0435\u043B\u0438\u043D\u044B\u0439 \u0432\u043E\u0441\u043A',image:'Beeswax.jpg'},{name_en:'Blood of the Beast',name_ru:'\u041A\u0440\u043E\u0432\u044C \u0437\u0432\u0435\u0440\u044F',image:'Blood of the Beast.jpg'},{name_en:'Bulat Bar',name_ru:'\u0411\u0443\u043B\u0430\u0442',image:'Bulat Bar.jpg'},{name_en:'Calcite Crystal',name_ru:'\u041A\u0430\u043B\u044C\u0446\u0438\u0442',image:'Calcite Crystal.jpg'},{name_en:'Coal',name_ru:'\u0423\u0433\u043E\u043B\u044C',image:'Coal.jpg'},{name_en:'Dziwer Bar',name_ru:'\u0421\u043B\u0438\u0442\u043E\u043A \u0434\u0437\u0438\u0432\u0435\u0440\u0430',image:'Dziwer Bar.jpg'},{name_en:'Leaf Plant Seeds',name_ru:'\u0421\u0435\u043C\u0435\u043D\u0430 \u043B\u0438\u0441\u0442\u044C\u0435\u0432',image:'Leaf Plan Seads.jpg'},{name_en:'Magnetite',name_ru:'\u041C\u0430\u0433\u043D\u0435\u0442\u0438\u0442',image:'Magnetite.jpg'},{name_en:'Milk',name_ru:'\u041C\u043E\u043B\u043E\u043A\u043E',image:'Milk.jpg'},{name_en:'Pyrite',name_ru:'\u041F\u0438\u0440\u0438\u0442',image:'Pyrite.jpg'},{name_en:'Quartz Crystal',name_ru:'\u041A\u0432\u0430\u0440\u0446\u0435\u0432\u044B\u0439 \u043A\u0440\u0438\u0441\u0442\u0430\u043B\u043B',image:'Quartz Crystal.jpg'},{name_en:'Quartz Glass',name_ru:'\u041A\u0432\u0430\u0440\u0446\u0435\u0432\u043E\u0435 \u0441\u0442\u0435\u043A\u043B\u043E',image:'Quartz Glass.jpg'},{name_en:'Quicklime',name_ru:'\u041D\u0435\u0433\u0430\u0448\u0435\u043D\u0430\u044F \u0438\u0437\u0432\u0435\u0441\u0442\u044C',image:'Quicklime.jpg'},{name_en:'Saffron',name_ru:'\u0428\u0430\u0444\u0440\u0430\u043D',image:'Saffron.jpg'},{name_en:'Suet',name_ru:'\u0421\u0430\u043B\u043E',image:'Suet.jpg'},{name_en:'Sulfur',name_ru:'\u0421\u0435\u0440\u0430',image:'Sulfur.jpg'},{name_en:'Thick Tanned Leather',name_ru:'\u0422\u043E\u043B\u0441\u0442\u0430\u044F \u0432\u044B\u0434\u0435\u043B\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u0436\u0430',image:'Thick Tanned Leather.jpg'},{name_en:'Thugs Fur',name_ru:'\u041C\u0435\u0445 \u043E\u0442\u043C\u043E\u0440\u043E\u0437\u043A\u0430',image:'Thugs Fur.jpg'},{name_en:'Armoured Thugs Fur',name_ru:'\u041C\u0435\u0445 \u0432\u043E\u043E\u0440\u0443\u0436\u0435\u043D\u043D\u043E\u0433\u043E \u043E\u0442\u043C\u043E\u0440\u043E\u0437\u043A\u0430',image:'Armoured Thugs Fur.jpg'},{name_en:'Black Sickles Fur',name_ru:'\u041C\u0435\u0445 \u0447\u0435\u0440\u043D\u043E\u0433\u043E \u0441\u0435\u0440\u043F\u0430',image:'Black Sickles Fur.jpg'},{name_en:'Highlanders Fur',name_ru:'\u041C\u0435\u0445 \u0433\u043E\u0440\u0446\u0430',image:'Highlanders Fur.jpg'}];
-const SEED_ITEMS=[];
-let items=[],editingId=null,isAdmin=false,currentLang=localStorage.getItem(LANG_KEY)||'en';
-const tableSorts={crafting:{by:'name',dir:'asc'},cooking:{by:'name',dir:'asc'},other:{by:'name',dir:'asc'}};
-const supabase=window.supabase?.createClient(CONFIG.supabaseUrl,CONFIG.supabaseAnonKey);
-function t(k){return LANG[currentLang]&&LANG[currentLang][k]||k}
-function renderLang(){document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});document.getElementById('lang-toggle').textContent=currentLang==='en'?'EN / RU':'RU / EN'}
-function setLang(l){currentLang=l;localStorage.setItem(LANG_KEY,l);renderLang();updateDropdownPlaceholder();renderTables();if(isAdmin)renderAdminList()}
-function generateId(){return crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
-function migrate(i){if(i.is_hot===undefined)i.is_hot=false;if(i.sort_order===undefined)i.sort_order=i.is_hot?0:999;return i}
-async function fetchItems(){const{data,error}=await supabase.from('guild_items').select('*').order('sort_order',{ascending:true});if(!error&&data)items=data.map(migrate)}
-async function addItem(it){const r={name_en:it.name_en,name_ru:it.name_ru,price_gold:Number(it.price_gold)||0,price_silver:Number(it.price_silver)||0,price_iron:Number(it.price_iron)||0,price_med:Number(it.price_med)||0,amount_needed:Number(it.amount_needed),sort_order:items.length,is_crafting:Boolean(it.is_crafting),is_cooking:Boolean(it.is_cooking),is_hot:Boolean(it.is_hot),image:it.image||null};const{data}=await supabase.from('guild_items').insert(r).select();if(data?.length){items.unshift(data[0]);return data[0]}}
-async function updateItem(id,u){const r={name_en:u.name_en,name_ru:u.name_ru,price_gold:Number(u.price_gold)||0,price_silver:Number(u.price_silver)||0,price_iron:Number(u.price_iron)||0,price_med:Number(u.price_med)||0,amount_needed:Number(u.amount_needed),is_crafting:Boolean(u.is_crafting),is_cooking:Boolean(u.is_cooking),is_hot:Boolean(u.is_hot),image:u.image||null};const{data}=await supabase.from('guild_items').update(r).eq('id',id).select();if(data?.length){const idx=items.findIndex(i=>i.id===id);if(idx>-1)items[idx]=data[0];return data[0]}}
-async function deleteItem(id){await supabase.from('guild_items').delete().eq('id',id);items=items.filter(i=>i.id!==id)}
-function cPrice(a,b){const ga=a.price_gold||0,gb=b.price_gold||0;if(ga!==gb)return ga-gb;const sa=a.price_silver||0,sb=b.price_silver||0;if(sa!==sb)return sa-sb;const ia=a.price_iron||0,ib=b.price_iron||0;if(ia!==ib)return ia-ib;return(a.price_med||0)-(b.price_med||0)}
-function fmtPrice(it){const p=[];if(it.price_gold>0)p.push(it.price_gold+'<img class="coin-icon" src="coins/gold.png" alt="" title="Gold">');if(it.price_silver>0)p.push(it.price_silver+'<img class="coin-icon" src="coins/silver.png" alt="" title="Silver">');if(it.price_iron>0)p.push(it.price_iron+'<img class="coin-icon" src="coins/iron.png" alt="" title="Iron">');if(it.price_med>0)p.push(it.price_med+'<img class="coin-icon" src="coins/copper.png" alt="" title="Copper">');return p.length?p.join(' '):'<span class="c-none">\u2014</span>'}
-function getSorted(f,s){const fl=typeof f==='function'?items.filter(f):items.filter(i=>i[f]);return[...fl].sort((a,b)=>{let c=0;switch(s.by){case'name':c=(a.name_en||'').localeCompare(b.name_en||'');if(c!==0)return c;return(a.sort_order||999)-(b.sort_order||999);case'price':c=cPrice(a,b);break;case'amount':c=(a.amount_needed||0)-(b.amount_needed||0)}return c*(s.dir==='asc'?1:-1)})}
-function upSortInd(tid,s){const t=document.getElementById(tid);if(!t)return;t.querySelectorAll('th.sortable').forEach(th=>{const c=th.dataset.sort;th.classList.toggle('active',c===s.by);th.classList.toggle('asc',c===s.by&&s.dir==='asc')})}
-function imgTag(fn){if(!fn)return'<span class="item-thumb-placeholder">\uD83E\uDE99</span>';const s=esc(fn);return'<img class="item-thumb" src="images/'+encodeURIComponent(s)+'" alt="'+s+'" loading="lazy">'}
-function renderTable(tid,eid,fl,so){const tb=document.getElementById(tid),em=document.getElementById(eid);if(!tb)return;const fi=typeof fl==='function'?items.filter(fl):items.filter(i=>i[fl]);if(!fi.length){tb.innerHTML='';em?.classList.remove('hidden');return}em?.classList.add('hidden');const so2=getSorted(fl,so);tb.innerHTML=so2.map(it=>{const hc=it.is_hot?'hot-item':'';return'<tr class="'+hc+'"><td class="item-image-cell">'+imgTag(it.image)+'</td><td><div class="item-name-cell"><span class="item-name-en">'+esc(it.name_en)+'</span><span class="item-name-ru">'+esc(it.name_ru)+'</span></div></td><td><span class="item-price">'+fmtPrice(it)+'</span></td><td><span class="item-amount">'+Number(it.amount_needed).toLocaleString()+'</span></td></tr>'}).join('')}
-function renderTables(){document.getElementById('loading')?.classList.add('hidden');document.getElementById('crafting-section')?.classList.remove('hidden');document.getElementById('cooking-section')?.classList.remove('hidden');document.getElementById('other-section')?.classList.remove('hidden');renderTable('crafting-body','crafting-empty','is_crafting',tableSorts.crafting);renderTable('cooking-body','cooking-empty','is_cooking',tableSorts.cooking);renderTable('other-body','other-empty',function(it){return!it.is_crafting&&!it.is_cooking},tableSorts.other);upSortInd('crafting-section',tableSorts.crafting);upSortInd('cooking-section',tableSorts.cooking);upSortInd('other-section',tableSorts.other)}
-function toggleHot(id){const it=items.find(i=>i.id===id);if(!it)return;it.is_hot=!it.is_hot;supabase.from('guild_items').update({is_hot:it.is_hot}).eq('id',id).then();renderAdminList();renderTables()}
-function renderAdminList(){const ls=document.getElementById('admin-items-list');if(!ls)return;if(!items?.length){ls.innerHTML='<div style="color:var(--text-faint);font-style:italic;padding:8px;text-align:center">'+t('emptyAdmin')+'</div>';return}const so=[...items].sort((a,b)=>(a.sort_order||999)-(b.sort_order||999));ls.innerHTML=so.map((it,i)=>{const th=it.image?'<img class="admin-thumb" src="images/'+encodeURIComponent(esc(it.image))+'" alt="" loading="lazy">':'<span style="font-size:0.9rem;flex-shrink:0;">\uD83E\uDE99</span>';const ca=[];if(it.is_crafting)ca.push('\uD83D\uDD28');if(it.is_cooking)ca.push('\uD83C\uDF68');if(!it.is_crafting&&!it.is_cooking)ca.push('\uD83D\uDCE6');const ct='<span style="margin-left:4px;font-size:0.6rem;color:var(--text-faint)">'+ca.join(' ')+'</span>';const ud=i===0?' opacity:0.3;cursor:default;':'',dd=i===so.length-1?' opacity:0.3;cursor:default;':'';return'<div class="admin-list-item"><span style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;"><button class="admin-action-btn arrow-up" data-move-id="'+it.id+'" data-dir="up" style="padding:2px 5px;font-size:0.6rem;line-height:1;'+ud+'"'+(i===0?' disabled':'')+'>\u25B2</button><button class="admin-action-btn arrow-down" data-move-id="'+it.id+'" data-dir="down" style="padding:2px 5px;font-size:0.6rem;line-height:1;'+dd+'"'+(i===so.length-1?' disabled':'')+'>\u25BC</button></span><span class="admin-item-info">'+th+'<span><span class="admin-item-en">'+esc(it.name_en)+ct+'</span><span class="admin-item-ru">'+esc(it.name_ru)+'</span></span></span><span class="admin-item-details">'+fmtPrice(it)+' \u00B7 '+Number(it.amount_needed).toLocaleString()+'x</span><span class="admin-item-actions"><button class="admin-action-btn hot-toggle '+(it.is_hot?'hot-on':'hot-off')+'" data-hot-id="'+it.id+'" title="'+t('labelPriority')+'">\uD83D\uDD25</button><button class="admin-action-btn edit" data-edit-id="'+it.id+'" title="'+t('labelCraft')+'">\u270F\uFE0F</button><button class="admin-action-btn delete" data-delete-id="'+it.id+'" title="'+t('btnRemove')+'">\uD83D\uDDD1\uFE0F</button></span></div>'}).join('');ls.querySelectorAll('[data-edit-id]').forEach(b=>b.addEventListener('click',()=>openEditModal(b.dataset.editId)));ls.querySelectorAll('[data-delete-id]').forEach(b=>b.addEventListener('click',()=>openDeleteModal(b.dataset.deleteId)));ls.querySelectorAll('[data-move-id]').forEach(b=>b.addEventListener('click',()=>{if(!b.disabled)reorder(b.dataset.moveId,b.dataset.dir)}));ls.querySelectorAll('[data-hot-id]').forEach(b=>b.addEventListener('click',()=>toggleHot(b.dataset.hotId)))}
-function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function reorder(id,dir){const idx=items.findIndex(i=>i.id===id);if(idx===-1)return;const si=dir==='up'?idx-1:idx+1;if(si<0||si>=items.length)return;const t=items[idx].sort_order;items[idx].sort_order=items[si].sort_order;items[si].sort_order=t;supabase.from('guild_items').update({sort_order:items[idx].sort_order}).eq('id',items[idx].id).then();supabase.from('guild_items').update({sort_order:items[si].sort_order}).eq('id',items[si].id).then();renderAdminList();renderTables()}
-function populateDropdown(){const m=document.getElementById('dropdown-menu');if(!m)return;const av=ITEM_CATALOG.filter(c=>{const e=items.find(i=>i.name_en===c.name_en);return!(e&&e.is_crafting&&e.is_cooking)});m.innerHTML=av.map(c=>'<div class="c-dropdown-option" data-name-en="'+esc(c.name_en)+'"><img src="images/'+encodeURIComponent(c.image)+'" alt="" loading="lazy"><span>'+esc(c.name_en)+' \u2014 '+esc(c.name_ru)+'</span></div>').join('');m.querySelectorAll('.c-dropdown-option').forEach(o=>{o.addEventListener('click',e=>{e.stopPropagation();selectCat(o.dataset.nameEn);closeDropdown()})})}
-function selectCat(n){const c=ITEM_CATALOG.find(i=>i.name_en===n);if(!c)return;document.getElementById('item-name-en').value=c.name_en;document.getElementById('item-name-ru').value=c.name_ru;document.getElementById('item-image').value=c.image||'';document.getElementById('item-catalog-selected').value='1';document.getElementById('dropdown-trigger').innerHTML='<span class="trigger-content"><img class="trigger-icon" src="images/'+encodeURIComponent(c.image)+'" alt=""><span>'+esc(c.name_en)+' \u2014 '+esc(c.name_ru)+'</span></span><span class="c-dropdown-arrow">\u25BE</span>';const pv=document.getElementById('item-preview');document.getElementById('item-preview-img').src=c.image?'images/'+encodeURIComponent(c.image):'';document.getElementById('item-preview-en').textContent=c.name_en;document.getElementById('item-preview-ru').textContent=c.name_ru;const ex=items.find(i=>i.name_en===c.name_en);const ci=document.getElementById('item-preview-cat');if(ex){const lb=[];if(ex.is_crafting)lb.push(t('labelCraft'));if(ex.is_cooking)lb.push(t('labelCook'));ci.textContent=t('alreadyIn')+' '+lb.join(', ')}else ci.textContent='';pv.classList.remove('hidden')}
-function closeDropdown(){document.getElementById('dropdown-menu')?.classList.add('hidden')}
-function toggleDD(){document.getElementById('dropdown-menu')?.classList.toggle('hidden')}
-function updDP(){const tr=document.getElementById('dropdown-trigger');if(!tr)return;if(!tr.querySelector('.trigger-content'))tr.innerHTML='<span>'+t('selectPlaceholder')+'</span><span class="c-dropdown-arrow">\u25BE</span>'}
-function populateSelects(){['item-image','edit-image'].forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML='<option value="">\u2014 No icon \u2014</option>'+AVAILABLE_IMAGES.map(f=>'<option value="'+esc(f)+'">'+esc(f.replace('.jpg',''))+'</option>').join('')})}
-const AVAILABLE_IMAGES=ITEM_CATALOG.map(i=>i.image);
-async function refreshAll(){await fetchItems();renderTables()}
-function showPwd(){document.getElementById('password-modal').classList.remove('hidden');const i=document.getElementById('password-input');if(i){i.value='';i.focus()}document.getElementById('password-error')?.classList.add('hidden')}
-function hidePwd(){document.getElementById('password-modal').classList.add('hidden')}
-function enableAdmin(){isAdmin=true;document.getElementById('admin-panel').classList.remove('hidden');document.getElementById('manual-name-en').value='';document.getElementById('manual-name-ru').value='';document.getElementById('add-btn-header').classList.remove('hidden');populateDropdown();renderAdminList()}
-function hideAdmin(){document.getElementById('admin-panel').classList.add('hidden');document.getElementById('edit-modal').classList.add('hidden');document.getElementById('delete-modal').classList.add('hidden')}
-function logoutAdmin(){isAdmin=false;document.getElementById('admin-panel').classList.add('hidden');document.getElementById('edit-modal').classList.add('hidden');document.getElementById('delete-modal').classList.add('hidden');document.getElementById('add-btn-header').classList.add('hidden')}
-function setupCategoryChecks(){[['item-crafting','item-cooking','item-other'],['edit-crafting','edit-cooking','edit-other']].forEach(([c,k,o])=>{const cr=document.getElementById(c),co=document.getElementById(k),ot=document.getElementById(o);if(!ot)return;ot.addEventListener('change',()=>{if(ot.checked){cr.checked=false;co.checked=false}});[cr,co].forEach(cb=>{cb.addEventListener('change',()=>{if(cb.checked)ot.checked=false})})})}
-document.getElementById('dropdown-trigger')?.addEventListener('click',toggleDD);document.addEventListener('click',e=>{const w=document.getElementById('item-dropdown');if(w&&!w.contains(e.target))closeDropdown()});
-document.getElementById('add-btn-header')?.addEventListener('click',()=>{if(isAdmin){document.getElementById('admin-panel').classList.remove('hidden');populateDropdown();renderAdminList()}else showPwd()});
-document.getElementById('admin-close')?.addEventListener('click',hideAdmin);
-document.getElementById('admin-logout-btn')?.addEventListener('click',logoutAdmin);
-document.getElementById('password-submit')?.addEventListener('click',()=>{const i=document.getElementById('password-input');if(i.value===CONFIG.adminPassword){hidePwd();enableAdmin()}else{document.getElementById('password-error')?.classList.remove('hidden');if(i){i.value='';i.focus()}}});
-document.getElementById('password-cancel')?.addEventListener('click',hidePwd);
-document.getElementById('password-cancel-btn')?.addEventListener('click',hidePwd);
-document.getElementById('password-input')?.addEventListener('keydown',e=>{if(e.key==='Enter'){document.getElementById('password-submit').click()}if(e.key==='Escape')hidePwd()});
-document.getElementById('add-item-btn')?.addEventListener('click',async()=>{const cr=document.getElementById('item-crafting').checked,co=document.getElementById('item-cooking').checked,ot=document.getElementById('item-other').checked,ht=document.getElementById('item-hot').checked;if(!cr&&!co&&!ot){alert('Select at least one category.');return}const uc=document.getElementById('item-catalog-selected').value==='1',ne=uc?document.getElementById('item-name-en'):document.getElementById('manual-name-en'),nr=uc?document.getElementById('item-name-ru'):document.getElementById('manual-name-ru');const ev=ne.value.trim(),rv=nr.value.trim();if(!ev&&!rv){alert(t('alertName'));return}const am=document.getElementById('item-amount');if(!am.value||Number(am.value)<1){alert(t('alertAmount'));return}document.getElementById('add-item-btn').disabled=true;document.getElementById('add-item-btn').textContent=t('btnAdd')+'\u2026';await addItem({name_en:ev,name_ru:rv,price_gold:document.getElementById('item-price-gold').value,price_silver:document.getElementById('item-price-silver').value,price_iron:document.getElementById('item-price-iron').value,price_med:document.getElementById('item-price-med').value,amount_needed:Number(am.value),is_crafting:cr,is_cooking:co,is_hot:ht,image:uc?document.getElementById('item-image').value:''});document.getElementById('item-catalog-selected').value='';updDP();document.getElementById('item-preview').classList.add('hidden');document.getElementById('manual-name-en').value='';document.getElementById('manual-name-ru').value='';document.getElementById('item-price-gold').value='';document.getElementById('item-price-silver').value='';document.getElementById('item-price-iron').value='';document.getElementById('item-price-med').value='';am.value='';document.getElementById('item-crafting').checked=false;document.getElementById('item-cooking').checked=false;document.getElementById('item-other').checked=false;document.getElementById('item-hot').checked=false;document.getElementById('add-item-btn').disabled=false;document.getElementById('add-item-btn').textContent=t('btnAdd');populateDropdown();renderAdminList();await refreshAll()});
-function openEditModal(id){const it=items.find(i=>i.id===id);if(!it)return;editingId=id;document.getElementById('edit-name-en').value=it.name_en||'';document.getElementById('edit-name-ru').value=it.name_ru||'';document.getElementById('edit-price-gold').value=it.price_gold||'';document.getElementById('edit-price-silver').value=it.price_silver||'';document.getElementById('edit-price-iron').value=it.price_iron||'';document.getElementById('edit-price-med').value=it.price_med||'';document.getElementById('edit-amount').value=it.amount_needed||'';document.getElementById('edit-crafting').checked=!!it.is_crafting;document.getElementById('edit-cooking').checked=!!it.is_cooking;document.getElementById('edit-other').checked=!it.is_crafting&&!it.is_cooking;document.getElementById('edit-hot').checked=!!it.is_hot;document.getElementById('edit-image').value=it.image||'';document.getElementById('edit-item-id').value=id;document.getElementById('edit-modal').classList.remove('hidden')}
-document.getElementById('edit-save-btn')?.addEventListener('click',async()=>{const id=document.getElementById('edit-item-id').value,ne=document.getElementById('edit-name-en'),nr=document.getElementById('edit-name-ru');if(!ne.value.trim()||!nr.value.trim()){alert(t('alertName'));return}document.getElementById('edit-save-btn').disabled=true;document.getElementById('edit-save-btn').textContent=t('btnSave')+'\u2026';await updateItem(id,{name_en:ne.value.trim(),name_ru:nr.value.trim(),price_gold:document.getElementById('edit-price-gold').value,price_silver:document.getElementById('edit-price-silver').value,price_iron:document.getElementById('edit-price-iron').value,price_med:document.getElementById('edit-price-med').value,amount_needed:Number(document.getElementById('edit-amount').value),is_crafting:document.getElementById('edit-crafting').checked,is_cooking:document.getElementById('edit-cooking').checked,is_hot:document.getElementById('edit-hot').checked,image:document.getElementById('edit-image').value||''});document.getElementById('edit-save-btn').disabled=false;document.getElementById('edit-save-btn').textContent=t('btnSave');document.getElementById('edit-modal').classList.add('hidden');editingId=null;populateDropdown();renderAdminList();await refreshAll()});
-document.getElementById('edit-cancel')?.addEventListener('click',()=>{document.getElementById('edit-modal').classList.add('hidden');editingId=null});
-document.getElementById('edit-cancel-btn')?.addEventListener('click',()=>{document.getElementById('edit-modal').classList.add('hidden');editingId=null});
-let delId=null;
-document.getElementById('delete-confirm-btn')?.addEventListener('click',async()=>{if(!delId)return;await deleteItem(delId);delId=null;document.getElementById('delete-modal').classList.add('hidden');populateDropdown();renderAdminList();await refreshAll()});
-document.getElementById('delete-cancel')?.addEventListener('click',()=>{delId=null;document.getElementById('delete-modal').classList.add('hidden')});
-document.getElementById('delete-cancel-btn')?.addEventListener('click',()=>{delId=null;document.getElementById('delete-modal').classList.add('hidden')});
-document.getElementById('lang-toggle')?.addEventListener('click',()=>setLang(currentLang==='en'?'ru':'en'));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){hidePwd();document.getElementById('edit-modal')?.classList.add('hidden');document.getElementById('delete-modal')?.classList.add('hidden')}});
-document.getElementById('logo')?.addEventListener('click',function(){let cc=this._cc||0;cc++;this._cc=cc;clearTimeout(this._ct);this._ct=setTimeout(()=>{this._cc=0},800);if(cc>=3){this._cc=0;showPwd()}});
-['crafting','cooking','other'].forEach(k=>{const t=document.getElementById(k+'-section');if(!t)return;t.querySelectorAll('th.sortable').forEach(th=>{th.addEventListener('click',()=>{const c=th.dataset.sort,s=tableSorts[k];if(c===s.by)s.dir=s.dir==='asc'?'desc':'asc';else{s.by=c;s.dir='asc'}renderTables()})})});
-document.addEventListener('DOMContentLoaded',async()=>{setLang(currentLang);populateSelects();setupCategoryChecks();await refreshAll();enableAdmin()});
-// eslint-disable-next-line no-unused-expressions
-void 0;
+const CONFIG = {
+  supabaseUrl: 'https://dnwitnnzrkcismsbxfcg.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRud2l0bm56cmtjaXNtc2J4ZmNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjY0MTYsImV4cCI6MjA5NzUwMjQxNn0.z75KyvMaNTj9ORWrUguEJqHmdtjWrdlIwvedWvB5OFE',
+  adminPassword: 'gvadmin2023'
+};
+const LANG_KEY = 'gv_lang';
+const LANG = {
+  en: {
+    boardTitle: 'Guild Requisition Board', subtitle: 'Gloria Victis \u2014 Supply Registry',
+    addItem: '+ Add Item',
+    crafting: '\u2726 Crafting Materials \u2726', cooking: '\u2726 Cooking Ingredients \u2726', other: '\u2726 Other \u2726',
+    colIcon: 'Icon', colItem: 'Item', colPrice: 'Price', colNeed: 'Need',
+    emptyCraft: 'No crafting items needed.', emptyCook: 'No cooking items needed.', emptyOther: 'No other items needed.',
+    loading: 'Loading\u2026',
+    pwdTitle: "Commander's Access", pwdDesc: 'Speak the password to open the ledger:', pwdPlaceholder: 'Password',
+    pwdCancel: 'Cancel', pwdUnlock: 'Unlock', pwdError: 'Wrong password. Try again.',
+    adminTitle: 'Requisition Ledger', adminLogout: '[ Logout ]',
+    newReq: 'New Requisition', currentReqs: 'Current Requisitions',
+    labelItem: 'Item', selectPlaceholder: '\u2014 Select item \u2014', orCustom: 'Or type custom name for',
+    nameEn: 'Name (EN)', nameRu: 'Name (RU)',
+    labelGold: 'Gold', labelSilver: 'Silver', labelIron: 'Iron', labelCopper: 'Copper',
+    labelAmount: 'Amount needed',
+    labelCraft: '\uD83D\uDD28 Crafting', labelCook: '\uD83C\uDF68 Cooking', labelOther: '\uD83D\uDCE6 Other', labelPriority: '\uD83D\uDD25 Priority',
+    btnAdd: 'Add Requisition', btnEdit: 'Edit Requisition', btnSave: 'Save Changes',
+    btnRemove: 'Remove', btnCancel: 'Cancel',
+    alertName: 'Enter at least one name (EN or RU).', alertAmount: 'Enter amount needed.',
+    emptyAdmin: 'No requisitions yet.',
+    footer: 'For the glory of the guild', delConfirm: 'Remove this item from the board?',
+    alreadyIn: 'Already in:', langEn: 'EN', langRu: 'RU'
+  },
+  ru: {
+    boardTitle: '\u0414\u043E\u0441\u043A\u0430 \u0437\u0430\u043A\u0430\u0437\u043E\u0432 \u0433\u0438\u043B\u044C\u0434\u0438\u0438',
+    subtitle: 'Gloria Victis \u2014 \u0420\u0435\u0435\u0441\u0442\u0440 \u043F\u043E\u0441\u0442\u0430\u0432\u043E\u043A',
+    addItem: '+ \u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u0440\u0435\u0434\u043C\u0435\u0442',
+    crafting: '\u2726 \u041A\u0443\u0437\u043D\u0435\u0447\u043D\u044B\u0435 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u2726',
+    cooking: '\u2726 \u041A\u0443\u043B\u0438\u043D\u0430\u0440\u043D\u044B\u0435 \u0438\u043D\u0433\u0440\u0435\u0434\u0438\u0435\u043D\u0442\u044B \u2726',
+    other: '\u2726 \u0414\u0440\u0443\u0433\u043E\u0435 \u2726',
+    colIcon: '\u0418\u043A\u043E\u043D\u043A\u0430', colItem: '\u041F\u0440\u0435\u0434\u043C\u0435\u0442', colPrice: '\u0426\u0435\u043D\u0430', colNeed: '\u041D\u0443\u0436\u043D\u043E',
+    emptyCraft: '\u041A\u0443\u0437\u043D\u0435\u0447\u043D\u044B\u0435 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u043D\u0435 \u0442\u0440\u0435\u0431\u0443\u044E\u0442\u0441\u044F.',
+    emptyCook: '\u041A\u0443\u043B\u0438\u043D\u0430\u0440\u043D\u044B\u0435 \u0438\u043D\u0433\u0440\u0435\u0434\u0438\u0435\u043D\u0442\u044B \u043D\u0435 \u0442\u0440\u0435\u0431\u0443\u044E\u0442\u0441\u044F.',
+    emptyOther: '\u0414\u0440\u0443\u0433\u0438\u0435 \u043F\u0440\u0435\u0434\u043C\u0435\u0442\u044B \u043D\u0435 \u0442\u0440\u0435\u0431\u0443\u044E\u0442\u0441\u044F.',
+    loading: '\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430\u2026',
+    pwdTitle: '\u0414\u043E\u0441\u0442\u0443\u043F \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430',
+    pwdDesc: '\u041D\u0430\u0437\u043E\u0432\u0438\u0442\u0435 \u043F\u0430\u0440\u043E\u043B\u044C, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u0440\u044B\u0442\u044C \u043A\u043D\u0438\u0433\u0443:',
+    pwdPlaceholder: '\u041F\u0430\u0440\u043E\u043B\u044C',
+    pwdCancel: '\u041E\u0442\u043C\u0435\u043D\u0430', pwdUnlock: '\u0412\u043E\u0439\u0442\u0438', pwdError: '\u041D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043F\u0430\u0440\u043E\u043B\u044C. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0441\u043D\u043E\u0432\u0430.',
+    adminTitle: '\u041A\u043D\u0438\u0433\u0430 \u0437\u0430\u043A\u0430\u0437\u043E\u0432',
+    adminLogout: '[ \u0412\u044B\u0439\u0442\u0438 ]',
+    newReq: '\u041D\u043E\u0432\u044B\u0439 \u0437\u0430\u043A\u0430\u0437', currentReqs: '\u0422\u0435\u043A\u0443\u0449\u0438\u0435 \u0437\u0430\u043A\u0430\u0437\u044B',
+    labelItem: '\u041F\u0440\u0435\u0434\u043C\u0435\u0442', selectPlaceholder: '\u2014 \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u043F\u0440\u0435\u0434\u043C\u0435\u0442 \u2014',
+    orCustom: '\u0418\u043B\u0438 \u0432\u0432\u0435\u0434\u0438\u0442\u0435 \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u0434\u043B\u044F',
+    nameEn: '\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 (EN)', nameRu: '\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 (RU)',
+    labelGold: '\u0417\u043E\u043B\u043E\u0442\u043E', labelSilver: '\u0421\u0435\u0440\u0435\u0431\u0440\u043E', labelIron: '\u0416\u0435\u043B\u0435\u0437\u043E', labelCopper: '\u041C\u0435\u0434\u044C',
+    labelAmount: '\u0422\u0440\u0435\u0431\u0443\u0435\u043C\u043E\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E',
+    labelCraft: '\uD83D\uDD28 \u041A\u0443\u0437\u043D\u0438\u0446\u0430', labelCook: '\uD83C\uDF68 \u041A\u0443\u043B\u0438\u043D\u0430\u0440\u0438\u044F',
+    labelOther: '\uD83D\uDCE6 \u0414\u0440\u0443\u0433\u043E\u0435', labelPriority: '\uD83D\uDD25 \u041F\u0440\u0438\u043E\u0440\u0438\u0442\u0435\u0442',
+    btnAdd: '\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0437\u0430\u043A\u0430\u0437', btnEdit: '\u0420\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0437\u0430\u043A\u0430\u0437',
+    btnSave: '\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C', btnRemove: '\u0423\u0434\u0430\u043B\u0438\u0442\u044C', btnCancel: '\u041E\u0442\u043C\u0435\u043D\u0430',
+    alertName: '\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0445\u043E\u0442\u044F \u0431\u044B \u043E\u0434\u043D\u043E \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 (EN \u0438\u043B\u0438 RU).',
+    alertAmount: '\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0442\u0440\u0435\u0431\u0443\u0435\u043C\u043E\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E.',
+    emptyAdmin: '\u0417\u0430\u043A\u0430\u0437\u043E\u0432 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.',
+    footer: '\u0412\u043E \u0441\u043B\u0430\u0432\u0443 \u0433\u0438\u043B\u044C\u0434\u0438\u0438',
+    delConfirm: '\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u044D\u0442\u043E\u0442 \u043F\u0440\u0435\u0434\u043C\u0435\u0442 \u0441 \u0434\u043E\u0441\u043A\u0438?',
+    alreadyIn: '\u0423\u0436\u0435 \u0432:', langEn: 'EN', langRu: 'RU'
+  }
+};
+const ITEM_CATALOG = [
+  { name_en: 'Aqua Fortis', name_ru: '\u041A\u0440\u0435\u043F\u043A\u0430\u044F \u0432\u043E\u0434\u043A\u0430', image: 'Aqua Fortis.jpg' },
+  { name_en: 'Aqua Regia', name_ru: '\u0426\u0430\u0440\u0441\u043A\u0430\u044F \u0432\u043E\u0434\u043A\u0430', image: 'Aqua Regia.jpg' },
+  { name_en: 'Beast Leather', name_ru: '\u0428\u043A\u0443\u0440\u0430 \u0437\u0432\u0435\u0440\u044F', image: 'Beast Leather.jpg' },
+  { name_en: 'Beeswax', name_ru: '\u041F\u0447\u0435\u043B\u0438\u043D\u044B\u0439 \u0432\u043E\u0441\u043A', image: 'Beeswax.jpg' },
+  { name_en: 'Blood of the Beast', name_ru: '\u041A\u0440\u043E\u0432\u044C \u0437\u0432\u0435\u0440\u044F', image: 'Blood of the Beast.jpg' },
+  { name_en: 'Bulat Bar', name_ru: '\u0411\u0443\u043B\u0430\u0442', image: 'Bulat Bar.jpg' },
+  { name_en: 'Calcite Crystal', name_ru: '\u041A\u0430\u043B\u044C\u0446\u0438\u0442', image: 'Calcite Crystal.jpg' },
+  { name_en: 'Coal', name_ru: '\u0423\u0433\u043E\u043B\u044C', image: 'Coal.jpg' },
+  { name_en: 'Dziwer Bar', name_ru: '\u0421\u043B\u0438\u0442\u043E\u043A \u0434\u0437\u0438\u0432\u0435\u0440\u0430', image: 'Dziwer Bar.jpg' },
+  { name_en: 'Leaf Plant Seeds', name_ru: '\u0421\u0435\u043C\u0435\u043D\u0430 \u043B\u0438\u0441\u0442\u044C\u0435\u0432', image: 'Leaf Plan Seads.jpg' },
+  { name_en: 'Magnetite', name_ru: '\u041C\u0430\u0433\u043D\u0435\u0442\u0438\u0442', image: 'Magnetite.jpg' },
+  { name_en: 'Milk', name_ru: '\u041C\u043E\u043B\u043E\u043A\u043E', image: 'Milk.jpg' },
+  { name_en: 'Pyrite', name_ru: '\u041F\u0438\u0440\u0438\u0442', image: 'Pyrite.jpg' },
+  { name_en: 'Quartz Crystal', name_ru: '\u041A\u0432\u0430\u0440\u0446\u0435\u0432\u044B\u0439 \u043A\u0440\u0438\u0441\u0442\u0430\u043B\u043B', image: 'Quartz Crystal.jpg' },
+  { name_en: 'Quartz Glass', name_ru: '\u041A\u0432\u0430\u0440\u0446\u0435\u0432\u043E\u0435 \u0441\u0442\u0435\u043A\u043B\u043E', image: 'Quartz Glass.jpg' },
+  { name_en: 'Quicklime', name_ru: '\u041D\u0435\u0433\u0430\u0448\u0435\u043D\u0430\u044F \u0438\u0437\u0432\u0435\u0441\u0442\u044C', image: 'Quicklime.jpg' },
+  { name_en: 'Saffron', name_ru: '\u0428\u0430\u0444\u0440\u0430\u043D', image: 'Saffron.jpg' },
+  { name_en: 'Suet', name_ru: '\u0421\u0430\u043B\u043E', image: 'Suet.jpg' },
+  { name_en: 'Sulfur', name_ru: '\u0421\u0435\u0440\u0430', image: 'Sulfur.jpg' },
+  { name_en: 'Thick Tanned Leather', name_ru: '\u0422\u043E\u043B\u0441\u0442\u0430\u044F \u0432\u044B\u0434\u0435\u043B\u0430\u043D\u043D\u0430\u044F \u043A\u043E\u0436\u0430', image: 'Thick Tanned Leather.jpg' },
+  { name_en: 'Thugs Fur', name_ru: '\u041C\u0435\u0445 \u043E\u0442\u043C\u043E\u0440\u043E\u0437\u043A\u0430', image: 'Thugs Fur.jpg' },
+  { name_en: 'Armoured Thugs Fur', name_ru: '\u041C\u0435\u0445 \u0432\u043E\u043E\u0440\u0443\u0436\u0435\u043D\u043D\u043E\u0433\u043E \u043E\u0442\u043C\u043E\u0440\u043E\u0437\u043A\u0430', image: 'Armoured Thugs Fur.jpg' },
+  { name_en: 'Black Sickles Fur', name_ru: '\u041C\u0435\u0445 \u0447\u0435\u0440\u043D\u043E\u0433\u043E \u0441\u0435\u0440\u043F\u0430', image: 'Black Sickles Fur.jpg' },
+  { name_en: 'Highlanders Fur', name_ru: '\u041C\u0435\u0445 \u0433\u043E\u0440\u0446\u0430', image: 'Highlanders Fur.jpg' }
+];
+const AVAILABLE_IMAGES = ITEM_CATALOG.map(i => i.image);
+
+// --- STATE ---
+let items = [];
+let editingId = null;
+let isAdmin = false;
+let currentLang = localStorage.getItem(LANG_KEY) || 'en';
+const tableSorts = { crafting: { by: 'name', dir: 'asc' }, cooking: { by: 'name', dir: 'asc' }, other: { by: 'name', dir: 'asc' } };
+
+const supabase = window.supabase?.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+const useSupabase = !!supabase;
+
+// --- HELPERS ---
+function t(key) { return (LANG[currentLang] && LANG[currentLang][key]) || key; }
+function esc(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+// --- LANGUAGE ---
+function renderLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.getElementById('lang-toggle').textContent = currentLang === 'en' ? 'EN / RU' : 'RU / EN';
+}
+function setLang(l) {
+  currentLang = l;
+  localStorage.setItem(LANG_KEY, l);
+  renderLang();
+  updateDropdownPlaceholder();
+  renderTables();
+  if (isAdmin) renderAdminList();
+}
+function setupLangToggle() {
+  document.getElementById('lang-toggle')?.addEventListener('click', () => setLang(currentLang === 'en' ? 'ru' : 'en'));
+}
+
+// --- DB ---
+function migrateItem(item) {
+  if (item.is_hot === undefined) item.is_hot = false;
+  if (item.sort_order === undefined) item.sort_order = item.is_hot ? 0 : 999;
+  return item;
+}
+async function fetchItems() {
+  if (!useSupabase) return [];
+  const { data, error } = await supabase.from('guild_items').select('*').order('sort_order', { ascending: true });
+  if (!error && data) { items = data.map(migrateItem); return items; }
+  console.warn('Supabase fetch failed:', error);
+  return [];
+}
+async function addItem(item) {
+  const record = {
+    name_en: item.name_en, name_ru: item.name_ru,
+    price_gold: Number(item.price_gold) || 0, price_silver: Number(item.price_silver) || 0,
+    price_iron: Number(item.price_iron) || 0, price_med: Number(item.price_med) || 0,
+    amount_needed: Number(item.amount_needed),
+    sort_order: items.length,
+    is_crafting: Boolean(item.is_crafting), is_cooking: Boolean(item.is_cooking),
+    is_hot: Boolean(item.is_hot), image: item.image || null
+  };
+  if (!useSupabase) return;
+  const { data } = await supabase.from('guild_items').insert(record).select();
+  if (data?.length) { items.unshift(data[0]); return data[0]; }
+}
+async function updateItem(id, updates) {
+  const record = {
+    name_en: updates.name_en, name_ru: updates.name_ru,
+    price_gold: Number(updates.price_gold) || 0, price_silver: Number(updates.price_silver) || 0,
+    price_iron: Number(updates.price_iron) || 0, price_med: Number(updates.price_med) || 0,
+    amount_needed: Number(updates.amount_needed),
+    is_crafting: Boolean(updates.is_crafting), is_cooking: Boolean(updates.is_cooking),
+    is_hot: Boolean(updates.is_hot), image: updates.image || null
+  };
+  if (!useSupabase) return;
+  const { data } = await supabase.from('guild_items').update(record).eq('id', id).select();
+  if (data?.length) {
+    const idx = items.findIndex(i => i.id === id);
+    if (idx !== -1) items[idx] = data[0];
+    return data[0];
+  }
+}
+async function deleteItem(id) {
+  if (useSupabase) await supabase.from('guild_items').delete().eq('id', id);
+  items = items.filter(i => i.id !== id);
+}
+
+// --- PRICE ---
+function comparePrice(a, b) {
+  const ga = a.price_gold || 0, gb = b.price_gold || 0;
+  if (ga !== gb) return ga - gb;
+  const sa = a.price_silver || 0, sb = b.price_silver || 0;
+  if (sa !== sb) return sa - sb;
+  const ia = a.price_iron || 0, ib = b.price_iron || 0;
+  if (ia !== ib) return ia - ib;
+  return (a.price_med || 0) - (b.price_med || 0);
+}
+function formatPrice(item) {
+  const parts = [];
+  if (item.price_gold > 0) parts.push(`${item.price_gold}<img class="coin-icon" src="coins/gold.png" alt="" title="Gold">`);
+  if (item.price_silver > 0) parts.push(`${item.price_silver}<img class="coin-icon" src="coins/silver.png" alt="" title="Silver">`);
+  if (item.price_iron > 0) parts.push(`${item.price_iron}<img class="coin-icon" src="coins/iron.png" alt="" title="Iron">`);
+  if (item.price_med > 0) parts.push(`${item.price_med}<img class="coin-icon" src="coins/copper.png" alt="" title="Copper">`);
+  return parts.length ? parts.join(' ') : '<span class="c-none">\u2014</span>';
+}
+
+// --- SORTING ---
+function getSortedForTable(filter, sortObj) {
+  const filtered = typeof filter === 'function' ? items.filter(filter) : items.filter(i => i[filter]);
+  return [...filtered].sort((a, b) => {
+    let cmp = 0;
+    switch (sortObj.by) {
+      case 'name':
+        cmp = (a.name_en || '').localeCompare(b.name_en || '');
+        if (cmp !== 0) return cmp;
+        return (a.sort_order || 999) - (b.sort_order || 999);
+      case 'price': cmp = comparePrice(a, b); break;
+      case 'amount': cmp = (Number(a.amount_needed) || 0) - (Number(b.amount_needed) || 0); break;
+    }
+    return cmp * (sortObj.dir === 'asc' ? 1 : -1);
+  });
+}
+function updateSortIndicators(tableId, sortObj) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  table.querySelectorAll('th.sortable').forEach(th => {
+    const col = th.dataset.sort;
+    th.classList.toggle('active', col === sortObj.by);
+    th.classList.toggle('asc', col === sortObj.by && sortObj.dir === 'asc');
+  });
+}
+function setupSorting() {
+  ['crafting', 'cooking', 'other'].forEach(key => {
+    const table = document.getElementById(key + '-section');
+    if (!table) return;
+    table.querySelectorAll('th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.sort;
+        const s = tableSorts[key];
+        if (col === s.by) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+        else { s.by = col; s.dir = 'asc'; }
+        renderTables();
+      });
+    });
+  });
+}
+
+// --- RENDER ---
+function imageTag(filename) {
+  if (!filename) return '<span class="item-thumb-placeholder">\uD83E\uDE99</span>';
+  const s = esc(filename);
+  return `<img class="item-thumb" src="images/${encodeURIComponent(s)}" alt="${s}" loading="lazy">`;
+}
+function renderTable(tbodyId, emptyId, filter, sortObj) {
+  const tbody = document.getElementById(tbodyId);
+  const empty = document.getElementById(emptyId);
+  if (!tbody) return;
+  const filtered = typeof filter === 'function' ? items.filter(filter) : items.filter(i => i[filter]);
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  const sorted = getSortedForTable(filter, sortObj);
+  tbody.innerHTML = sorted.map(item => {
+    const hotClass = item.is_hot ? 'hot-item' : '';
+    return `<tr class="${hotClass}" data-id="${item.id}">
+      <td class="item-image-cell">${imageTag(item.image)}</td>
+      <td><div class="item-name-cell"><span class="item-name-en">${esc(item.name_en)}</span><span class="item-name-ru">${esc(item.name_ru)}</span></div></td>
+      <td><span class="item-price">${formatPrice(item)}</span></td>
+      <td><span class="item-amount">${Number(item.amount_needed).toLocaleString()}</span></td>
+    </tr>`;
+  }).join('');
+}
+function renderTables() {
+  document.getElementById('loading')?.classList.add('hidden');
+  document.getElementById('crafting-section')?.classList.remove('hidden');
+  document.getElementById('cooking-section')?.classList.remove('hidden');
+  document.getElementById('other-section')?.classList.remove('hidden');
+  renderTable('crafting-body', 'crafting-empty', 'is_crafting', tableSorts.crafting);
+  renderTable('cooking-body', 'cooking-empty', 'is_cooking', tableSorts.cooking);
+  renderTable('other-body', 'other-empty', function(it) { return !it.is_crafting && !it.is_cooking; }, tableSorts.other);
+  updateSortIndicators('crafting-section', tableSorts.crafting);
+  updateSortIndicators('cooking-section', tableSorts.cooking);
+  updateSortIndicators('other-section', tableSorts.other);
+}
+function toggleHot(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.is_hot = !item.is_hot;
+  if (useSupabase) supabase.from('guild_items').update({ is_hot: item.is_hot }).eq('id', id).then();
+  renderAdminList();
+  renderTables();
+}
+
+// --- ADMIN LIST ---
+function renderAdminList() {
+  const list = document.getElementById('admin-items-list');
+  if (!list) return;
+  if (!items || items.length === 0) {
+    list.innerHTML = `<div style="color:var(--text-faint);font-style:italic;padding:8px;text-align:center">${t('emptyAdmin')}</div>`;
+    return;
+  }
+  const sorted = [...items].sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999));
+  list.innerHTML = sorted.map((item, idx) => {
+    const thumb = item.image ? `<img class="admin-thumb" src="images/${encodeURIComponent(esc(item.image))}" alt="" loading="lazy">` : '<span style="font-size:0.9rem;flex-shrink:0;">\uD83E\uDE99</span>';
+    const cats = [];
+    if (item.is_crafting) cats.push('\uD83D\uDD28');
+    if (item.is_cooking) cats.push('\uD83C\uDF68');
+    if (!item.is_crafting && !item.is_cooking) cats.push('\uD83D\uDCE6');
+    const catTag = `<span style="margin-left:4px;font-size:0.6rem;color:var(--text-faint)">${cats.join(' ')}</span>`;
+    const uD = idx === 0 ? ' opacity:0.3;cursor:default;' : '';
+    const dD = idx === sorted.length - 1 ? ' opacity:0.3;cursor:default;' : '';
+    return `<div class="admin-list-item" data-id="${item.id}">
+      <span style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
+        <button class="admin-action-btn arrow-up" data-move-id="${item.id}" data-dir="up" style="padding:2px 5px;font-size:0.6rem;line-height:1;${uD}" ${idx === 0 ? 'disabled' : ''}>\u25B2</button>
+        <button class="admin-action-btn arrow-down" data-move-id="${item.id}" data-dir="down" style="padding:2px 5px;font-size:0.6rem;line-height:1;${dD}" ${idx === sorted.length - 1 ? 'disabled' : ''}>\u25BC</button>
+      </span>
+      <span class="admin-item-info">${thumb}<span><span class="admin-item-en">${esc(item.name_en)}${catTag}</span><span class="admin-item-ru">${esc(item.name_ru)}</span></span></span>
+      <span class="admin-item-details">${formatPrice(item)} \u00B7 ${Number(item.amount_needed).toLocaleString()}x</span>
+      <span class="admin-item-actions"><button class="admin-action-btn hot-toggle ${item.is_hot ? 'hot-on' : 'hot-off'}" data-hot-id="${item.id}" title="${t('labelPriority')}">\uD83D\uDD25</button><button class="admin-action-btn edit" data-edit-id="${item.id}" title="${t('labelItem')}">\u270F\uFE0F</button><button class="admin-action-btn delete" data-delete-id="${item.id}" title="${t('btnRemove')}">\uD83D\uDDD1\uFE0F</button></span>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('[data-edit-id]').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.editId)));
+  list.querySelectorAll('[data-delete-id]').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.deleteId)));
+  list.querySelectorAll('[data-move-id]').forEach(b => b.addEventListener('click', () => { if (!b.disabled) reorderItem(b.dataset.moveId, b.dataset.dir); }));
+  list.querySelectorAll('[data-hot-id]').forEach(b => b.addEventListener('click', () => toggleHot(b.dataset.hotId)));
+}
+function reorderItem(id, dir) {
+  const idx = items.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  const si = dir === 'up' ? idx - 1 : idx + 1;
+  if (si < 0 || si >= items.length) return;
+  const t = items[idx].sort_order;
+  items[idx].sort_order = items[si].sort_order;
+  items[si].sort_order = t;
+  if (useSupabase) {
+    supabase.from('guild_items').update({ sort_order: items[idx].sort_order }).eq('id', items[idx].id).then();
+    supabase.from('guild_items').update({ sort_order: items[si].sort_order }).eq('id', items[si].id).then();
+  }
+  renderAdminList();
+  renderTables();
+}
+
+// --- CUSTOM DROPDOWN ---
+function populateItemDropdown() {
+  const menu = document.getElementById('dropdown-menu');
+  if (!menu) return;
+  const available = ITEM_CATALOG.filter(c => {
+    const ex = items.find(i => i.name_en === c.name_en);
+    return !(ex && ex.is_crafting && ex.is_cooking);
+  });
+  menu.innerHTML = available.map(c =>
+    `<div class="c-dropdown-option" data-name-en="${esc(c.name_en)}">
+      <img src="images/${encodeURIComponent(c.image)}" alt="" loading="lazy">
+      <span>${esc(c.name_en)} \u2014 ${esc(c.name_ru)}</span>
+    </div>`
+  ).join('');
+  menu.querySelectorAll('.c-dropdown-option').forEach(opt => {
+    opt.addEventListener('click', (e) => { e.stopPropagation(); selectCatalogItem(opt.dataset.nameEn); closeDropdown(); });
+  });
+}
+function selectCatalogItem(nameEn) {
+  const cat = ITEM_CATALOG.find(c => c.name_en === nameEn);
+  if (!cat) return;
+  document.getElementById('item-name-en').value = cat.name_en;
+  document.getElementById('item-name-ru').value = cat.name_ru;
+  document.getElementById('item-image').value = cat.image || '';
+  document.getElementById('item-catalog-selected').value = '1';
+  const trigger = document.getElementById('dropdown-trigger');
+  trigger.innerHTML = `<span class="trigger-content"><img class="trigger-icon" src="images/${encodeURIComponent(cat.image)}" alt=""><span>${esc(cat.name_en)} \u2014 ${esc(cat.name_ru)}</span></span><span class="c-dropdown-arrow">\u25BE</span>`;
+  const preview = document.getElementById('item-preview');
+  document.getElementById('item-preview-img').src = cat.image ? `images/${encodeURIComponent(cat.image)}` : '';
+  document.getElementById('item-preview-en').textContent = cat.name_en;
+  document.getElementById('item-preview-ru').textContent = cat.name_ru;
+  const existing = items.find(i => i.name_en === cat.name_en);
+  const ci = document.getElementById('item-preview-cat');
+  if (existing) {
+    const lbl = [];
+    if (existing.is_crafting) lbl.push(t('labelCraft'));
+    if (existing.is_cooking) lbl.push(t('labelCook'));
+    ci.textContent = t('alreadyIn') + ' ' + lbl.join(', ');
+  } else { ci.textContent = ''; }
+  preview.classList.remove('hidden');
+}
+function closeDropdown() { document.getElementById('dropdown-menu')?.classList.add('hidden'); }
+function toggleDropdown() { document.getElementById('dropdown-menu')?.classList.toggle('hidden'); }
+function updateDropdownPlaceholder() {
+  const trigger = document.getElementById('dropdown-trigger');
+  if (!trigger) return;
+  if (!trigger.querySelector('.trigger-content')) {
+    trigger.innerHTML = `<span>${t('selectPlaceholder')}</span><span class="c-dropdown-arrow">\u25BE</span>`;
+  }
+}
+function setupDropdown() {
+  const trigger = document.getElementById('dropdown-trigger');
+  if (trigger) trigger.addEventListener('click', toggleDropdown);
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('item-dropdown');
+    if (wrap && !wrap.contains(e.target)) closeDropdown();
+  });
+}
+function populateImageSelects() {
+  ['item-image', 'edit-image'].forEach(id => {
+    const s = document.getElementById(id);
+    if (!s) return;
+    s.innerHTML = '<option value="">\u2014 No icon \u2014</option>' + AVAILABLE_IMAGES.map(f => `<option value="${esc(f)}">${esc(f.replace('.jpg', ''))}</option>`).join('');
+  });
+}
+
+// --- REFRESH ---
+async function refreshAll() { await fetchItems(); renderTables(); }
+
+// --- PASSWORD MODAL ---
+function showPasswordModal() {
+  document.getElementById('password-modal')?.classList.remove('hidden');
+  const i = document.getElementById('password-input');
+  if (i) { i.value = ''; i.focus(); }
+  document.getElementById('password-error')?.classList.add('hidden');
+}
+function hidePasswordModal() { document.getElementById('password-modal')?.classList.add('hidden'); }
+function setupPasswordModal() {
+  const i = document.getElementById('password-input');
+  const check = () => {
+    if (i.value === CONFIG.adminPassword) { hidePasswordModal(); enableAdmin(); }
+    else { document.getElementById('password-error')?.classList.remove('hidden'); if (i) { i.value = ''; i.focus(); } }
+  };
+  document.getElementById('password-submit')?.addEventListener('click', check);
+  document.getElementById('password-cancel')?.addEventListener('click', hidePasswordModal);
+  document.getElementById('password-cancel-btn')?.addEventListener('click', hidePasswordModal);
+  if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') check(); if (e.key === 'Escape') hidePasswordModal(); });
+}
+
+// --- ADMIN ---
+function enableAdmin() {
+  isAdmin = true;
+  document.getElementById('admin-panel')?.classList.remove('hidden');
+  document.getElementById('manual-name-en').value = '';
+  document.getElementById('manual-name-ru').value = '';
+  document.getElementById('add-btn-header')?.classList.remove('hidden');
+  populateItemDropdown();
+  renderAdminList();
+}
+function hideAdminPanel() {
+  document.getElementById('admin-panel')?.classList.add('hidden');
+  document.getElementById('edit-modal')?.classList.add('hidden');
+  document.getElementById('delete-modal')?.classList.add('hidden');
+}
+function logoutAdmin() {
+  isAdmin = false;
+  document.getElementById('admin-panel')?.classList.add('hidden');
+  document.getElementById('edit-modal')?.classList.add('hidden');
+  document.getElementById('delete-modal')?.classList.add('hidden');
+  document.getElementById('add-btn-header')?.classList.add('hidden');
+}
+function setupAdminClose() {
+  document.getElementById('admin-close')?.addEventListener('click', hideAdminPanel);
+  document.getElementById('admin-logout-btn')?.addEventListener('click', logoutAdmin);
+}
+
+// --- HEADER ---
+function setupHeaderButtons() {
+  document.getElementById('add-btn-header')?.addEventListener('click', () => {
+    if (isAdmin) { document.getElementById('admin-panel')?.classList.remove('hidden'); populateItemDropdown(); renderAdminList(); }
+    else showPasswordModal();
+  });
+}
+
+// --- TRIPLE-CLICK ---
+let cc = 0; let ct = null;
+function setupTripleClick() {
+  document.getElementById('logo')?.addEventListener('click', () => {
+    cc++; if (ct) clearTimeout(ct); ct = setTimeout(() => { cc = 0; }, 800);
+    if (cc >= 3) { cc = 0; showPasswordModal(); }
+  });
+}
+
+// --- ADD ITEM ---
+function setupCategoryChecks() {
+  [
+    ['item-crafting', 'item-cooking', 'item-other'],
+    ['edit-crafting', 'edit-cooking', 'edit-other']
+  ].forEach(([c, k, o]) => {
+    const craft = document.getElementById(c);
+    const cook = document.getElementById(k);
+    const other = document.getElementById(o);
+    if (!other) return;
+    other.addEventListener('change', () => { if (other.checked) { craft.checked = false; cook.checked = false; } });
+    [craft, cook].forEach(cb => {
+      cb.addEventListener('change', () => { if (cb.checked) other.checked = false; });
+    });
+  });
+}
+function setupAddForm() {
+  const btn = document.getElementById('add-item-btn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const craft = document.getElementById('item-crafting').checked;
+    const cook = document.getElementById('item-cooking').checked;
+    const other = document.getElementById('item-other').checked;
+    const hot = document.getElementById('item-hot').checked;
+    if (!craft && !cook && !other) { alert('Select at least one category: Crafting, Cooking, or Other.'); return; }
+    const selVal = document.getElementById('item-catalog-selected').value;
+    const useCatalog = selVal === '1';
+    const nameEn = useCatalog ? document.getElementById('item-name-en') : document.getElementById('manual-name-en');
+    const nameRu = useCatalog ? document.getElementById('item-name-ru') : document.getElementById('manual-name-ru');
+    const image = document.getElementById('item-image');
+    const gold = document.getElementById('item-price-gold');
+    const silver = document.getElementById('item-price-silver');
+    const iron = document.getElementById('item-price-iron');
+    const med = document.getElementById('item-price-med');
+    const amount = document.getElementById('item-amount');
+    const enVal = nameEn.value.trim();
+    const ruVal = nameRu.value.trim();
+    if (!enVal && !ruVal) { alert(t('alertName')); return; }
+    if (!amount.value || Number(amount.value) < 1) { alert(t('alertAmount')); return; }
+    btn.disabled = true; btn.textContent = t('btnAdd') + '\u2026';
+    await addItem({
+      name_en: enVal, name_ru: ruVal,
+      price_gold: gold.value, price_silver: silver.value, price_iron: iron.value, price_med: med.value,
+      amount_needed: Number(amount.value),
+      is_crafting: craft, is_cooking: cook, is_hot: hot,
+      image: useCatalog ? (image.value || '') : ''
+    });
+    document.getElementById('item-catalog-selected').value = '';
+    updateDropdownPlaceholder();
+    document.getElementById('item-preview').classList.add('hidden');
+    if (image) image.value = '';
+    document.getElementById('manual-name-en').value = '';
+    document.getElementById('manual-name-ru').value = '';
+    gold.value = ''; silver.value = ''; iron.value = ''; med.value = '';
+    amount.value = '';
+    document.getElementById('item-crafting').checked = false;
+    document.getElementById('item-cooking').checked = false;
+    document.getElementById('item-other').checked = false;
+    document.getElementById('item-hot').checked = false;
+    btn.disabled = false; btn.textContent = t('btnAdd');
+    populateItemDropdown();
+    renderAdminList();
+    await refreshAll();
+  });
+}
+
+// --- EDIT ---
+function openEditModal(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('edit-name-en').value = item.name_en || '';
+  document.getElementById('edit-name-ru').value = item.name_ru || '';
+  document.getElementById('edit-price-gold').value = item.price_gold || '';
+  document.getElementById('edit-price-silver').value = item.price_silver || '';
+  document.getElementById('edit-price-iron').value = item.price_iron || '';
+  document.getElementById('edit-price-med').value = item.price_med || '';
+  document.getElementById('edit-amount').value = item.amount_needed || '';
+  document.getElementById('edit-crafting').checked = Boolean(item.is_crafting);
+  document.getElementById('edit-cooking').checked = Boolean(item.is_cooking);
+  document.getElementById('edit-other').checked = !item.is_crafting && !item.is_cooking;
+  document.getElementById('edit-hot').checked = Boolean(item.is_hot);
+  document.getElementById('edit-image').value = item.image || '';
+  document.getElementById('edit-item-id').value = id;
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+function setupEditModal() {
+  const save = document.getElementById('edit-save-btn');
+  const cancel = document.getElementById('edit-cancel');
+  const cb = document.getElementById('edit-cancel-btn');
+  if (save) {
+    save.addEventListener('click', async () => {
+      const id = document.getElementById('edit-item-id').value;
+      const nE = document.getElementById('edit-name-en');
+      const nR = document.getElementById('edit-name-ru');
+      if (!nE.value.trim() || !nR.value.trim()) { alert(t('alertName')); return; }
+      save.disabled = true; save.textContent = t('btnSave') + '\u2026';
+      await updateItem(id, {
+        name_en: nE.value.trim(), name_ru: nR.value.trim(),
+        price_gold: document.getElementById('edit-price-gold').value,
+        price_silver: document.getElementById('edit-price-silver').value,
+        price_iron: document.getElementById('edit-price-iron').value,
+        price_med: document.getElementById('edit-price-med').value,
+        amount_needed: Number(document.getElementById('edit-amount').value),
+        is_crafting: document.getElementById('edit-crafting').checked,
+        is_cooking: document.getElementById('edit-cooking').checked,
+        is_hot: document.getElementById('edit-hot').checked,
+        image: document.getElementById('edit-image').value || ''
+      });
+      save.disabled = false; save.textContent = t('btnSave');
+      document.getElementById('edit-modal').classList.add('hidden'); editingId = null;
+      populateItemDropdown(); renderAdminList(); await refreshAll();
+    });
+  }
+  if (cancel) cancel.addEventListener('click', closeEdit);
+  if (cb) cb.addEventListener('click', closeEdit);
+}
+function closeEdit() { document.getElementById('edit-modal')?.classList.add('hidden'); editingId = null; }
+
+// --- DELETE ---
+let dt = null;
+function openDeleteModal(id) { dt = id; document.getElementById('delete-modal').classList.remove('hidden'); }
+function setupDeleteModal() {
+  document.getElementById('delete-confirm-btn')?.addEventListener('click', async () => {
+    if (!dt) return; await deleteItem(dt); dt = null;
+    document.getElementById('delete-modal').classList.add('hidden');
+    populateItemDropdown(); renderAdminList(); await refreshAll();
+  });
+  document.getElementById('delete-cancel')?.addEventListener('click', closeDelete);
+  document.getElementById('delete-cancel-btn')?.addEventListener('click', closeDelete);
+}
+function closeDelete() { dt = null; document.getElementById('delete-modal')?.classList.add('hidden'); }
+
+// --- KEYBOARD ---
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hidePasswordModal(); closeEdit(); closeDelete(); }
+});
+
+// --- INIT ---
+document.addEventListener('DOMContentLoaded', async () => {
+  setLang(currentLang);
+  populateImageSelects();
+  setupLangToggle();
+  setupTripleClick();
+  setupPasswordModal();
+  setupHeaderButtons();
+  setupAdminClose();
+  setupDropdown();
+  setupCategoryChecks();
+  setupAddForm();
+  setupEditModal();
+  setupDeleteModal();
+  setupSorting();
+  await refreshAll();
+  enableAdmin();
+});
 </script>
 </body>
 </html>
