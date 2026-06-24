@@ -129,6 +129,14 @@ select option{background:var(--parchment-3)}
 @media(max-width:1100px){.board-main{grid-template-columns:1fr 1fr}.table-col-other{grid-column:1/-1}}
 @media(max-width:700px){.board-main{grid-template-columns:1fr}.table-col-other{grid-column:auto}}
 @media(max-width:640px){header{padding:0 14px}main{padding:16px 12px}.logo h1{font-size:.85rem}.logo h1 span:last-child{font-size:.5rem}.logo-crest{width:28px;height:28px}.logo-crest svg{width:28px;height:28px}.items-table th,.items-table td{padding:8px}.item-name-en{font-size:.8rem}.ornament{font-size:.6rem}.price-row{grid-template-columns:repeat(2,1fr)}.modal{max-width:100%;margin:10px}}
+#ticker-wrap{background:var(--parchment-2);border-top:2px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;height:48px;position:relative;cursor:grab}
+#ticker-wrap:active{cursor:grabbing}
+#ticker-track{display:flex;align-items:center;gap:24px;height:100%;white-space:nowrap;will-change:transform}
+.ticker-item{display:flex;align-items:center;gap:6px;font-family:'Crimson Text',serif;font-size:.85rem;color:var(--text-dim);flex-shrink:0}
+.ticker-item img{width:30px;height:30px;object-fit:contain;border:1px solid var(--border);background:var(--parchment-3);flex-shrink:0}
+.ticker-item-hot{color:var(--gold-bright)}
+.ticker-hot{margin-left:2px;font-size:.75rem}
+.ticker-placeholder{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--parchment-3);background:var(--parchment-3);flex-shrink:0;font-size:.85rem;color:var(--text-faint)}
 </style>
 </head>
 <body>
@@ -145,6 +153,7 @@ select option{background:var(--parchment-3)}
     <button class="btn" onclick="location.href='index.html'" style="font-size:.55rem">← Quest Board</button>
   </div>
 </header>
+<div id="ticker-wrap"><div id="ticker-track"></div></div>
 <main>
   <div class="board-main">
     <div class="table-col">
@@ -534,6 +543,7 @@ function renderTables() {
   updateSortIndicators('crafting-section', tableSorts.crafting);
   updateSortIndicators('cooking-section', tableSorts.cooking);
   updateSortIndicators('other-section', tableSorts.other);
+  renderTicker();
 }
 function toggleHot(id) {
   const item = items.find(i => i.id === id);
@@ -542,6 +552,39 @@ function toggleHot(id) {
   if (useSupabase) supabaseClient.from('guild_items').update({ is_hot: item.is_hot }).eq('id', id).then();
   renderAdminList();
   renderTables();
+}
+
+// --- TICKER ---
+let tickerPos = 0, tickerAnimId = null, tickerPaused = false;
+let tickerDragging = false, tickerDragStart = 0, tickerDragPos = 0;
+
+function renderTicker() {
+  const track = document.getElementById('ticker-track');
+  if (!track) return;
+  const html = items.map(it => {
+    const img = it.image
+      ? `<img src="images/${encodeURIComponent(esc(it.image))}" alt="${esc(it.name_ru || it.name_en)}" loading="lazy">`
+      : `<span class="ticker-placeholder">\uD83E\uDE99</span>`;
+    const hot = it.is_hot ? '<span class="ticker-hot">\uD83D\uDD25</span>' : '';
+    const cls = it.is_hot ? 'ticker-item ticker-item-hot' : 'ticker-item';
+    return `<div class="${cls}">${img}${esc(it.name_ru || it.name_en)}${hot}</div>`;
+  }).join('');
+  track.innerHTML = html + html;
+  tickerPos = 0;
+  if (tickerAnimId) cancelAnimationFrame(tickerAnimId);
+  tickerAnimId = requestAnimationFrame(tickerScroll);
+}
+
+function tickerScroll() {
+  const track = document.getElementById('ticker-track');
+  if (!track) return;
+  const half = track.scrollWidth / 2;
+  if (!tickerPaused && !tickerDragging) {
+    tickerPos -= 0.5;
+    if (Math.abs(tickerPos) >= half) tickerPos = 0;
+    track.style.transform = `translateX(${tickerPos}px)`;
+  }
+  tickerAnimId = requestAnimationFrame(tickerScroll);
 }
 
 // --- ADMIN LIST ---
@@ -863,6 +906,27 @@ function closeDelete() { dt = null; document.getElementById('delete-modal')?.cla
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { hidePasswordModal(); closeEdit(); closeDelete(); }
 });
+
+// --- TICKER EVENTS ---
+const tickerEl = document.getElementById('ticker-wrap');
+if (tickerEl) {
+  tickerEl.addEventListener('mouseenter', () => { tickerPaused = true; });
+  tickerEl.addEventListener('mouseleave', () => { tickerPaused = false; });
+  tickerEl.addEventListener('mousedown', (e) => {
+    tickerDragging = true;
+    tickerDragStart = e.clientX;
+    tickerDragPos = tickerPos;
+    e.preventDefault();
+  });
+}
+document.addEventListener('mousemove', (e) => {
+  if (!tickerDragging) return;
+  const dx = e.clientX - tickerDragStart;
+  tickerPos = tickerDragPos + dx;
+  const track = document.getElementById('ticker-track');
+  if (track) track.style.transform = `translateX(${tickerPos}px)`;
+});
+document.addEventListener('mouseup', () => { tickerDragging = false; });
 
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', async () => {
