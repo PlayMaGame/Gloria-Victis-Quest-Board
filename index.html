@@ -1781,7 +1781,7 @@ function startTicker(){
       const w=first.offsetWidth;
       if(tickerPos+w+40<0){
         track.appendChild(first);
-        tickerPos+=w+40;
+        tickerPos+=w+40+window.innerWidth;
       }
     }
     track.style.transform='translateX('+tickerPos+'px)';
