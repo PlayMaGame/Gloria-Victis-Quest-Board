@@ -1772,11 +1772,15 @@ function startTicker(){
   const track=document.getElementById('ticker-track');
   if(!track||!track.children.length||tickerRunning)return;
   tickerRunning=true;
-  const half=track.scrollWidth/2;
+  tickerPos=window.innerWidth;
   function step(){
     if(!tickerRunning)return;
     tickerPos-=1.5;
-    if(Math.abs(tickerPos)>=half)tickerPos=0;
+    const first=track.firstElementChild;
+    if(first&&tickerPos+first.offsetWidth+40<0){
+      track.appendChild(first);
+      tickerPos+=first.offsetWidth+40;
+    }
     track.style.transform='translateX('+tickerPos+'px)';
     requestAnimationFrame(step);
   }
@@ -1796,8 +1800,7 @@ function renderTicker(){
     const name=esc(i.name||'');
     return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${name[0]}</text></svg>'">${name}${hot}</div>`;
   }).join('');
-  track.innerHTML=announce+items+announce+items;
-  tickerPos=0;
+  track.innerHTML=announce+items;
   startTicker();
 }
 
