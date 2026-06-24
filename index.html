@@ -1759,6 +1759,7 @@ async function pmDelete(){
 let tickerItems=[];
 let tickerPos=window.innerWidth;
 let tickerRunning=false;
+let tickerPhase='items';
 
 async function fetchTickerItems(){
   if(!sb)return;
@@ -1779,16 +1780,20 @@ function startTicker(){
   function step(){
     if(!tickerRunning||track.dataset.tid!=id)return;
     tickerPos-=1.5;
-    const banner=track.querySelector('.ticker-banner');
-    if(banner){
-      const bl=tickerPos+banner.offsetLeft;
-      if(bl+banner.offsetWidth*0.25<0){
-        renderTicker();
-        return;
+    const last=track.lastElementChild;
+    if(last){
+      const right=tickerPos+last.offsetLeft+last.offsetWidth;
+      if(right+40<0){
+        if(tickerPhase==='items'){
+          tickerPhase='banner';
+          track.innerHTML='<span class="ticker-banner">\u2694 AVANGARD POWER!!! \u2694</span>';
+          tickerPos=window.innerWidth;
+        }else{
+          tickerPhase='items';
+          renderTicker();
+          return;
+        }
       }
-    }else if(tickerPos+track.scrollWidth<0){
-      renderTicker();
-      return;
     }
     track.style.transform='translateX('+tickerPos+'px)';
     requestAnimationFrame(step);
@@ -1802,6 +1807,7 @@ function renderTicker(){
   const track=document.getElementById('ticker-track');
   if(!tickerItems.length){wrap.classList.add('hidden');return;}
   wrap.classList.remove('hidden');
+  tickerPhase='items';
   const announce=`<span class="ticker-announce">${t('ticker_announce')}</span>`;
   const items=tickerItems.map(i=>{
     const hotCls=i.hot?' ticker-item-hot':'';
@@ -1809,7 +1815,7 @@ function renderTicker(){
     const name=esc(i.name||'');
     return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${name[0]}</text></svg>'">${name}${hot}</div>`;
   }).join('');
-  track.innerHTML=announce+items+'<span class="ticker-banner">\u2694 AVANGARD POWER!!! \u2694</span>';
+  track.innerHTML=announce+items;
   tickerPos=window.innerWidth;
   startTicker();
 }
