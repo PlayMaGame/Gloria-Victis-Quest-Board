@@ -1770,29 +1770,25 @@ async function fetchTickerItems(){
 
 function stopTicker(){tickerRunning=false;}
 
-function showTickerBanner(){
-  const track=document.getElementById('ticker-track');
-  if(!track)return;
-  track.innerHTML='<span class="ticker-banner">\u2694 AVANGARD POWER!!! \u2694</span>';
-  tickerPos=0;
-  setTimeout(()=>{renderTicker();},2000);
-}
-
 function startTicker(){
   const track=document.getElementById('ticker-track');
   if(!track||!track.children.length||tickerRunning)return;
   tickerRunning=true;
+  const id=Date.now();
+  track.dataset.tid=id;
   function step(){
-    if(!tickerRunning)return;
+    if(!tickerRunning||track.dataset.tid!=id)return;
     tickerPos-=1.5;
-    const last=track.lastElementChild;
-    if(last){
-      const lastRight=tickerPos+last.offsetLeft+last.offsetWidth;
-      if(lastRight+40<0){
-        stopTicker();
-        showTickerBanner();
+    const banner=track.querySelector('.ticker-banner');
+    if(banner){
+      const bl=tickerPos+banner.offsetLeft;
+      if(bl+banner.offsetWidth*0.25<0){
+        renderTicker();
         return;
       }
+    }else if(tickerPos+track.scrollWidth<0){
+      renderTicker();
+      return;
     }
     track.style.transform='translateX('+tickerPos+'px)';
     requestAnimationFrame(step);
@@ -1813,7 +1809,7 @@ function renderTicker(){
     const name=esc(i.name||'');
     return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${name[0]}</text></svg>'">${name}${hot}</div>`;
   }).join('');
-  track.innerHTML=announce+items;
+  track.innerHTML=announce+items+'<span class="ticker-banner">\u2694 AVANGARD POWER!!! \u2694</span>';
   tickerPos=window.innerWidth;
   startTicker();
 }
