@@ -220,7 +220,7 @@ select option{background:var(--parchment-3);}
 .ticker-item .ticker-hot{color:var(--red-bright);font-size:.7rem;margin-left:2px;}
 .ticker-item-hot{box-shadow:0 0 8px rgba(255,100,0,.6),0 0 16px rgba(255,50,0,.3);border:1px solid #ff6600;padding:2px;}
 .ticker-announce{color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;}
-.ticker-spacer{flex-shrink:0;height:1px}
+.ticker-banner{color:var(--red-bright);font-family:Cinzel;font-size:1.4rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;padding:0 20px;flex-shrink:0;}
 
 /* CHAT */
 .chat-area{border-top:1px solid var(--border);padding:8px 14px;}
@@ -1770,6 +1770,14 @@ async function fetchTickerItems(){
 
 function stopTicker(){tickerRunning=false;}
 
+function showTickerBanner(){
+  const track=document.getElementById('ticker-track');
+  if(!track)return;
+  track.innerHTML='<span class="ticker-banner">\u2694 AVANGARD POWER!!! \u2694</span>';
+  tickerPos=0;
+  setTimeout(()=>{renderTicker();},2000);
+}
+
 function startTicker(){
   const track=document.getElementById('ticker-track');
   if(!track||!track.children.length||tickerRunning)return;
@@ -1777,21 +1785,13 @@ function startTicker(){
   function step(){
     if(!tickerRunning)return;
     tickerPos-=1.5;
-    const first=track.firstElementChild;
-    if(first){
-      const w=first.offsetWidth;
-      if(tickerPos+w+40<0){
-        if(first.classList.contains('ticker-spacer')){
-          first.remove();
-          tickerPos+=w+40;
-        }else{
-          const spacer=document.createElement('div');
-          spacer.className='ticker-spacer';
-          spacer.style.width=window.innerWidth+'px';
-          track.appendChild(spacer);
-          track.appendChild(first);
-          tickerPos+=w+40;
-        }
+    const last=track.lastElementChild;
+    if(last){
+      const lastRight=tickerPos+last.offsetLeft+last.offsetWidth;
+      if(lastRight+40<0){
+        stopTicker();
+        showTickerBanner();
+        return;
       }
     }
     track.style.transform='translateX('+tickerPos+'px)';
