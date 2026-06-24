@@ -116,7 +116,7 @@ select option{background:var(--parchment-3)}
 .admin-item-ru{font-size:.7rem;color:var(--text-dim);font-style:italic;margin-left:4px}
 .admin-item-details{color:var(--text-faint);font-size:.7rem;font-family:'Cinzel',serif;white-space:nowrap}
 .admin-item-actions{display:flex;gap:4px;flex-shrink:0}
-.admin-action-btn{background:none;border:1px solid var(--border);color:var(--text-faint);font-size:.7rem;padding:3px 6px;cursor:pointer;transition:all .15s;line-height:1}
+.admin-action-btn{background:none;border:1px solid var(--border);color:var(--text-faint);font-size:.75rem;padding:6px 10px;cursor:pointer;transition:all .15s;line-height:1}
 .admin-action-btn:hover{border-color:var(--border-light);color:var(--text)}
 .admin-action-btn.edit:hover{border-color:var(--gold);color:var(--gold-bright)}
 .admin-action-btn.delete:hover{border-color:var(--red);color:var(--red-bright)}
@@ -351,7 +351,10 @@ const ITEM_CATALOG = [
   { name_en: 'Thugs Fur', name_ru: '\u041C\u0435\u0445 \u043E\u0442\u043C\u043E\u0440\u043E\u0437\u043A\u0430', image: 'Thugs Fur.jpg' },
   { name_en: 'Armoured Thugs Fur', name_ru: '\u041C\u0435\u0445 \u0432\u043E\u043E\u0440\u0443\u0436\u0435\u043D\u043D\u043E\u0433\u043E \u043E\u0442\u043C\u043E\u0440\u043E\u0437\u043A\u0430', image: 'Armoured Thugs Fur.jpg' },
   { name_en: 'Black Sickles Fur', name_ru: '\u041C\u0435\u0445 \u0447\u0435\u0440\u043D\u043E\u0433\u043E \u0441\u0435\u0440\u043F\u0430', image: 'Black Sickles Fur.jpg' },
-  { name_en: 'Highlanders Fur', name_ru: '\u041C\u0435\u0445 \u0433\u043E\u0440\u0446\u0430', image: 'Highlanders Fur.jpg' }
+  { name_en: 'Highlanders Fur', name_ru: '\u041C\u0435\u0445 \u0433\u043E\u0440\u0446\u0430', image: 'Highlanders Fur.jpg' },
+  { name_en: 'Herb Leaf', name_ru: '\u041B\u0438\u0441\u0442 \u0442\u0440\u0430\u0432\u044B', image: 'Herb Leaf.jpg' },
+  { name_en: 'Herbs Seeds', name_ru: '\u0421\u0435\u043C\u0435\u043D\u0430 \u0442\u0440\u0430\u0432', image: 'Herbs Seeds.jpg' },
+  { name_en: 'Salt', name_ru: '\u0421\u043E\u043B\u044C', image: 'Salt.jpg' }
 ];
 const AVAILABLE_IMAGES = ITEM_CATALOG.map(i => i.image);
 
@@ -360,7 +363,7 @@ let items = [];
 let editingId = null;
 let isAdmin = false;
 let currentLang = localStorage.getItem(LANG_KEY) || 'en';
-const tableSorts = { crafting: { by: 'name', dir: 'asc' }, cooking: { by: 'name', dir: 'asc' }, other: { by: 'name', dir: 'asc' } };
+const tableSorts = { crafting: { by: 'order', dir: 'asc' }, cooking: { by: 'order', dir: 'asc' }, other: { by: 'order', dir: 'asc' } };
 
 const supabaseClient = window.supabase?.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
 const useSupabase = !!supabaseClient;
@@ -462,6 +465,10 @@ function getSortedForTable(filter, sortObj) {
     switch (sortObj.by) {
       case 'name':
         cmp = (a.name_en || '').localeCompare(b.name_en || '');
+        if (cmp !== 0) return cmp;
+        return (a.sort_order || 999) - (b.sort_order || 999);
+      case 'order':
+        cmp = (b.is_hot ? 1 : 0) - (a.is_hot ? 1 : 0);
         if (cmp !== 0) return cmp;
         return (a.sort_order || 999) - (b.sort_order || 999);
       case 'price': cmp = comparePrice(a, b); break;
@@ -566,8 +573,8 @@ function renderAdminList() {
     const dD = idx === sorted.length - 1 ? ' opacity:0.3;cursor:default;' : '';
     return `<div class="admin-list-item" data-id="${item.id}">
       <span style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
-        <button class="admin-action-btn arrow-up" data-move-id="${item.id}" data-dir="up" style="padding:2px 5px;font-size:0.6rem;line-height:1;${uD}" ${idx === 0 ? 'disabled' : ''}>\u25B2</button>
-        <button class="admin-action-btn arrow-down" data-move-id="${item.id}" data-dir="down" style="padding:2px 5px;font-size:0.6rem;line-height:1;${dD}" ${idx === sorted.length - 1 ? 'disabled' : ''}>\u25BC</button>
+        <button class="admin-action-btn arrow-up" data-move-id="${item.id}" data-dir="up" style="${uD}" ${idx === 0 ? 'disabled' : ''}>\u25B2</button>
+        <button class="admin-action-btn arrow-down" data-move-id="${item.id}" data-dir="down" style="${dD}" ${idx === sorted.length - 1 ? 'disabled' : ''}>\u25BC</button>
       </span>
       <span class="admin-item-info">${thumb}<span><span class="admin-item-en">${esc(item.name_en)}${catTag}</span><span class="admin-item-ru">${esc(item.name_ru)}</span></span></span>
       <span class="admin-item-details">${formatPrice(item)} \u00B7 ${Number(item.amount_needed).toLocaleString()}x</span>

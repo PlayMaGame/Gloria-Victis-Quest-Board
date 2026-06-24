@@ -751,10 +751,10 @@ let currentFilter = 'open';
 let claimingId = null;
 
 const TYPE_ICONS  = {gather:'\u26cf',farm:'🌾',deliver:'📦',craft:'🔨',event:'🎪'};
-const AVAILABLE_IMAGES = ['Aqua Fortis.jpg','Aqua Regia.jpg','Beast Leather.jpg','Beeswax.jpg','Blood of the Beast.jpg','Bulat Bar.jpg','Calcite Crystal.jpg','Coal.jpg','Dziwer Bar.jpg','Leaf Plan Seads.jpg','Magnetite.jpg','Milk.jpg','Pyrite.jpg','Quartz Crystal.jpg','Quartz Glass.jpg','Quicklime.jpg','Saffron.jpg','Suet.jpg','Sulfur.jpg','Thick Tanned Leather.jpg'];
+const AVAILABLE_IMAGES = ['Aqua Fortis.jpg','Aqua Regia.jpg','Beast Leather.jpg','Beeswax.jpg','Blood of the Beast.jpg','Bulat Bar.jpg','Calcite Crystal.jpg','Coal.jpg','Dziwer Bar.jpg','Herb Leaf.jpg','Herbs Seeds.jpg','Leaf Plan Seads.jpg','Magnetite.jpg','Milk.jpg','Pyrite.jpg','Quartz Crystal.jpg','Quartz Glass.jpg','Quicklime.jpg','Saffron.jpg','Salt.jpg','Suet.jpg','Sulfur.jpg','Thick Tanned Leather.jpg'];
 const ITEM_NAMES = {
-  en:{'Aqua Fortis':'Aqua Fortis','Aqua Regia':'Aqua Regia','Beast Leather':'Beast Leather','Beeswax':'Beeswax','Blood of the Beast':'Blood of the Beast','Bulat Bar':'Bulat Bar','Calcite Crystal':'Calcite Crystal','Coal':'Coal','Dziwer Bar':'Dziwer Bar','Leaf Plan Seads':'Leaf Plan Seeds','Magnetite':'Magnetite','Milk':'Milk','Pyrite':'Pyrite','Quartz Crystal':'Quartz Crystal','Quartz Glass':'Quartz Glass','Quicklime':'Quicklime','Saffron':'Saffron','Suet':'Suet','Sulfur':'Sulfur','Thick Tanned Leather':'Thick Tanned Leather'},
-  ru:{'Aqua Fortis':'Аква Фортис','Aqua Regia':'Аква Регия','Beast Leather':'Шкура зверя','Beeswax':'Пчелиный воск','Blood of the Beast':'Кровь зверя','Bulat Bar':'Булатный слиток','Calcite Crystal':'Кристалл кальцита','Coal':'Уголь','Dziwer Bar':'Слиток дзивера','Leaf Plan Seads':'Семена','Magnetite':'Магнетит','Milk':'Молоко','Pyrite':'Пирит','Quartz Crystal':'Кварцевый кристалл','Quartz Glass':'Кварцевое стекло','Quicklime':'Негашеная известь','Saffron':'Шафран','Suet':'Сало','Sulfur':'Сера','Thick Tanned Leather':'Толстая выделанная кожа'}
+  en:{'Aqua Fortis':'Aqua Fortis','Aqua Regia':'Aqua Regia','Beast Leather':'Beast Leather','Beeswax':'Beeswax','Blood of the Beast':'Blood of the Beast','Bulat Bar':'Bulat Bar','Calcite Crystal':'Calcite Crystal','Coal':'Coal','Dziwer Bar':'Dziwer Bar','Herb Leaf':'Herb Leaf','Herbs Seeds':'Herbs Seeds','Leaf Plan Seads':'Leaf Plan Seeds','Magnetite':'Magnetite','Milk':'Milk','Pyrite':'Pyrite','Quartz Crystal':'Quartz Crystal','Quartz Glass':'Quartz Glass','Quicklime':'Quicklime','Saffron':'Saffron','Salt':'Salt','Suet':'Suet','Sulfur':'Sulfur','Thick Tanned Leather':'Thick Tanned Leather'},
+  ru:{'Aqua Fortis':'Аква Фортис','Aqua Regia':'Аква Регия','Beast Leather':'Шкура зверя','Beeswax':'Пчелиный воск','Blood of the Beast':'Кровь зверя','Bulat Bar':'Булатный слиток','Calcite Crystal':'Кристалл кальцита','Coal':'Уголь','Dziwer Bar':'Слиток дзивера','Herb Leaf':'Лист травы','Herbs Seeds':'Семена трав','Leaf Plan Seads':'Семена','Magnetite':'Магнетит','Milk':'Молоко','Pyrite':'Пирит','Quartz Crystal':'Кварцевый кристалл','Quartz Glass':'Кварцевое стекло','Quicklime':'Негашеная известь','Saffron':'Шафран','Salt':'Соль','Suet':'Сало','Sulfur':'Сера','Thick Tanned Leather':'Толстая выделанная кожа'}
 };
 
 function t(key, ...args){
@@ -1772,15 +1772,11 @@ function startTicker(){
   const track=document.getElementById('ticker-track');
   if(!track||!track.children.length||tickerRunning)return;
   tickerRunning=true;
-  tickerPos=window.innerWidth;
+  const half=track.scrollWidth/2;
   function step(){
     if(!tickerRunning)return;
     tickerPos-=1.5;
-    const first=track.firstElementChild;
-    if(first&&tickerPos+first.offsetWidth+40<0){
-      track.appendChild(first);
-      tickerPos+=first.offsetWidth+40;
-    }
+    if(Math.abs(tickerPos)>=half)tickerPos=0;
     track.style.transform='translateX('+tickerPos+'px)';
     requestAnimationFrame(step);
   }
@@ -1800,7 +1796,8 @@ function renderTicker(){
     const name=esc(i.name||'');
     return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${name[0]}</text></svg>'">${name}${hot}</div>`;
   }).join('');
-  track.innerHTML=announce+items;
+  track.innerHTML=announce+items+announce+items;
+  tickerPos=0;
   startTicker();
 }
 
