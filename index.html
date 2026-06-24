@@ -220,6 +220,7 @@ select option{background:var(--parchment-3);}
 .ticker-item .ticker-hot{color:var(--red-bright);font-size:.7rem;margin-left:2px;}
 .ticker-item-hot{box-shadow:0 0 8px rgba(255,100,0,.6),0 0 16px rgba(255,50,0,.3);border:1px solid #ff6600;padding:2px;}
 .ticker-announce{color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;}
+.ticker-spacer{flex-shrink:0;height:1px}
 
 /* CHAT */
 .chat-area{border-top:1px solid var(--border);padding:8px 14px;}
@@ -1780,8 +1781,17 @@ function startTicker(){
     if(first){
       const w=first.offsetWidth;
       if(tickerPos+w+40<0){
-        track.appendChild(first);
-        tickerPos+=w+40+window.innerWidth;
+        if(first.classList.contains('ticker-spacer')){
+          first.remove();
+          tickerPos+=w+40;
+        }else{
+          const spacer=document.createElement('div');
+          spacer.className='ticker-spacer';
+          spacer.style.width=window.innerWidth+'px';
+          track.appendChild(spacer);
+          track.appendChild(first);
+          tickerPos+=w+40;
+        }
       }
     }
     track.style.transform='translateX('+tickerPos+'px)';
