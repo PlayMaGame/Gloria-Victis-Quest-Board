@@ -1777,9 +1777,12 @@ function startTicker(){
     if(!tickerRunning)return;
     tickerPos-=1.5;
     const first=track.firstElementChild;
-    if(first&&tickerPos+first.offsetWidth+40<0){
-      track.appendChild(first);
-      tickerPos+=first.offsetWidth+40;
+    if(first){
+      const w=first.offsetWidth;
+      if(tickerPos+w+40<0){
+        track.appendChild(first);
+        tickerPos+=w+40;
+      }
     }
     track.style.transform='translateX('+tickerPos+'px)';
     requestAnimationFrame(step);
