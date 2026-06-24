@@ -218,10 +218,6 @@ select option{background:var(--parchment-3);}
 .ticker-item{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text);flex-shrink:0;}
 .ticker-item img{width:32px;height:32px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
 .ticker-item .ticker-hot{color:var(--red-bright);font-size:.7rem;margin-left:2px;}
-.ticker-admin-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:801;}
-.ti-grid-item{position:relative;cursor:pointer;border:1px solid var(--border);background:var(--parchment);display:flex;align-items:center;justify-content:center;height:48px;transition:border-color .15s;}
-.ti-grid-item:hover{border-color:var(--gold);}
-.ti-grid-item img{max-width:100%;max-height:100%;object-fit:contain;padding:2px;}
 .ticker-item-hot{box-shadow:0 0 8px rgba(255,100,0,.6),0 0 16px rgba(255,50,0,.3);border:1px solid #ff6600;padding:2px;}
 
 /* CHAT */
@@ -596,29 +592,6 @@ select option{background:var(--parchment-3);}
 <!-- TICKER BAR -->
 <div id="ticker-wrap" class="hidden">
   <div id="ticker-track"></div>
-  <button class="btn btn-sm ticker-admin-btn" id="ticker-admin-btn" onclick="openTickerModal()" style="display:none">&#9881;</button>
-</div>
-
-<!-- TICKER ADMIN MODAL -->
-<div class="modal-overlay hidden" id="ticker-modal">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header">
-      <span class="modal-title" data-i18n="ticker_title">&#9881; Ticker Items</span>
-      <button class="modal-close" onclick="closeModal('ticker-modal')">&#10005;</button>
-    </div>
-    <div class="modal-body" id="ticker-modal-body">
-      <p style="font-size:.8rem;color:var(--text-faint);margin-bottom:8px" data-i18n="ticker_click_hint">Click an item below to add it to the scrolling ticker:</p>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <label class="reward-check"><input type="checkbox" id="ti-hot"> <span data-i18n="ticker_add_hot">🔥 Add as hot</span></label>
-      </div>
-      <div id="ti-grid" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;max-height:200px;overflow-y:auto;padding:4px;border:1px solid var(--border);background:var(--parchment-3);margin-bottom:12px"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:.8rem;color:var(--text-faint)" data-i18n="ticker_active">Active ticker items:</span>
-        <button class="btn btn-sm btn-danger" onclick="clearTickerItems()" style="font-size:.55rem" data-i18n="ticker_clear">Clear All</button>
-      </div>
-      <div id="ti-list" style="max-height:200px;overflow-y:auto"></div>
-    </div>
-  </div>
 </div>
 
 <!-- SHOP ADD/EDIT MODAL -->
@@ -865,8 +838,8 @@ function subscribeRealtime(){
   sb.channel('loyalty-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'loyalty'},()=>{fetchLeaderboard();})
     .subscribe();
-  sb.channel('ticker-live')
-    .on('postgres_changes',{event:'*',schema:'public',table:'ticker_items'},()=>{fetchTickerItems();})
+  sb.channel('guild-items-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'guild_items'},()=>{fetchTickerItems();})
     .subscribe();
   sb.channel('chat-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'chat_messages'},()=>{fetchChat();})
@@ -1011,8 +984,6 @@ function render(){
   const ornament=document.getElementById('main-ornament');
   if(ornament&&currentView!=='shop')ornament.innerHTML=currentFilter==='event'?t('events_ornament'):'✦ '+t('active_contracts');
   document.getElementById('admin-badge').classList.toggle('show',admin);
-  const tBtn=document.getElementById('ticker-admin-btn');
-  if(tBtn)tBtn.style.display=admin?'':'none';
   const pBadge=document.getElementById('pending-badge');
   if(pBadge){
     const pCnt=quests.filter(q=>q.status==='pending').length;
@@ -1789,13 +1760,9 @@ let tickerRunning=false;
 
 async function fetchTickerItems(){
   if(!sb)return;
-  const{data,error}=await sb.from('ticker_items').select('*').order('sort_order',{ascending:true});
-  if(error&&error.message.includes('does not exist'))return;
-  if(error)return;
-  tickerItems=data||[];
-  if(!document.getElementById('ticker-modal').classList.contains('hidden')){
-    openTickerModal();
-  }
+  const{data,error}=await sb.from('guild_items').select('*').order('sort_order',{ascending:true});
+  if(error){console.warn('guild_items ticker fetch failed:',error);return;}
+  tickerItems=(data||[]).map(i=>({id:i.id,name:i.name_ru||i.name_en,image:i.image,hot:i.is_hot}));
   renderTicker();
 }
 
@@ -1824,72 +1791,17 @@ function renderTicker(){
   stopTicker();
   const wrap=document.getElementById('ticker-wrap');
   const track=document.getElementById('ticker-track');
-  document.getElementById('ticker-admin-btn').style.display=isAdmin()?'':'none';
   if(!tickerItems.length){wrap.classList.add('hidden');return;}
   wrap.classList.remove('hidden');
   const announce=`<span class="ticker-item" style="color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;margin-right:20px">${t('ticker_announce')}</span>`;
   const items=tickerItems.map(i=>{
-    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[i.name]||i.name;
     const hotCls=i.hot?' ticker-item-hot':'';
     const hot=i.hot?'<span class="ticker-hot">🔥</span>':'';
-    return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${esc(tName)}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${esc(tName[0])}</text></svg>'">${esc(tName)}${hot}</div>`;
+    const name=esc(i.name||'');
+    return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${name[0]}</text></svg>'">${name}${hot}</div>`;
   }).join('');
   track.innerHTML=announce+items;
   startTicker();
-}
-
-async function addTickerItem(image, name){
-  if(!image)return;
-  if(!name)name=image.replace(/\.\w+$/,'');
-  if(tickerItems.some(i=>i.image===image)){toast('Already in ticker.');return;}
-  const hot=document.getElementById('ti-hot').checked;
-  const{error}=await sb.from('ticker_items').insert({name,image,hot,sort_order:tickerItems.length+1});
-  if(error){toast(t('err_prefix')+error.message);return;}
-  toast('Added: '+(hot?'🔥 ':'')+name);
-}
-
-async function clearTickerItems(){
-  if(!confirm('Remove all items from the ticker?'))return;
-  for(const i of tickerItems){
-    await sb.from('ticker_items').delete().eq('id',i.id);
-  }
-  await fetchTickerItems();
-}
-
-async function deleteTickerItem(id){
-  if(!confirm('Delete this ticker item?'))return;
-  const{error}=await sb.from('ticker_items').delete().eq('id',id);
-  if(error){toast(t('err_prefix')+error.message);return;}
-  await fetchTickerItems();
-}
-
-async function toggleTickerHot(id){
-  const item=tickerItems.find(i=>i.id===id);
-  if(!item)return;
-  const{error}=await sb.from('ticker_items').update({hot:!item.hot}).eq('id',id);
-  if(error){toast(t('err_prefix')+error.message);return;}
-  await fetchTickerItems();
-}
-
-function openTickerModal(){
-  const grid=document.getElementById('ti-grid');
-  const activeImages=tickerItems.map(i=>i.image);
-  grid.innerHTML=AVAILABLE_IMAGES.map(img=>{
-    const name=img.replace(/\.\w+$/,'');
-    const inTicker=activeImages.includes(img);
-    const extra=inTicker?' style="border-color:var(--gold-dim);opacity:.4;cursor:default"':'';
-    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[name]||name;
-    return`<div class="ti-grid-item"${extra} title="${esc(tName)}" onclick="${inTicker?'':'addTickerItem(\''+esc(img)+'\')'}"><img src="images/${esc(img)}" alt="${esc(tName)}"></div>`;
-  }).join('');
-  const list=document.getElementById('ti-list');
-  if(!tickerItems.length){list.innerHTML='<p style="color:var(--text-faint);font-style:italic">No items yet.</p>';}
-  else{list.innerHTML=tickerItems.map(i=>{
-    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[i.name]||i.name;
-    const hot=i.hot?' 🔥':'';
-    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment-3)"><img src="images/${esc(i.image)}" alt="" style="width:28px;height:28px;object-fit:cover;border:1px solid var(--border)"><span style="flex:1;font-size:.85rem">${esc(tName)}${hot}</span><button class="btn btn-sm ${i.hot?'btn-primary':''}" onclick="toggleTickerHot('${i.id}')" style="font-size:.55rem">🔥</button><button class="btn btn-sm btn-danger" onclick="deleteTickerItem('${i.id}')" style="font-size:.55rem">✕</button></div>`;
-  }).join('');}
-  applyTranslations();
-  openModal('ticker-modal');
 }
 
 function openModal(id){document.getElementById(id).classList.remove('hidden');}
