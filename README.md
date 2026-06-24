@@ -163,11 +163,84 @@ Triple-click the **crest logo** in the top-left to open the admin login. Default
 
 ---
 
+## Discord Bot Integration
+
+A standalone Discord bot posts quests to a Discord channel as rich embeds and updates them when quest status changes. Users can claim quests directly from Discord via buttons (role-restricted).
+
+### Architecture
+
+```
+[Supabase DB] ──realtime subscription──▶ [Bot (Node.js)] ───▶ [Discord Channel]
+                                                    ◀─── [Button interactions]
+```
+
+The bot is **independent** — it only reads DB changes and writes Discord messages. It does not touch your HTML or frontend logic.
+
+### 1. Database Migration
+
+Run this SQL in your Supabase SQL Editor to add Discord tracking columns:
+
+```sql
+alter table quests add column if not exists discord_message_id text;
+alter table quests add column if not exists discord_channel_id text;
+```
+
+### 2. Create a Discord Bot
+
+1. Go to https://discord.com/developers/applications and click **New Application**
+2. Name it (e.g. "GV Quest Board")
+3. Go to **Bot** → **Add Bot** → confirm
+4. Under **Token**, click **Reset Token** then **Copy** — this is your `DISCORD_TOKEN`
+5. Under **Privileged Gateway Intents**, enable **Server Members Intent** (optional, for role checks)
+6. Go to **OAuth2 → URL Generator**:
+   - Scopes: `bot`, `applications.commands`
+   - Bot permissions: `Send Messages`, `Embed Links`, `Read Message History`, `View Channels`
+   - Copy the generated URL, paste in your browser, and invite the bot to your server
+7. Right-click your target channel in Discord → **Copy Channel ID** (enable Developer Mode in Discord settings first)
+
+### 3. Configure & Run
+
+```bash
+cd bot
+cp .env.example .env
+# Edit .env with your Discord token, channel ID, and any role IDs
+npm install
+npm start
+```
+
+### 4. Deploy to Railway (Free)
+
+1. Push this repo to GitHub
+2. Go to https://railway.app → **New Project** → **Deploy from GitHub repo**
+3. Select this repository
+4. Add environment variables (from `.env.example`) under **Variables**
+5. Set the **Start Command** to: `cd bot && npm start`
+6. Railway will keep the bot online 24/7 within the free tier (~$1-2/mo)
+
+### Configuration (.env)
+
+| Variable | Description |
+|---|---|
+| `DISCORD_TOKEN` | Your bot token from Discord Developer Portal |
+| `DISCORD_CHANNEL_ID` | ID of the channel to post quests in |
+| `ALLOWED_ROLE_IDS` | (Optional) Comma-separated Discord role IDs that can claim. Leave empty for all. |
+| `SUPABASE_URL` | Already set — your Supabase project URL |
+| `SUPABASE_KEY` | Already set — your Supabase anon key |
+| `BASE_URL` | Your GitHub Pages URL |
+
+---
+
 ## File Structure
 
 ```
 index.html         ← entire app (HTML + CSS + JS, single file)
 quest-board.html   ← source file (same as index.html)
+bot/               ← Discord bot (Node.js + discord.js)
+  index.js         ← main entry point
+  embeds.js        ← Discord embed builders
+  package.json     ← dependencies
+  .env.example     ← configuration template
+  migration.sql    ← database migration
 README.md          ← this file
 ```
 
