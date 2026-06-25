@@ -151,15 +151,15 @@ def search(name, pos):
     pydirectinput.press('a')
     pydirectinput.keyUp('ctrl')
     time.sleep(0.08)
-    for ch in name:
-        if ch.isupper():
-            pydirectinput.keyDown('shift')
-            pydirectinput.press(ch.lower())
-            pydirectinput.keyUp('shift')
-        else:
-            pydirectinput.press(ch)
-        time.sleep(0.015)
-    time.sleep(0.2)
+    pyperclip.copy(name)
+    pydirectinput.keyDown('ctrl')
+    pydirectinput.press('v')
+    pydirectinput.keyUp('ctrl')
+    time.sleep(0.1)
+    for _ in range(50):
+        pydirectinput.press('delete')
+        time.sleep(0.02)
+    time.sleep(0.1)
     pydirectinput.press('enter')
     print(f'Done: {name}')
 
