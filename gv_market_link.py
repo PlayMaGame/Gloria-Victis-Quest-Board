@@ -1,4 +1,4 @@
-import os, sys, time, re
+import os, sys, time, re, ctypes, ctypes.wintypes
 
 try:
     import pyautogui
@@ -19,7 +19,7 @@ except ImportError:
     sys.exit(1)
 
 try:
-    import win32api, win32gui, win32process, win32con
+    import win32api, win32gui, win32process, win32con, win32clipboard
 except ImportError:
     print('pywin32 not installed. Run: pip install pywin32')
     sys.exit(1)
@@ -106,6 +106,31 @@ def is_item(text):
         return False
     return True
 
+def from_requisition_board():
+    try:
+        win32clipboard.OpenClipboard()
+        hwnd = win32clipboard.GetClipboardOwner()
+        win32clipboard.CloseClipboard()
+        if not hwnd:
+            return False
+        title = win32gui.GetWindowText(hwnd)
+        if 'requisition' not in title.lower() and 'guild' not in title.lower():
+            return False
+        _, pid = win32process.GetWindowThreadProcessId(hwnd)
+        if not pid:
+            return False
+        k32 = ctypes.windll.kernel32
+        h = k32.OpenProcess(0x1000, False, pid)
+        if not h:
+            return False
+        buf = ctypes.create_unicode_buffer(260)
+        sz = ctypes.wintypes.DWORD(260)
+        k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz))
+        k32.CloseHandle(h)
+        return 'firefox' in buf.value.lower()
+    except:
+        return False
+
 def find_gv():
     hwnd = win32gui.FindWindow(None, 'Gloria Victis')
     if hwnd:
@@ -183,7 +208,7 @@ def main():
             if c and c != last:
                 last = c
                 now = time.time()
-                if now - last_t > COOLDOWN and is_item(c):
+                if now - last_t > COOLDOWN and is_item(c) and from_requisition_board():
                     last_t = now
                     search(c, pos)
             time.sleep(POLL)
