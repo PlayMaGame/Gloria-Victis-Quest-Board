@@ -77,7 +77,6 @@ def calibrate():
     print('The script will detect when GV is in focus and scan automatically.\n')
     wait_gv_focused()
     print('GV detected! Scanning for search.jpg...')
-    time.sleep(0.5)
     pos = locate_search_box()
     for _ in range(3):
         if pos:
@@ -144,7 +143,6 @@ def search(name, pos):
     except Exception as e:
         print(f'Could not activate GV: {e}')
         return
-    time.sleep(0.6)
     pydirectinput.click(x, y)
     time.sleep(0.15)
     pydirectinput.keyDown('ctrl')
