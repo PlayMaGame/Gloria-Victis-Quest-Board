@@ -103,16 +103,38 @@ def is_item(text):
         return False
     return True
 
+def activate_gv():
+    wins = gw.getWindowsWithTitle('Gloria Victis')
+    if not wins:
+        all_wins = gw.getAllWindows()
+        wins = [w for w in all_wins if w.title and 'gloria' in w.title.lower()]
+    if not wins:
+        return None
+    win = wins[0]
+    try:
+        w32 = gw._pygetwindow_win.win32gui
+        w32p = gw._pygetwindow_win.win32process
+        w32c = gw._pygetwindow_win.win32con
+        hwnd = win._hWnd
+        if w32.IsIconic(hwnd):
+            w32.ShowWindow(hwnd, w32c.SW_RESTORE)
+        fore = w32.GetForegroundWindow()
+        ftid, _ = w32p.GetWindowThreadProcessId(fore)
+        ttid, _ = w32p.GetWindowThreadProcessId(hwnd)
+        if ftid != ttid:
+            w32p.AttachThreadInput(ftid, ttid, True)
+        w32.SetForegroundWindow(hwnd)
+        w32.BringWindowToTop(hwnd)
+        if ftid != ttid:
+            w32p.AttachThreadInput(ftid, ttid, False)
+        return hwnd
+    except:
+        return None
+
 def search(name, pos):
     x, y = pos
     print(f'Search: {name}')
-    wins = pyautogui.getWindowsWithTitle('Gloria Victis')
-    if not wins:
-        print('GV window not found')
-        return
-    try:
-        wins[0].activate()
-    except:
+    if not activate_gv():
         print('Could not activate GV')
         return
     time.sleep(0.6)
