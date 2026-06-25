@@ -990,6 +990,7 @@ function toast(msg){
 }
 function copyToMarket(name){
   navigator.clipboard.writeText(name).then(()=>{toast('Copied: '+name);}).catch(()=>{toast('Copy failed');});
+  fetch('http://localhost:9999/search?q='+encodeURIComponent(name)).catch(()=>{});
 }
 
 // --- KEYBOARD ---
