@@ -13,7 +13,7 @@ if %errorlevel% neq 0 (
 )
 
 echo Installing dependencies (first run may take a moment)...
-pip install pyautogui pyperclip --quiet
+pip install pyautogui pyperclip pywin32 --quiet
 
 echo.
 echo Starting GV Market Link...

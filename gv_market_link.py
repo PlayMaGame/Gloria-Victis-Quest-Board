@@ -13,9 +13,9 @@ except ImportError:
     sys.exit(1)
 
 try:
-    import pygetwindow as gw
+    import win32gui, win32process, win32con
 except ImportError:
-    print('pygetwindow not installed. Run: pip install pygetwindow')
+    print('pywin32 not installed. Run: pip install pywin32')
     sys.exit(1)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -59,12 +59,10 @@ def locate_search_box():
 def wait_gv_focused():
     print('Waiting for Gloria Victis to be in focus...')
     while True:
-        try:
-            active = gw.getActiveWindow()
-            if active and 'gloria' in active.title.lower():
-                return True
-        except:
-            pass
+        hwnd = win32gui.GetForegroundWindow()
+        title = win32gui.GetWindowText(hwnd)
+        if 'gloria' in title.lower():
+            return
         time.sleep(1)
 
 def calibrate():
@@ -103,39 +101,42 @@ def is_item(text):
         return False
     return True
 
-def activate_gv():
-    wins = gw.getWindowsWithTitle('Gloria Victis')
-    if not wins:
-        all_wins = gw.getAllWindows()
-        wins = [w for w in all_wins if w.title and 'gloria' in w.title.lower()]
-    if not wins:
-        return None
-    win = wins[0]
-    try:
-        w32 = gw._pygetwindow_win.win32gui
-        w32p = gw._pygetwindow_win.win32process
-        w32c = gw._pygetwindow_win.win32con
-        hwnd = win._hWnd
-        if w32.IsIconic(hwnd):
-            w32.ShowWindow(hwnd, w32c.SW_RESTORE)
-        fore = w32.GetForegroundWindow()
-        ftid, _ = w32p.GetWindowThreadProcessId(fore)
-        ttid, _ = w32p.GetWindowThreadProcessId(hwnd)
-        if ftid != ttid:
-            w32p.AttachThreadInput(ftid, ttid, True)
-        w32.SetForegroundWindow(hwnd)
-        w32.BringWindowToTop(hwnd)
-        if ftid != ttid:
-            w32p.AttachThreadInput(ftid, ttid, False)
+def find_gv():
+    hwnd = win32gui.FindWindow(None, 'Gloria Victis')
+    if hwnd:
         return hwnd
-    except:
-        return None
+    results = []
+    def cb(h, r):
+        if win32gui.IsWindowVisible(h) and 'gloria' in win32gui.GetWindowText(h).lower():
+            r.append(h)
+        return True
+    win32gui.EnumWindows(cb, results)
+    return results[0] if results else None
+
+def activate_gv(hwnd):
+    if win32gui.IsIconic(hwnd):
+        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+    fore = win32gui.GetForegroundWindow()
+    ftid, _ = win32process.GetWindowThreadProcessId(fore)
+    ttid, _ = win32process.GetWindowThreadProcessId(hwnd)
+    if ftid != ttid:
+        win32process.AttachThreadInput(ftid, ttid, True)
+    win32gui.SetForegroundWindow(hwnd)
+    win32gui.BringWindowToTop(hwnd)
+    if ftid != ttid:
+        win32process.AttachThreadInput(ftid, ttid, False)
 
 def search(name, pos):
     x, y = pos
     print(f'Search: {name}')
-    if not activate_gv():
-        print('Could not activate GV')
+    hwnd = find_gv()
+    if not hwnd:
+        print('GV window not found')
+        return
+    try:
+        activate_gv(hwnd)
+    except Exception as e:
+        print(f'Could not activate GV: {e}')
         return
     time.sleep(0.6)
     pyautogui.click(x, y)
