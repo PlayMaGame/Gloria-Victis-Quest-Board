@@ -567,7 +567,7 @@ function renderTable(tbodyId, emptyId, filter, sortObj) {
     const hotClass = item.is_hot ? 'hot-item' : '';
     return `<tr class="${hotClass}" data-id="${item.id}">
       <td class="item-image-cell">${imageTag(item.image)}</td>
-      <td><div class="item-name-cell"><span class="item-name-en" onclick="copyToMarket('${esc(item.name_en)}')">${esc(item.name_en)}</span><span class="item-name-ru" onclick="copyToMarket('${esc(item.name_ru)}')">${esc(item.name_ru)}</span></div></td>
+      <td><div class="item-name-cell"><span class="item-name-en" data-market="${esc(item.name_en)}" onclick="copyToMarket(this.dataset.market)">${esc(item.name_en)}</span><span class="item-name-ru" data-market="${esc(item.name_ru)}" onclick="copyToMarket(this.dataset.market)">${esc(item.name_ru)}</span></div></td>
       <td><span class="item-price">${formatPrice(item)}</span></td>
       <td><span class="item-amount">${Number(item.amount_needed).toLocaleString()}</span></td>
     </tr>`;
