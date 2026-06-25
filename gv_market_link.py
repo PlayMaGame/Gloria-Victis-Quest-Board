@@ -151,7 +151,14 @@ def search(name, pos):
     pydirectinput.press('a')
     pydirectinput.keyUp('ctrl')
     time.sleep(0.08)
-    pydirectinput.write(name, interval=0.02)
+    for ch in name:
+        if ch.isupper():
+            pydirectinput.keyDown('shift')
+            pydirectinput.press(ch.lower())
+            pydirectinput.keyUp('shift')
+        else:
+            pydirectinput.press(ch)
+        time.sleep(0.015)
     time.sleep(0.2)
     pydirectinput.press('enter')
     print(f'Done: {name}')
