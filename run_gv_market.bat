@@ -12,8 +12,8 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo Installing pywin32...
-pip install pywin32 --quiet
+echo Installing dependencies (first run may take a moment)...
+pip install pyautogui pyperclip --quiet
 
 echo.
 echo Starting GV Market Link...

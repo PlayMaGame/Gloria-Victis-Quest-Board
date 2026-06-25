@@ -1,44 +1,62 @@
-import time, re, sys, ctypes, ctypes.wintypes
-import win32clipboard, win32gui, win32process, win32api, win32con
+import os, sys, time, re
 
-POLL_MS = 200
-GV_TITLE = 'Gloria Victis'
-CLICK_X, CLICK_Y = 209, 291
+try:
+    import pyautogui
+except ImportError:
+    print('pyautogui not installed. Run: pip install pyautogui')
+    sys.exit(1)
+
+try:
+    import pyperclip
+except ImportError:
+    print('pyperclip not installed. Run: pip install pyperclip')
+    sys.exit(1)
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+COORDS_FILE = os.path.join(HERE, 'market_coords.txt')
+SEARCH_IMG = os.path.join(HERE, 'search.jpg')
+OFFSET_X = -50
+POLL = 0.2
 COOLDOWN = 2
 
-def clip_text():
-    try:
-        win32clipboard.OpenClipboard()
-        try:
-            d = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
-        except TypeError:
-            d = ''
-        win32clipboard.CloseClipboard()
-        return d
-    except:
-        return ''
+pyautogui.FAILSAFE = True
 
-def owner_process():
+def load():
+    if not os.path.exists(COORDS_FILE):
+        return None
     try:
-        win32clipboard.OpenClipboard()
-        hwnd = win32clipboard.GetClipboardOwner()
-        win32clipboard.CloseClipboard()
-        if not hwnd:
-            return ''
-        _, pid = win32process.GetWindowThreadProcessId(hwnd)
-        if not pid:
-            return ''
-        k32 = ctypes.windll.kernel32
-        h = k32.OpenProcess(0x1000, False, pid)
-        if not h:
-            return ''
-        buf = ctypes.create_string_buffer(260)
-        sz = ctypes.wintypes.DWORD(260)
-        k32.QueryFullProcessImageNameA(h, 0, buf, ctypes.byref(sz))
-        k32.CloseHandle(h)
-        return buf.value.decode('utf-8').lower()
+        with open(COORDS_FILE) as f:
+            parts = f.read().strip().split(',')
+            return int(parts[0]), int(parts[1])
     except:
-        return ''
+        return None
+
+def save(x, y):
+    with open(COORDS_FILE, 'w') as f:
+        f.write(f'{x},{y}')
+
+def locate_search_box():
+    try:
+        box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True, confidence=0.8)
+    except TypeError:
+        box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True)
+    if not box:
+        return None
+    cx, cy = pyautogui.center(box)
+    return int(cx + OFFSET_X), int(cy)
+
+def calibrate():
+    print('=== Calibration ===')
+    print('Make sure Gloria Victis market tab is open and visible.')
+    print('The script will scan for search.jpg in 5 seconds...')
+    time.sleep(5)
+    pos = locate_search_box()
+    if not pos:
+        print('search.jpg not found on screen.')
+        print('Open the market tab and try again, or delete market_coords.txt to recalibrate.')
+        return None
+    print(f'Found search field at: {pos[0]}, {pos[1]}')
+    return pos
 
 def is_item(text):
     if not text or len(text) < 2 or len(text) > 100:
@@ -55,124 +73,61 @@ def is_item(text):
         return False
     return True
 
-def from_board():
-    proc = owner_process()
-    if not proc:
-        return True
-    browsers = ['chrome.exe', 'msedge.exe', 'firefox.exe', 'opera.exe', 'brave.exe']
-    return any(b in proc for b in browsers)
-
-def find_gv():
-    hwnd = win32gui.FindWindow(None, GV_TITLE)
-    if hwnd:
-        return hwnd
-    results = []
-    def cb(h, r):
-        if win32gui.IsWindowVisible(h) and 'gloria' in win32gui.GetWindowText(h).lower():
-            r.append(h)
-        return True
-    win32gui.EnumWindows(cb, results)
-    return results[0] if results else None
-
-def activate(hwnd):
-    try:
-        if win32gui.IsIconic(hwnd):
-            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-        fore = win32gui.GetForegroundWindow()
-        ftid, _ = win32process.GetWindowThreadProcessId(fore)
-        ttid, _ = win32process.GetWindowThreadProcessId(hwnd)
-        if ftid != ttid:
-            win32process.AttachThreadInput(ftid, ttid, True)
-        win32gui.SetForegroundWindow(hwnd)
-        if ftid != ttid:
-            win32process.AttachThreadInput(ftid, ttid, False)
-        return True
-    except:
-        return False
-
-def click(x, y):
-    win32api.SetCursorPos((x, y))
-    time.sleep(0.05)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0, 0)
-    time.sleep(0.03)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0, 0)
-
-def combo(mod, key):
-    vks = {'ctrl': win32con.VK_CONTROL, 'shift': win32con.VK_SHIFT}
-    vkk = {'a': 0x41, 'v': 0x56, 'end': win32con.VK_END,
-           'delete': win32con.VK_DELETE, 'enter': win32con.VK_RETURN}
-    vm = vks.get(mod.lower())
-    vk = vkk.get(key.lower(), ord(key.upper())) if isinstance(key, str) else key
-    if vm:
-        win32api.keybd_event(vm, 0, 0, 0)
-        time.sleep(0.02)
-    if vk:
-        win32api.keybd_event(vk, 0, 0, 0)
-        time.sleep(0.05)
-        win32api.keybd_event(vk, 0, win32con.KEYEVENTF_KEYUP, 0)
-    if vm:
-        time.sleep(0.02)
-        win32api.keybd_event(vm, 0, win32con.KEYEVENTF_KEYUP, 0)
-
-def paste(text):
-    for _ in range(3):
-        try:
-            win32clipboard.OpenClipboard()
-            win32clipboard.EmptyClipboard()
-            win32clipboard.SetClipboardText(text, win32clipboard.CF_UNICODETEXT)
-            win32clipboard.CloseClipboard()
-            break
-        except:
-            time.sleep(0.1)
-    combo('ctrl', 'v')
-
-def search(item):
-    print(f'Searching: {item}')
-    hwnd = find_gv()
-    if not hwnd:
+def search(name, pos):
+    x, y = pos
+    print(f'Search: {name}')
+    wins = pyautogui.getWindowsWithTitle('Gloria Victis')
+    if not wins:
         print('GV window not found')
         return
-    if not activate(hwnd):
+    try:
+        wins[0].activate()
+    except:
         print('Could not activate GV')
         return
-    time.sleep(0.3)
-    click(CLICK_X, CLICK_Y)
+    time.sleep(0.6)
+    pyautogui.click(x, y)
     time.sleep(0.15)
-    combo('ctrl', 'a')
+    pyautogui.hotkey('ctrl', 'a')
+    time.sleep(0.08)
+    pyautogui.hotkey('shift', 'end')
+    time.sleep(0.08)
+    pyautogui.press('delete')
+    time.sleep(0.08)
+    pyperclip.copy(name)
     time.sleep(0.05)
-    combo('shift', 'end')
-    time.sleep(0.05)
-    win32api.keybd_event(win32con.VK_DELETE, 0, 0, 0)
-    time.sleep(0.02)
-    win32api.keybd_event(win32con.VK_DELETE, 0, win32con.KEYEVENTF_KEYUP, 0)
-    time.sleep(0.05)
-    paste(item)
-    time.sleep(0.15)
-    win32api.keybd_event(win32con.VK_RETURN, 0, 0, 0)
-    time.sleep(0.02)
-    win32api.keybd_event(win32con.VK_RETURN, 0, win32con.KEYEVENTF_KEYUP, 0)
-    print(f'Done: {item}')
+    pyautogui.hotkey('ctrl', 'v')
+    time.sleep(0.2)
+    pyautogui.press('enter')
+    print(f'Done: {name}')
 
 def main():
-    print('GV Market Link — running')
-    print('Copy an item name from the requisition board and this will auto-search in GV.')
-    print('Press Ctrl+C to stop.\n')
+    print('=== GV Market Link ===')
+    pos = load()
+    if not pos:
+        pos = calibrate()
+        if not pos:
+            input('\nPress Enter to exit.')
+            return
+        save(*pos)
+    else:
+        print(f'Loaded search position: {pos[0]}, {pos[1]}')
+        print('To recalibrate, delete market_coords.txt and restart.')
+    print('\nMonitoring clipboard... (Ctrl+C to stop)')
+    print()
     last, last_t = '', 0
-    while True:
-        try:
-            c = clip_text()
+    try:
+        while True:
+            c = pyperclip.paste()
             if c and c != last:
                 last = c
                 now = time.time()
-                if now - last_t > COOLDOWN and is_item(c) and from_board():
+                if now - last_t > COOLDOWN and is_item(c):
                     last_t = now
-                    search(c)
-        except:
-            pass
-        time.sleep(POLL_MS / 1000)
-
-if __name__ == '__main__':
-    try:
-        main()
+                    search(c, pos)
+            time.sleep(POLL)
     except KeyboardInterrupt:
         print('\nStopped.')
+
+if __name__ == '__main__':
+    main()
