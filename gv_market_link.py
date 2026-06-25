@@ -178,7 +178,7 @@ def main():
         print('To recalibrate, delete market_coords.txt and restart.')
     print('\nMonitoring clipboard... (Ctrl+C to stop)')
     print()
-    last, last_t = '', 0
+    last, last_t = pyperclip.paste(), 0
     try:
         while True:
             c = pyperclip.paste()
