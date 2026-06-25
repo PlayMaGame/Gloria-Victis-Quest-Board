@@ -7,6 +7,12 @@ except ImportError:
     sys.exit(1)
 
 try:
+    import pydirectinput
+except ImportError:
+    print('pydirectinput not installed. Run: pip install pydirectinput')
+    sys.exit(1)
+
+try:
     import pyperclip
 except ImportError:
     print('pyperclip not installed. Run: pip install pyperclip')
@@ -139,19 +145,19 @@ def search(name, pos):
         print(f'Could not activate GV: {e}')
         return
     time.sleep(0.6)
-    pyautogui.click(x, y)
+    pydirectinput.click(x, y)
     time.sleep(0.15)
-    pyautogui.hotkey('ctrl', 'a')
+    pydirectinput.hotkey('ctrl', 'a')
     time.sleep(0.08)
     pyperclip.copy(name)
     time.sleep(0.05)
-    pyautogui.hotkey('ctrl', 'v')
+    pydirectinput.hotkey('ctrl', 'v')
     time.sleep(0.2)
-    pyautogui.hotkey('shift', 'end')
+    pydirectinput.hotkey('shift', 'end')
     time.sleep(0.1)
-    pyautogui.press('delete')
+    pydirectinput.press('delete')
     time.sleep(0.2)
-    pyautogui.press('enter')
+    pydirectinput.press('enter')
     print(f'Done: {name}')
 
 def main():
