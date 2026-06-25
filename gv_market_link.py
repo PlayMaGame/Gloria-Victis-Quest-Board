@@ -156,8 +156,9 @@ def search(name, pos):
     pydirectinput.press('v')
     pydirectinput.keyUp('ctrl')
     time.sleep(0.15)
-    for _ in range(50):
-        pyautogui.press('delete')
+    win32api.keybd_event(win32con.VK_DELETE, 0, 0, 0)
+    time.sleep(0.5)
+    win32api.keybd_event(win32con.VK_DELETE, 0, win32con.KEYEVENTF_KEYUP, 0)
     time.sleep(0.05)
     pyautogui.press('enter')
     print(f'Done: {name}')
