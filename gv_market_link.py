@@ -1,5 +1,4 @@
-import os, sys, time, re, urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import os, sys, time, re
 
 try:
     import pyautogui
@@ -29,6 +28,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 COORDS_FILE = os.path.join(HERE, 'market_coords.txt')
 SEARCH_IMG = os.path.join(HERE, 'search.jpg')
 OFFSET_X = -50
+POLL = 0.2
+COOLDOWN = 2
 
 def load():
     if not os.path.exists(COORDS_FILE):
@@ -63,7 +64,8 @@ def wait_gv_focused():
     print('Waiting for Gloria Victis to be in focus...')
     while True:
         hwnd = win32gui.GetForegroundWindow()
-        if 'gloria' in win32gui.GetWindowText(hwnd).lower():
+        title = win32gui.GetWindowText(hwnd)
+        if 'gloria' in title.lower():
             return
         time.sleep(1)
 
@@ -85,6 +87,21 @@ def calibrate():
         return None
     print(f'Found search field at: {pos[0]}, {pos[1]}')
     return pos
+
+def is_item(text):
+    if not text or len(text) < 2 or len(text) > 100:
+        return False
+    if '\n' in text or '\r' in text:
+        return False
+    if re.search(r'https?://|www\.', text, re.IGNORECASE):
+        return False
+    if text.strip().isdigit():
+        return False
+    if not re.search(r'[a-zA-Z\u0400-\u04FF]', text):
+        return False
+    if '\\' in text and len(text) > 10:
+        return False
+    return True
 
 def find_gv():
     hwnd = win32gui.FindWindow(None, 'Gloria Victis')
@@ -142,57 +159,33 @@ def search(name, pos):
     pyautogui.press('enter')
     print(f'Done: {name}')
 
-coords = None
-
-class Handler(BaseHTTPRequestHandler):
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET')
-        self.end_headers()
-
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        if '/search?q=' in self.path:
-            name = urllib.parse.unquote(self.path.split('?q=', 1)[1])
-            print(f'Received: {name}')
-            if name:
-                search(name, coords)
-
-    def log_message(self, format, *args):
-        pass
-
 def main():
-    global coords
     print('=== GV Market Link ===')
-    coords = load()
-    if not coords:
-        coords = calibrate()
-        if not coords:
+    pos = load()
+    if not pos:
+        pos = calibrate()
+        if not pos:
             input('\nPress Enter to exit.')
             return
-        save(*coords)
+        save(*pos)
     else:
-        print(f'Loaded search position: {coords[0]}, {coords[1]}')
+        print(f'Loaded search position: {pos[0]}, {pos[1]}')
         print('To recalibrate, delete market_coords.txt and restart.')
+    print('\nMonitoring clipboard... (Ctrl+C to stop)')
     print()
-    print('Server running on http://localhost:9999')
-    print('Click a name on the requisition board to search in GV market.')
-    print('Press Ctrl+C to stop.')
-    print()
+    last, last_t = pyperclip.paste(), 0
     try:
-        server = HTTPServer(('localhost', 9999), Handler)
-    except OSError:
-        print('Port 9999 is already in use. Is another instance running?')
-        input('\nPress Enter to exit.')
-        return
-    try:
-        server.serve_forever()
+        while True:
+            c = pyperclip.paste()
+            if c and c != last:
+                last = c
+                now = time.time()
+                if now - last_t > COOLDOWN and is_item(c):
+                    last_t = now
+                    search(c, pos)
+            time.sleep(POLL)
     except KeyboardInterrupt:
         print('\nStopped.')
-        server.server_close()
 
 if __name__ == '__main__':
     main()
