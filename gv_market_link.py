@@ -108,28 +108,37 @@ def is_item(text):
 
 def from_requisition_board():
     try:
+        fore = win32gui.GetForegroundWindow()
+        fore_title = win32gui.GetWindowText(fore).lower()
+        if 'gloria' in fore_title:
+            return False
+
+        def is_firefox(pid):
+            if not pid: return False
+            k32 = ctypes.windll.kernel32
+            h = k32.OpenProcess(0x1000, False, pid)
+            if not h: return False
+            buf = ctypes.create_unicode_buffer(260)
+            sz = ctypes.wintypes.DWORD(260)
+            k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz))
+            k32.CloseHandle(h)
+            return 'firefox' in buf.value.lower()
+
+        def has_board(title):
+            return 'requisition' in title or 'guild' in title
+
         win32clipboard.OpenClipboard()
-        hwnd = win32clipboard.GetClipboardOwner()
+        owner = win32clipboard.GetClipboardOwner()
         win32clipboard.CloseClipboard()
-        if not hwnd:
-            return False
-        title = win32gui.GetWindowText(hwnd)
-        if 'requisition' not in title.lower() and 'guild' not in title.lower():
-            return False
-        _, pid = win32process.GetWindowThreadProcessId(hwnd)
-        if not pid:
-            return False
-        k32 = ctypes.windll.kernel32
-        h = k32.OpenProcess(0x1000, False, pid)
-        if not h:
-            return False
-        buf = ctypes.create_unicode_buffer(260)
-        sz = ctypes.wintypes.DWORD(260)
-        k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz))
-        k32.CloseHandle(h)
-        return 'firefox' in buf.value.lower()
+
+        if owner and is_firefox(win32process.GetWindowThreadProcessId(owner)[1]) and has_board(win32gui.GetWindowText(owner).lower()):
+            return True
+
+        if is_firefox(win32process.GetWindowThreadProcessId(fore)[1]) and has_board(fore_title):
+            return True
     except:
-        return False
+        pass
+    return False
 
 def find_gv():
     hwnd = win32gui.FindWindow(None, 'Gloria Victis')
