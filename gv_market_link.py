@@ -36,27 +36,37 @@ def save(x, y):
         f.write(f'{x},{y}')
 
 def locate_search_box():
+    for confidence in [0.6, 0.5, 0.4]:
+        try:
+            box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True, confidence=confidence)
+            if box:
+                cx, cy = pyautogui.center(box)
+                return int(cx + OFFSET_X), int(cy)
+        except Exception:
+            continue
     try:
-        box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True, confidence=0.8)
-    except TypeError:
         box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True)
-    if not box:
-        return None
-    cx, cy = pyautogui.center(box)
-    return int(cx + OFFSET_X), int(cy)
+        if box:
+            cx, cy = pyautogui.center(box)
+            return int(cx + OFFSET_X), int(cy)
+    except:
+        pass
+    return None
 
 def calibrate():
     print('=== Calibration ===')
     print('Make sure Gloria Victis market tab is open and visible.')
     print('The script will scan for search.jpg in 5 seconds...')
-    time.sleep(5)
-    pos = locate_search_box()
-    if not pos:
-        print('search.jpg not found on screen.')
-        print('Open the market tab and try again, or delete market_coords.txt to recalibrate.')
-        return None
-    print(f'Found search field at: {pos[0]}, {pos[1]}')
-    return pos
+    for i in range(3):
+        time.sleep(5 if i == 0 else 3)
+        pos = locate_search_box()
+        if pos:
+            print(f'Found search field at: {pos[0]}, {pos[1]}')
+            return pos
+        print(f'Attempt {i+1}/3 failed. Make sure the market tab is open and search.jpg matches your UI.')
+    print('Calibration failed after 3 attempts.')
+    print('Tip: Take a new screenshot of the search bar area and save it as search.jpg')
+    return None
 
 def is_item(text):
     if not text or len(text) < 2 or len(text) > 100:
