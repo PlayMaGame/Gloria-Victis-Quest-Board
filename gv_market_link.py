@@ -156,9 +156,9 @@ def search(name, pos):
     pydirectinput.press('v')
     pydirectinput.keyUp('ctrl')
     time.sleep(0.15)
-    for _ in range(40):
+    for _ in range(30):
         pyautogui.press('delete')
-        time.sleep(0.025)
+        time.sleep(0.01)
     time.sleep(0.05)
     pyautogui.press('enter')
     print(f'Done: {name}')
