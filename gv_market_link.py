@@ -19,7 +19,7 @@ except ImportError:
     sys.exit(1)
 
 try:
-    import win32gui, win32process, win32con
+    import win32api, win32gui, win32process, win32con
 except ImportError:
     print('pywin32 not installed. Run: pip install pywin32')
     sys.exit(1)
