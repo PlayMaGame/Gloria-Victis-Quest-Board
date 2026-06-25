@@ -146,6 +146,7 @@ select option{background:var(--parchment-3)}
   </div>
   <div class="header-actions">
     <button class="btn btn-sm" id="lang-toggle">EN / RU</button>
+    <button class="btn btn-sm" id="catalog-btn" onclick="openCatalogModal()" style="display:none">📖 Catalog</button>
     <button class="btn btn-primary hidden" id="add-btn-header" data-i18n="addItem">+ Add Item</button>
     <button class="btn" onclick="location.href='index.html'" style="font-size:.55rem">← Quest Board</button>
   </div>
@@ -237,11 +238,6 @@ select option{background:var(--parchment-3)}
       </div>
       <p class="section-title" style="margin-top:20px" data-i18n="currentReqs">Current Requisitions</p>
       <div id="admin-items-list"></div>
-      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-        <p class="section-title">📖 Catalog — fix default names</p>
-        <p style="font-style:italic;color:var(--text-faint);font-size:.72rem;margin-bottom:8px">Edit a name and click 💾 to save. ↩ reverts to original.</p>
-        <div id="catalog-admin-list" style="max-height:300px;overflow-y:auto"></div>
-      </div>
     </div>
   </div>
 </div>
@@ -266,6 +262,19 @@ select option{background:var(--parchment-3)}
     <div class="modal-header"><span class="modal-title" data-i18n="btnRemove">Remove Requisition</span><button class="modal-close" id="delete-cancel-btn">✕</button></div>
     <div class="modal-body"><p style="font-style:italic;color:var(--text-dim)" data-i18n="delConfirm">Remove this item from the board?</p></div>
     <div class="modal-foot"><button class="btn" id="delete-cancel" data-i18n="btnCancel">Cancel</button><button class="btn btn-danger" id="delete-confirm-btn" data-i18n="btnRemove">Remove</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="catalog-modal">
+  <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
+    <div class="modal-header">
+      <span class="modal-title">📖 Manage Catalog Names</span>
+      <button class="modal-close" onclick="closeCatalogModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-style:italic;color:var(--text-faint);font-size:.82rem;margin-bottom:12px">Edit a name and click 💾 to save. Existing items with the old name will also be updated. ↩ reverts to original.</p>
+      <div id="catalog-admin-list" style="max-height:55vh;overflow-y:auto"></div>
+    </div>
   </div>
 </div>
 
@@ -709,9 +718,9 @@ function enableAdmin() {
   document.getElementById('manual-name-en').value = '';
   document.getElementById('manual-name-ru').value = '';
   document.getElementById('add-btn-header')?.classList.remove('hidden');
+  document.getElementById('catalog-btn').style.display = '';
   populateItemDropdown();
   renderAdminList();
-  renderCatalogAdmin();
 }
 function hideAdminPanel() {
   document.getElementById('admin-panel')?.classList.add('hidden');
@@ -724,6 +733,8 @@ function logoutAdmin() {
   document.getElementById('edit-modal')?.classList.add('hidden');
   document.getElementById('delete-modal')?.classList.add('hidden');
   document.getElementById('add-btn-header')?.classList.add('hidden');
+  document.getElementById('catalog-btn').style.display = 'none';
+  closeCatalogModal();
 }
 function setupAdminClose() {
   document.getElementById('admin-close')?.addEventListener('click', hideAdminPanel);
@@ -756,6 +767,9 @@ async function saveCatalogOverride(btn) {
   const nameEn = row.querySelector('.ca-name-en').value.trim();
   const nameRu = row.querySelector('.ca-name-ru').value.trim();
   if (!nameEn && !nameRu) { toast('At least one name required.'); return; }
+  const catalogEntry = ITEM_CATALOG.find(e => e.image === image);
+  const oldNameEn = catalogEntry ? catalogEntry.name_en : '';
+  const oldNameRu = catalogEntry ? catalogEntry.name_ru : '';
   btn.disabled = true;
   const existing = catalogOverrides.find(o => o.image === image);
   let error;
@@ -771,8 +785,19 @@ async function saveCatalogOverride(btn) {
   }
   btn.disabled = false;
   if (error) { toast('Error: ' + error.message); return; }
+  const updates = {};
+  if (nameEn !== oldNameEn) updates.name_en = nameEn;
+  if (nameRu !== oldNameRu) updates.name_ru = nameRu;
+  if (Object.keys(updates).length > 0) {
+    const { error: upErr } = await supabaseClient.from('guild_items')
+      .update(updates)
+      .eq('name_en', oldNameEn)
+      .neq('sort_order', -1);
+    if (upErr) toast('Names updated. Existing items error: ' + upErr.message);
+  }
   toast('Saved: ' + nameEn);
   await fetchItems();
+  populateItemDropdown();
   if (isAdmin) { renderAdminList(); renderCatalogAdmin(); }
 }
 
@@ -788,8 +813,21 @@ async function resetCatalogOverride(btn) {
   if (error) { toast('Error: ' + error.message); return; }
   toast('Reset to default.');
   await fetchItems();
+  populateItemDropdown();
   if (isAdmin) { renderAdminList(); renderCatalogAdmin(); }
 }
+
+// --- CATALOG MODAL ---
+function openCatalogModal() {
+  renderCatalogAdmin();
+  document.getElementById('catalog-modal')?.classList.remove('hidden');
+}
+function closeCatalogModal() {
+  document.getElementById('catalog-modal')?.classList.add('hidden');
+}
+document.querySelectorAll('.modal-overlay').forEach(el =>
+  el.addEventListener('click', e => { if (e.target === el) el.classList.add('hidden'); })
+);
 
 // --- HEADER ---
 function setupHeaderButtons() {
