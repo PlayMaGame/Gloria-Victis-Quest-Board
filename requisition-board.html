@@ -798,6 +798,7 @@ async function saveCatalogOverride(btn) {
   toast('Saved: ' + nameEn);
   await fetchItems();
   populateItemDropdown();
+  renderTables();
   if (isAdmin) { renderAdminList(); renderCatalogAdmin(); }
 }
 
@@ -814,6 +815,7 @@ async function resetCatalogOverride(btn) {
   toast('Reset to default.');
   await fetchItems();
   populateItemDropdown();
+  renderTables();
   if (isAdmin) { renderAdminList(); renderCatalogAdmin(); }
 }
 
