@@ -19,7 +19,7 @@ except ImportError:
     sys.exit(1)
 
 try:
-    import win32api, win32gui, win32process, win32con, win32clipboard
+    import win32api, win32gui, win32process, win32con
 except ImportError:
     print('pywin32 not installed. Run: pip install pywin32')
     sys.exit(1)
@@ -110,35 +110,22 @@ def from_requisition_board():
     try:
         fore = win32gui.GetForegroundWindow()
         fore_title = win32gui.GetWindowText(fore).lower()
-        if 'gloria' in fore_title:
+        if 'gloria' in fore_title or 'victis' in fore_title:
             return False
-
-        def is_firefox(pid):
-            if not pid: return False
-            k32 = ctypes.windll.kernel32
-            h = k32.OpenProcess(0x1000, False, pid)
-            if not h: return False
-            buf = ctypes.create_unicode_buffer(260)
-            sz = ctypes.wintypes.DWORD(260)
-            k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz))
-            k32.CloseHandle(h)
-            return 'firefox' in buf.value.lower()
-
-        def has_board(title):
-            return 'requisition' in title or 'guild' in title
-
-        win32clipboard.OpenClipboard()
-        owner = win32clipboard.GetClipboardOwner()
-        win32clipboard.CloseClipboard()
-
-        if owner and is_firefox(win32process.GetWindowThreadProcessId(owner)[1]) and has_board(win32gui.GetWindowText(owner).lower()):
-            return True
-
-        if is_firefox(win32process.GetWindowThreadProcessId(fore)[1]) and has_board(fore_title):
-            return True
+        _, pid = win32process.GetWindowThreadProcessId(fore)
+        if not pid:
+            return False
+        k32 = ctypes.windll.kernel32
+        h = k32.OpenProcess(0x1000, False, pid)
+        if not h:
+            return False
+        buf = ctypes.create_unicode_buffer(260)
+        sz = ctypes.wintypes.DWORD(260)
+        k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz))
+        k32.CloseHandle(h)
+        return 'firefox' in buf.value.lower() and ('requisition' in fore_title or 'guild' in fore_title)
     except:
-        pass
-    return False
+        return False
 
 def find_gv():
     hwnd = win32gui.FindWindow(None, 'Gloria Victis')
