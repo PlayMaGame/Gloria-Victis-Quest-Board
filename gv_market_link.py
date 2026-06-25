@@ -1,4 +1,4 @@
-import os, sys, time, re, ctypes, ctypes.wintypes
+import os, sys, time, re
 
 try:
     import pyautogui
@@ -108,24 +108,9 @@ def is_item(text):
 
 def from_requisition_board():
     try:
-        fore = win32gui.GetForegroundWindow()
-        fore_title = win32gui.GetWindowText(fore).lower()
-        if 'gloria' in fore_title or 'victis' in fore_title:
-            return False
-        _, pid = win32process.GetWindowThreadProcessId(fore)
-        if not pid:
-            return False
-        k32 = ctypes.windll.kernel32
-        h = k32.OpenProcess(0x1000, False, pid)
-        if not h:
-            return False
-        buf = ctypes.create_unicode_buffer(260)
-        sz = ctypes.wintypes.DWORD(260)
-        k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(sz))
-        k32.CloseHandle(h)
-        return 'firefox' in buf.value.lower() and ('requisition' in fore_title or 'guild' in fore_title)
+        return 'gloria' not in win32gui.GetWindowText(win32gui.GetForegroundWindow()).lower()
     except:
-        return False
+        return True
 
 def find_gv():
     hwnd = win32gui.FindWindow(None, 'Gloria Victis')
