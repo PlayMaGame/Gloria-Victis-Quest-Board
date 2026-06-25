@@ -12,6 +12,12 @@ except ImportError:
     print('pyperclip not installed. Run: pip install pyperclip')
     sys.exit(1)
 
+try:
+    import pygetwindow as gw
+except ImportError:
+    print('pygetwindow not installed. Run: pip install pygetwindow')
+    sys.exit(1)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 COORDS_FILE = os.path.join(HERE, 'market_coords.txt')
 SEARCH_IMG = os.path.join(HERE, 'search.jpg')
@@ -36,37 +42,51 @@ def save(x, y):
         f.write(f'{x},{y}')
 
 def locate_search_box():
-    for confidence in [0.6, 0.5, 0.4]:
-        try:
-            box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True, confidence=confidence)
-            if box:
-                cx, cy = pyautogui.center(box)
-                return int(cx + OFFSET_X), int(cy)
-        except Exception:
-            continue
     try:
-        box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True)
-        if box:
-            cx, cy = pyautogui.center(box)
-            return int(cx + OFFSET_X), int(cy)
+        box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True, confidence=0.8)
+        if not box:
+            box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True)
     except:
-        pass
-    return None
+        try:
+            box = pyautogui.locateOnScreen(SEARCH_IMG, grayscale=True)
+        except:
+            return None
+    if not box:
+        return None
+    cx, cy = pyautogui.center(box)
+    return int(cx + OFFSET_X), int(cy)
+
+def wait_gv_focused():
+    print('Waiting for Gloria Victis to be in focus...')
+    while True:
+        try:
+            active = gw.getActiveWindow()
+            if active and 'gloria' in active.title.lower():
+                return True
+        except:
+            pass
+        time.sleep(1)
 
 def calibrate():
     print('=== Calibration ===')
-    print('Make sure Gloria Victis market tab is open and visible.')
-    print('The script will scan for search.jpg in 5 seconds...')
-    for i in range(3):
-        time.sleep(5 if i == 0 else 3)
-        pos = locate_search_box()
+    print('Switch to Gloria Victis and open the market tab.')
+    print('The script will detect when GV is in focus and scan automatically.\n')
+    wait_gv_focused()
+    print('GV detected! Scanning for search.jpg...')
+    time.sleep(0.5)
+    pos = locate_search_box()
+    for _ in range(3):
         if pos:
-            print(f'Found search field at: {pos[0]}, {pos[1]}')
-            return pos
-        print(f'Attempt {i+1}/3 failed. Make sure the market tab is open and search.jpg matches your UI.')
-    print('Calibration failed after 3 attempts.')
-    print('Tip: Take a new screenshot of the search bar area and save it as search.jpg')
-    return None
+            break
+        time.sleep(2)
+        pos = locate_search_box()
+    if not pos:
+        print('Could not find search.jpg on screen.')
+        print('Make sure the market tab is open and search.jpg matches the search bar area.')
+        print('Try taking a new screenshot of the search field and saving it as search.jpg')
+        return None
+    print(f'Found search field at: {pos[0]}, {pos[1]}')
+    return pos
 
 def is_item(text):
     if not text or len(text) < 2 or len(text) > 100:
