@@ -791,8 +791,7 @@ async function saveCatalogOverride(btn) {
   if (Object.keys(updates).length > 0) {
     const { error: upErr } = await supabaseClient.from('guild_items')
       .update(updates)
-      .eq('name_en', oldNameEn)
-      .neq('sort_order', -1);
+      .eq('name_en', oldNameEn);
     if (upErr) toast('Names updated. Existing items error: ' + upErr.message);
   }
   toast('Saved: ' + nameEn);
