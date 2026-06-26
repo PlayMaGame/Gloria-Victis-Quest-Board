@@ -142,19 +142,12 @@ def search(name, pos):
         return
     pydirectinput.click(x, y)
     time.sleep(0.15)
-    pydirectinput.keyDown('ctrl')
-    pydirectinput.press('a')
-    pydirectinput.keyUp('ctrl')
+    pyautogui.press('space')
     time.sleep(0.08)
     pyperclip.copy(name)
     pydirectinput.keyDown('ctrl')
     pydirectinput.press('v')
     pydirectinput.keyUp('ctrl')
-    time.sleep(0.15)
-    vk = win32con.VK_DELETE
-    for _ in range(50):
-        win32api.keybd_event(vk, 0, 0, 0)
-        win32api.keybd_event(vk, 0, win32con.KEYEVENTF_KEYUP, 0)
     time.sleep(0.05)
     pyautogui.press('enter')
     print(f'Done: {name}')
