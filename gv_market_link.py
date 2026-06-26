@@ -142,9 +142,6 @@ def search(name, pos):
         return
     pydirectinput.click(x, y)
     time.sleep(0.15)
-    pyautogui.press('space')
-    time.sleep(0.08)
-    pyperclip.copy(name)
     pydirectinput.keyDown('ctrl')
     pydirectinput.press('v')
     pydirectinput.keyUp('ctrl')
