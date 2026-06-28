@@ -666,6 +666,30 @@ select option{background:var(--parchment-3);}
 const SUPABASE_URL = 'https://dnwitnnzrkcismsbxfcg.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRud2l0bm56cmtjaXNtc2J4ZmNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MjY0MTYsImV4cCI6MjA5NzUwMjQxNn0.z75KyvMaNTj9ORWrUguEJqHmdtjWrdlIwvedWvB5OFE';
 const ADMIN_PASSWORD = 'gvadmin2023';
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1520908760531337216/cEE_JyRpnreg7cxTg6n474lSHjf7r1CwizTaPVNQbzVmWLu8yFY9Ot1Yws0pXQSBmrFd';
+
+const DC_COLORS = {gather:0xc8922a,farm:0x3a9a3a,deliver:0x4a7abf,craft:0x8040c0,event:0xe08030};
+const DC_ICONS = {gather:'\u26cf',farm:'\ud83c\udf3e',deliver:'\ud83d\udce6',craft:'\ud83d\udd28',event:'\ud83c\udfaa'};
+
+async function sendDiscord(embed){
+  try{await fetch(DISCORD_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({embeds:[embed]})});}catch(e){console.error('Discord error:',e);}
+}
+
+function dcEmbed(q,overrides){
+  const e={title:overrides?.title||q.title,color:overrides?.color||DC_COLORS[q.type]||0x888888,description:overrides?.desc||(q.description?q.description.slice(0,400):undefined),fields:overrides?.fields||[{name:'Type',value:(DC_ICONS[q.type]||'\ud83d\udcdc')+' '+(q.type.charAt(0).toUpperCase()+q.type.slice(1)),inline:true},{name:'Posted By',value:q.poster||'\u200b',inline:true}],footer:{text:'Status: '+(q.status||'open').toUpperCase()},timestamp:new Date().toISOString()};
+  if(q.item&&q.type!=='event')e.fields.push({name:'Item',value:q.item,inline:true});
+  if(q.qty&&q.type!=='event')e.fields.push({name:'Qty',value:q.qty,inline:true});
+  if(q.deliverTo||q.deliver_to){e.fields.push({name:q.type==='event'?'Location':'Deliver To',value:q.deliverTo||q.deliver_to,inline:false});}
+  if(q.deadline){e.fields.push({name:q.type==='event'?'Start Time':'Deadline',value:q.deadline,inline:false});}
+  if(q.claimedBy||q.claimed_by){e.fields.push({name:'Claimed By',value:q.claimedBy||q.claimed_by,inline:false});}
+  const rw=[];
+  if(q.rewards&&q.rewards.includes('hot'))rw.push('\ud83d\udd25 Hot Deal');
+  if(q.rewards&&q.rewards.includes('points'))rw.push('\ud83c\udfc5 '+(q.pointsValue||'')+' Guild Points');
+  if(q.rewards&&q.rewards.includes('gift'))rw.push('\ud83c\udf81 Gift');
+  if(q.rewardNote)rw.push(q.rewardNote);
+  if(rw.length)e.fields.push({name:'Rewards',value:rw.join(' \u00b7 '),inline:false});
+  return e;
+}
 
 const LANG_KEY = 'gv_lang';
 const TRANS = {
@@ -1138,6 +1162,12 @@ async function postQuest(){
   const{error}=await sb.from('quests').insert(row);
   setBusy('post-btn',false);
   if(error){toast(t('err_prefix')+error.message);return;}
+  const postedRow={...row,id:undefined,rewards:row.rewards||[]};
+  if(row.status==='pending'){
+    sendDiscord({title:'\u23f3 New Quest \u2014 Pending Approval\n'+row.title,color:0xffaa00,description:(row.description||'')+'\n\n_Quest is awaiting admin approval._',fields:[{name:'Type',value:(DC_ICONS[row.type]||'\ud83d\udcdc')+' '+(row.type.charAt(0).toUpperCase()+row.type.slice(1)),inline:true},{name:'Posted By',value:row.poster||'\u200b',inline:true}],footer:{text:'Status: PENDING'},timestamp:new Date().toISOString()});
+  }else{
+    sendDiscord(dcEmbed(postedRow,{title:'\ud83d\udcdc New Quest Posted\n'+row.title}));
+  }
   closeModal('new-quest-modal');
   if(isAdmin()){toast(t('quest_posted'));}
   else{toast(t('pending_note'));}
@@ -1197,6 +1227,8 @@ async function confirmClaim(){
   if(error){toast(t('err_prefix')+error.message);return;}
   closeModal('claim-modal');
   toast(t('quest_claimed'));
+  const cq=quests.find(x=>x.id===claimingId);
+  if(cq)sendDiscord({title:'\ud83d\udc46 Quest Claimed\n'+cq.title,color:0x4a7abf,fields:[{name:'Type',value:(DC_ICONS[cq.type]||'\ud83d\udcdc')+' '+(cq.type.charAt(0).toUpperCase()+cq.type.slice(1)),inline:true},{name:'Posted By',value:cq.poster||'\u200b',inline:true},{name:'Claimed By',value:name||cq.claimedBy,inline:false}],footer:{text:'Status: CLAIMED'},timestamp:new Date().toISOString()});
 }
 
 function openParticipantsModal(id){
@@ -1311,7 +1343,8 @@ async function completeQuest(id){
   }
   const{error}=await sb.from('quests').update({status:'complete'}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
-  if(q.pointsValue>0&&q.claimedBy){toast(q.pointsValue+' pts awarded to '+q.claimedBy+'!');}
+  const ptsAwarded=q.pointsValue>0&&q.claimedBy;
+  if(ptsAwarded){toast(q.pointsValue+' pts awarded to '+q.claimedBy+'!');}
   else{toast(t('quest_complete'));}
   if(q&&q.claimedBy){
     const hours=Math.max(1,Math.floor((Date.now()-q.postedAt)/3600000));
@@ -1319,6 +1352,7 @@ async function completeQuest(id){
     const sysMsg=lang==='ru'?'📢 '+q.title+' был выполнен за '+hours+'ч игроком '+q.claimedBy+' для '+target+'.':'📢 '+q.title+' was completed in '+hours+'h by '+q.claimedBy+' for '+target+'.';
     await sb.from('chat_messages').insert({player_name:'📢 System',message:sysMsg});
   }
+  sendDiscord({title:'\ud83d\udfe2 Quest Completed \u2014 '+q.title,color:0x3a9a3a,description:'**'+q.title+'** has been marked as complete!',fields:[{name:'Type',value:(DC_ICONS[q.type]||'\ud83d\udcdc')+' '+(q.type.charAt(0).toUpperCase()+q.type.slice(1)),inline:true},{name:'Posted By',value:q.poster||'\u200b',inline:true},...(q.claimedBy?[{name:'Completed By',value:q.claimedBy,inline:true}]:[]),...(ptsAwarded?[{name:'Points Awarded',value:q.pointsValue+' to '+q.claimedBy,inline:true}]:[])],footer:{text:'Status: COMPLETE'},timestamp:new Date().toISOString()});
 }
 
 function showPendingView(){
@@ -1370,6 +1404,8 @@ async function approveQuest(id){
   const{error}=await sb.from('quests').update({status:'open'}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
   toast('Quest approved!');
+  const aq=quests.find(x=>x.id===id);
+  if(aq)sendDiscord(dcEmbed(aq,{title:'\u2705 Quest Approved!\n'+aq.title,color:0x3a9a3a}));
 }
 
 function toggleCountdown(el,qId){
@@ -1394,6 +1430,8 @@ async function cancelEvent(id){
   const{error}=await sb.from('quests').update({status:'cancelled'}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
   toast('Event cancelled.');
+  const ceq=quests.find(x=>x.id===id);
+  if(ceq)sendDiscord({title:'\u274c Quest Cancelled \u2014 '+ceq.title,color:0xcc4444,description:'**'+ceq.title+'** has been cancelled.',footer:{text:'Status: CANCELLED'},timestamp:new Date().toISOString()});
 }
 
 async function deleteQuest(id){
