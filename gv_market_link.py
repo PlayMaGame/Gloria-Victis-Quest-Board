@@ -130,6 +130,7 @@ def activate_gv(hwnd):
 
 def search(name, pos):
     x, y = pos
+    orig_x, orig_y = pyautogui.position()
     print(f'Search: {name}')
     hwnd = find_gv()
     if not hwnd:
@@ -147,6 +148,7 @@ def search(name, pos):
     pydirectinput.keyUp('ctrl')
     time.sleep(0.05)
     pyautogui.press('enter')
+    pyautogui.moveTo(orig_x, orig_y)
     print(f'Done: {name}')
 
 def main():
