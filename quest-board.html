@@ -399,9 +399,15 @@ select option{background:var(--parchment-3);}
           </div>
         </div>
       </div>
-      <div class="form-group">
-        <label data-i18n="posted_by">Posted By *</label>
-        <input id="f-poster" type="text" data-i18n-placeholder="poster_ph">
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label data-i18n="posted_by">Posted By *</label>
+          <input id="f-poster" type="text" data-i18n-placeholder="poster_ph">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label data-i18n="discord_id">Discord ID</label>
+          <input id="f-discord-id" type="text" data-i18n-placeholder="discord_id_ph">
+        </div>
       </div>
       <div class="form-group" id="rewards-section">
         <label data-i18n="rewards">Rewards</label>
@@ -682,6 +688,7 @@ const TRANS = {
     deliver_to:'Deliver To',deliver_ph:'Player name or location',
     deadline:'Deadline (optional)',deadline_ph:'e.g. Sunday 20:00',
     posted_by:'Posted By *',poster_ph:'Your in-game name',
+    discord_id:'Discord ID',discord_id_ph:'To get pinged in Discord (your Discord ID)',
     rewards:'Rewards',
     reward_hot:'🔥 Hot Deal',reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',pts_label:'pts',
     gift_ph:'Describe the gift...',
@@ -731,6 +738,7 @@ const TRANS = {
     deliver_to:'\u0414\u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c',deliver_ph:'\u0418\u043c\u044f \u0438\u0433\u0440\u043e\u043a\u0430 \u0438\u043b\u0438 \u043b\u043e\u043a\u0430\u0446\u0438\u044f',
     deadline:'\u0421\u0440\u043e\u043a (\u043d\u0435\u043e\u0431\u044f\u0437.)',deadline_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0412\u043e\u0441\u043a\u0440\u0435\u0441\u0435\u043d\u044c\u0435 20:00',
     posted_by:'\u0410\u0432\u0442\u043e\u0440 *',poster_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
+    discord_id:'Discord ID',discord_id_ph:'\u0414\u043b\u044f \u0443\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f \u0432 Discord (\u0432\u0430\u0448 ID)',
     rewards:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
     reward_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',pts_label:'\u043e\u0447\u043a.',
     gift_ph:'\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u043f\u043e\u0434\u0430\u0440\u043e\u043a...',
@@ -847,7 +855,8 @@ function dbToQ(r){
     deadline:r.deadline||'',poster:r.poster||'',rewards:r.rewards||[],
     rewardNote:r.reward_note||'',status:r.status||'open',
     claimedBy:r.claimed_by||null,postedAt:new Date(r.posted_at).getTime(),
-    participants:r.participants||[],pointsValue:r.points_value||0
+    participants:r.participants||[],pointsValue:r.points_value||0,
+    discordId:r.discord_id||''
   };
 }
 
@@ -1132,6 +1141,7 @@ async function postQuest(){
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
+    discord_id:document.getElementById('f-discord-id').value.trim(),
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
@@ -1168,7 +1178,8 @@ async function saveEdit(id){
     deadline:deadlineVal,
     poster,rewards,
     reward_note:giftNote,
-    points_value:pv
+    points_value:pv,
+    discord_id:document.getElementById('f-discord-id').value.trim()
   };
   setBusy('post-btn',true);
   const{error}=await sb.from('quests').update(row).eq('id',id);
@@ -1354,6 +1365,7 @@ async function saveRepeat(){
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
+    discord_id:document.getElementById('f-discord-id').value.trim(),
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
