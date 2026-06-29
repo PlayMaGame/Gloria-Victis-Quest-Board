@@ -218,9 +218,11 @@ select option{background:var(--parchment-3);}
 .ticker-item{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text);flex-shrink:0;}
 .ticker-item img{width:32px;height:32px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
 .ticker-item .ticker-hot{color:var(--red-bright);font-size:.7rem;margin-left:2px;}
+.ticker-admin-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:801;}
+.ti-grid-item{position:relative;cursor:pointer;border:1px solid var(--border);background:var(--parchment);display:flex;align-items:center;justify-content:center;height:48px;transition:border-color .15s;}
+.ti-grid-item:hover{border-color:var(--gold);}
+.ti-grid-item img{max-width:100%;max-height:100%;object-fit:contain;padding:2px;}
 .ticker-item-hot{box-shadow:0 0 8px rgba(255,100,0,.6),0 0 16px rgba(255,50,0,.3);border:1px solid #ff6600;padding:2px;}
-.ticker-announce{color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;}
-.ticker-banner{color:var(--red-bright);font-family:Cinzel;font-size:1.4rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;padding:0 20px;flex-shrink:0;}
 
 /* CHAT */
 .chat-area{border-top:1px solid var(--border);padding:8px 14px;}
@@ -252,8 +254,6 @@ select option{background:var(--parchment-3);}
   .form-row{flex-direction:column;}
   .reward-checks{grid-template-columns:1fr;}
 }
-@keyframes hash-glow{0%,100%{box-shadow:0 0 0 0 rgba(200,146,42,0)}50%{box-shadow:0 0 20px 4px rgba(200,146,42,.35)}}
-.quest-card.hash-highlight{animation:hash-glow 2s ease-in-out 3;border-color:var(--gold);}
 </style>
 </head>
 <body>
@@ -399,9 +399,15 @@ select option{background:var(--parchment-3);}
           </div>
         </div>
       </div>
-      <div class="form-group">
-        <label data-i18n="posted_by">Posted By *</label>
-        <input id="f-poster" type="text" data-i18n-placeholder="poster_ph">
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label data-i18n="posted_by">Posted By *</label>
+          <input id="f-poster" type="text" data-i18n-placeholder="poster_ph">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label data-i18n="discord_id">Discord ID</label>
+          <input id="f-discord-id" type="text" data-i18n-placeholder="discord_id_ph">
+        </div>
       </div>
       <div class="form-group" id="rewards-section">
         <label data-i18n="rewards">Rewards</label>
@@ -594,6 +600,29 @@ select option{background:var(--parchment-3);}
 <!-- TICKER BAR -->
 <div id="ticker-wrap" class="hidden">
   <div id="ticker-track"></div>
+  <button class="btn btn-sm ticker-admin-btn" id="ticker-admin-btn" onclick="openTickerModal()" style="display:none">&#9881;</button>
+</div>
+
+<!-- TICKER ADMIN MODAL -->
+<div class="modal-overlay hidden" id="ticker-modal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="ticker_title">&#9881; Ticker Items</span>
+      <button class="modal-close" onclick="closeModal('ticker-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body" id="ticker-modal-body">
+      <p style="font-size:.8rem;color:var(--text-faint);margin-bottom:8px" data-i18n="ticker_click_hint">Click an item below to add it to the scrolling ticker:</p>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <label class="reward-check"><input type="checkbox" id="ti-hot"> <span data-i18n="ticker_add_hot">🔥 Add as hot</span></label>
+      </div>
+      <div id="ti-grid" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;max-height:200px;overflow-y:auto;padding:4px;border:1px solid var(--border);background:var(--parchment-3);margin-bottom:12px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:.8rem;color:var(--text-faint)" data-i18n="ticker_active">Active ticker items:</span>
+        <button class="btn btn-sm btn-danger" onclick="clearTickerItems()" style="font-size:.55rem" data-i18n="ticker_clear">Clear All</button>
+      </div>
+      <div id="ti-list" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+  </div>
 </div>
 
 <!-- SHOP ADD/EDIT MODAL -->
@@ -659,6 +688,7 @@ const TRANS = {
     deliver_to:'Deliver To',deliver_ph:'Player name or location',
     deadline:'Deadline (optional)',deadline_ph:'e.g. Sunday 20:00',
     posted_by:'Posted By *',poster_ph:'Your in-game name',
+    discord_id:'Discord ID',discord_id_ph:'To get pinged in Discord (your Discord ID)',
     rewards:'Rewards',
     reward_hot:'🔥 Hot Deal',reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',pts_label:'pts',
     gift_ph:'Describe the gift...',
@@ -708,6 +738,7 @@ const TRANS = {
     deliver_to:'\u0414\u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c',deliver_ph:'\u0418\u043c\u044f \u0438\u0433\u0440\u043e\u043a\u0430 \u0438\u043b\u0438 \u043b\u043e\u043a\u0430\u0446\u0438\u044f',
     deadline:'\u0421\u0440\u043e\u043a (\u043d\u0435\u043e\u0431\u044f\u0437.)',deadline_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0412\u043e\u0441\u043a\u0440\u0435\u0441\u0435\u043d\u044c\u0435 20:00',
     posted_by:'\u0410\u0432\u0442\u043e\u0440 *',poster_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
+    discord_id:'Discord ID',discord_id_ph:'\u0414\u043b\u044f \u0443\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f \u0432 Discord (\u0432\u0430\u0448 ID)',
     rewards:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
     reward_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',pts_label:'\u043e\u0447\u043a.',
     gift_ph:'\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u043f\u043e\u0434\u0430\u0440\u043e\u043a...',
@@ -753,10 +784,10 @@ let currentFilter = 'open';
 let claimingId = null;
 
 const TYPE_ICONS  = {gather:'\u26cf',farm:'🌾',deliver:'📦',craft:'🔨',event:'🎪'};
-const AVAILABLE_IMAGES = ['Aqua Fortis.jpg','Aqua Regia.jpg','Beast Leather.jpg','Beeswax.jpg','Blood of the Beast.jpg','Bulat Bar.jpg','Calcite Crystal.jpg','Coal.jpg','Dziwer Bar.jpg','Herb Leaf.jpg','Herbs Seeds.jpg','Leaf Plan Seads.jpg','Magnetite.jpg','Milk.jpg','Pyrite.jpg','Quartz Crystal.jpg','Quartz Glass.jpg','Quicklime.jpg','Saffron.jpg','Salt.jpg','Suet.jpg','Sulfur.jpg','Thick Tanned Leather.jpg','Cuckoo.jpg','Inventory Slot Card.jpg','Spider Venom Gland.jpg'];
+const AVAILABLE_IMAGES = ['Aqua Fortis.jpg','Aqua Regia.jpg','Beast Leather.jpg','Beeswax.jpg','Blood of the Beast.jpg','Bulat Bar.jpg','Calcite Crystal.jpg','Coal.jpg','Dziwer Bar.jpg','Leaf Plan Seads.jpg','Magnetite.jpg','Milk.jpg','Pyrite.jpg','Quartz Crystal.jpg','Quartz Glass.jpg','Quicklime.jpg','Saffron.jpg','Suet.jpg','Sulfur.jpg','Thick Tanned Leather.jpg'];
 const ITEM_NAMES = {
-  en:{'Aqua Fortis':'Aqua Fortis','Aqua Regia':'Aqua Regia','Beast Leather':'Beast Leather','Beeswax':'Beeswax','Blood of the Beast':'Blood of the Beast','Bulat Bar':'Bulat Bar','Calcite Crystal':'Calcite Crystal','Coal':'Coal','Dziwer Bar':'Dziwer Bar','Herb Leaf':'Herb Leaf','Herbs Seeds':'Herbs Seeds','Leaf Plan Seads':'Leaf Plan Seeds','Magnetite':'Magnetite','Milk':'Milk','Pyrite':'Pyrite','Quartz Crystal':'Quartz Crystal','Quartz Glass':'Quartz Glass','Quicklime':'Quicklime','Saffron':'Saffron','Salt':'Salt','Suet':'Suet','Sulfur':'Sulfur','Thick Tanned Leather':'Thick Tanned Leather','Cuckoo':'Cuckoo','Inventory Slot Card':'Inventory Slot Card','Spider Venom Gland':'Spider Venom Gland'},
-  ru:{'Aqua Fortis':'Аква Фортис','Aqua Regia':'Аква Регия','Beast Leather':'Шкура зверя','Beeswax':'Пчелиный воск','Blood of the Beast':'Кровь зверя','Bulat Bar':'Булатный слиток','Calcite Crystal':'Кристалл кальцита','Coal':'Уголь','Dziwer Bar':'Слиток дзивера','Herb Leaf':'Лист травы','Herbs Seeds':'Семена трав','Leaf Plan Seads':'Семена','Magnetite':'Магнетит','Milk':'Молоко','Pyrite':'Пирит','Quartz Crystal':'Кварцевый кристалл','Quartz Glass':'Кварцевое стекло','Quicklime':'Негашеная известь','Saffron':'Шафран','Salt':'Соль','Suet':'Сало','Sulfur':'Сера','Thick Tanned Leather':'Толстая выделанная кожа','Cuckoo':'Кукушка','Inventory Slot Card':'Карта ячейки снаряжения','Spider Venom Gland':'Ядовитая железа паука'}
+  en:{'Aqua Fortis':'Aqua Fortis','Aqua Regia':'Aqua Regia','Beast Leather':'Beast Leather','Beeswax':'Beeswax','Blood of the Beast':'Blood of the Beast','Bulat Bar':'Bulat Bar','Calcite Crystal':'Calcite Crystal','Coal':'Coal','Dziwer Bar':'Dziwer Bar','Leaf Plan Seads':'Leaf Plan Seeds','Magnetite':'Magnetite','Milk':'Milk','Pyrite':'Pyrite','Quartz Crystal':'Quartz Crystal','Quartz Glass':'Quartz Glass','Quicklime':'Quicklime','Saffron':'Saffron','Suet':'Suet','Sulfur':'Sulfur','Thick Tanned Leather':'Thick Tanned Leather'},
+  ru:{'Aqua Fortis':'Аква Фортис','Aqua Regia':'Аква Регия','Beast Leather':'Шкура зверя','Beeswax':'Пчелиный воск','Blood of the Beast':'Кровь зверя','Bulat Bar':'Булатный слиток','Calcite Crystal':'Кристалл кальцита','Coal':'Уголь','Dziwer Bar':'Слиток дзивера','Leaf Plan Seads':'Семена','Magnetite':'Магнетит','Milk':'Молоко','Pyrite':'Пирит','Quartz Crystal':'Кварцевый кристалл','Quartz Glass':'Кварцевое стекло','Quicklime':'Негашеная известь','Saffron':'Шафран','Suet':'Сало','Sulfur':'Сера','Thick Tanned Leather':'Толстая выделанная кожа'}
 };
 
 function t(key, ...args){
@@ -795,7 +826,6 @@ async function initApp(){
   try{
     sb=supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     await fetchQuests();
-    checkHashForQuest();
     subscribeRealtime();
     fetchLeaderboard();
     fetchTickerItems();
@@ -825,7 +855,8 @@ function dbToQ(r){
     deadline:r.deadline||'',poster:r.poster||'',rewards:r.rewards||[],
     rewardNote:r.reward_note||'',status:r.status||'open',
     claimedBy:r.claimed_by||null,postedAt:new Date(r.posted_at).getTime(),
-    participants:r.participants||[],pointsValue:r.points_value||0
+    participants:r.participants||[],pointsValue:r.points_value||0,
+    discordId:r.discord_id||''
   };
 }
 
@@ -840,8 +871,8 @@ function subscribeRealtime(){
   sb.channel('loyalty-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'loyalty'},()=>{fetchLeaderboard();})
     .subscribe();
-  sb.channel('guild-items-live')
-    .on('postgres_changes',{event:'*',schema:'public',table:'guild_items'},()=>{fetchTickerItems();})
+  sb.channel('ticker-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'ticker_items'},()=>{fetchTickerItems();})
     .subscribe();
   sb.channel('chat-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'chat_messages'},()=>{fetchChat();})
@@ -986,6 +1017,8 @@ function render(){
   const ornament=document.getElementById('main-ornament');
   if(ornament&&currentView!=='shop')ornament.innerHTML=currentFilter==='event'?t('events_ornament'):'✦ '+t('active_contracts');
   document.getElementById('admin-badge').classList.toggle('show',admin);
+  const tBtn=document.getElementById('ticker-admin-btn');
+  if(tBtn)tBtn.style.display=admin?'':'none';
   const pBadge=document.getElementById('pending-badge');
   if(pBadge){
     const pCnt=quests.filter(q=>q.status==='pending').length;
@@ -1108,6 +1141,7 @@ async function postQuest(){
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
+    discord_id:document.getElementById('f-discord-id').value.trim(),
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
@@ -1144,7 +1178,8 @@ async function saveEdit(id){
     deadline:deadlineVal,
     poster,rewards,
     reward_note:giftNote,
-    points_value:pv
+    points_value:pv,
+    discord_id:document.getElementById('f-discord-id').value.trim()
   };
   setBusy('post-btn',true);
   const{error}=await sb.from('quests').update(row).eq('id',id);
@@ -1287,7 +1322,8 @@ async function completeQuest(id){
   }
   const{error}=await sb.from('quests').update({status:'complete'}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
-  if(q.pointsValue>0&&q.claimedBy){toast(q.pointsValue+' pts awarded to '+q.claimedBy+'!');}
+  const ptsAwarded=q.pointsValue>0&&q.claimedBy;
+  if(ptsAwarded){toast(q.pointsValue+' pts awarded to '+q.claimedBy+'!');}
   else{toast(t('quest_complete'));}
   if(q&&q.claimedBy){
     const hours=Math.max(1,Math.floor((Date.now()-q.postedAt)/3600000));
@@ -1329,6 +1365,7 @@ async function saveRepeat(){
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
+    discord_id:document.getElementById('f-discord-id').value.trim(),
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
@@ -1759,13 +1796,16 @@ async function pmDelete(){
 let tickerItems=[];
 let tickerPos=window.innerWidth;
 let tickerRunning=false;
-let tickerPhase='items';
 
 async function fetchTickerItems(){
   if(!sb)return;
-  const{data,error}=await sb.from('guild_items').select('*').order('sort_order',{ascending:true});
-  if(error){console.warn('guild_items ticker fetch failed:',error);return;}
-  tickerItems=(data||[]).map(i=>({id:i.id,name:i.name_ru||i.name_en,image:i.image,hot:i.is_hot}));
+  const{data,error}=await sb.from('ticker_items').select('*').order('sort_order',{ascending:true});
+  if(error&&error.message.includes('does not exist'))return;
+  if(error)return;
+  tickerItems=data||[];
+  if(!document.getElementById('ticker-modal').classList.contains('hidden')){
+    openTickerModal();
+  }
   renderTicker();
 }
 
@@ -1775,25 +1815,14 @@ function startTicker(){
   const track=document.getElementById('ticker-track');
   if(!track||!track.children.length||tickerRunning)return;
   tickerRunning=true;
-  const id=Date.now();
-  track.dataset.tid=id;
+  tickerPos=window.innerWidth;
   function step(){
-    if(!tickerRunning||track.dataset.tid!=id)return;
+    if(!tickerRunning)return;
     tickerPos-=1.5;
-    const last=track.lastElementChild;
-    if(last){
-      const right=tickerPos+last.offsetLeft+last.offsetWidth;
-      if(right+40<0){
-        if(tickerPhase==='items'){
-          tickerPhase='banner';
-          track.innerHTML='<span class="ticker-banner">\u2694 AVANGARD POWER!!! \u2694</span>';
-          tickerPos=window.innerWidth;
-        }else{
-          tickerPhase='items';
-          renderTicker();
-          return;
-        }
-      }
+    const first=track.firstElementChild;
+    if(first&&tickerPos+first.offsetWidth+40<0){
+      track.appendChild(first);
+      tickerPos+=first.offsetWidth+40;
     }
     track.style.transform='translateX('+tickerPos+'px)';
     requestAnimationFrame(step);
@@ -1805,19 +1834,72 @@ function renderTicker(){
   stopTicker();
   const wrap=document.getElementById('ticker-wrap');
   const track=document.getElementById('ticker-track');
+  document.getElementById('ticker-admin-btn').style.display=isAdmin()?'':'none';
   if(!tickerItems.length){wrap.classList.add('hidden');return;}
   wrap.classList.remove('hidden');
-  tickerPhase='items';
-  const announce=`<span class="ticker-announce">${t('ticker_announce')}</span>`;
+  const announce=`<span class="ticker-item" style="color:var(--red-bright);font-family:Cinzel;font-size:1.3rem;text-transform:uppercase;flex-shrink:0;margin-right:20px">${t('ticker_announce')}</span>`;
   const items=tickerItems.map(i=>{
+    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[i.name]||i.name;
     const hotCls=i.hot?' ticker-item-hot':'';
     const hot=i.hot?'<span class="ticker-hot">🔥</span>':'';
-    const name=esc(i.name||'');
-    return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${name[0]}</text></svg>'">${name}${hot}</div>`;
+    return`<div class="ticker-item${hotCls}"><img src="images/${esc(i.image)}" alt="${esc(tName)}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\'><rect fill=\\'%232c2618\\' width=\\'32\\' height=\\'32\\'/><text x=\\'16\\' y=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23c8922a\\' font-size=\\'12\\' font-family=\\'Cinzel\\'>${esc(tName[0])}</text></svg>'">${esc(tName)}${hot}</div>`;
   }).join('');
   track.innerHTML=announce+items;
-  tickerPos=window.innerWidth;
   startTicker();
+}
+
+async function addTickerItem(image, name){
+  if(!image)return;
+  if(!name)name=image.replace(/\.\w+$/,'');
+  if(tickerItems.some(i=>i.image===image)){toast('Already in ticker.');return;}
+  const hot=document.getElementById('ti-hot').checked;
+  const{error}=await sb.from('ticker_items').insert({name,image,hot,sort_order:tickerItems.length+1});
+  if(error){toast(t('err_prefix')+error.message);return;}
+  toast('Added: '+(hot?'🔥 ':'')+name);
+}
+
+async function clearTickerItems(){
+  if(!confirm('Remove all items from the ticker?'))return;
+  for(const i of tickerItems){
+    await sb.from('ticker_items').delete().eq('id',i.id);
+  }
+  await fetchTickerItems();
+}
+
+async function deleteTickerItem(id){
+  if(!confirm('Delete this ticker item?'))return;
+  const{error}=await sb.from('ticker_items').delete().eq('id',id);
+  if(error){toast(t('err_prefix')+error.message);return;}
+  await fetchTickerItems();
+}
+
+async function toggleTickerHot(id){
+  const item=tickerItems.find(i=>i.id===id);
+  if(!item)return;
+  const{error}=await sb.from('ticker_items').update({hot:!item.hot}).eq('id',id);
+  if(error){toast(t('err_prefix')+error.message);return;}
+  await fetchTickerItems();
+}
+
+function openTickerModal(){
+  const grid=document.getElementById('ti-grid');
+  const activeImages=tickerItems.map(i=>i.image);
+  grid.innerHTML=AVAILABLE_IMAGES.map(img=>{
+    const name=img.replace(/\.\w+$/,'');
+    const inTicker=activeImages.includes(img);
+    const extra=inTicker?' style="border-color:var(--gold-dim);opacity:.4;cursor:default"':'';
+    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[name]||name;
+    return`<div class="ti-grid-item"${extra} title="${esc(tName)}" onclick="${inTicker?'':'addTickerItem(\''+esc(img)+'\')'}"><img src="images/${esc(img)}" alt="${esc(tName)}"></div>`;
+  }).join('');
+  const list=document.getElementById('ti-list');
+  if(!tickerItems.length){list.innerHTML='<p style="color:var(--text-faint);font-style:italic">No items yet.</p>';}
+  else{list.innerHTML=tickerItems.map(i=>{
+    const tName=(ITEM_NAMES[lang]||ITEM_NAMES.en)[i.name]||i.name;
+    const hot=i.hot?' 🔥':'';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment-3)"><img src="images/${esc(i.image)}" alt="" style="width:28px;height:28px;object-fit:cover;border:1px solid var(--border)"><span style="flex:1;font-size:.85rem">${esc(tName)}${hot}</span><button class="btn btn-sm ${i.hot?'btn-primary':''}" onclick="toggleTickerHot('${i.id}')" style="font-size:.55rem">🔥</button><button class="btn btn-sm btn-danger" onclick="deleteTickerItem('${i.id}')" style="font-size:.55rem">✕</button></div>`;
+  }).join('');}
+  applyTranslations();
+  openModal('ticker-modal');
 }
 
 function openModal(id){document.getElementById(id).classList.remove('hidden');}
@@ -1846,17 +1928,6 @@ function toast(msg){
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-function getQuestUrl(id){return window.location.origin+window.location.pathname+'#quest-'+id;}
-
-function checkHashForQuest(){
-  var m=window.location.hash.match(/^#quest-(.+)$/);
-  if(!m)return;
-  var el=document.getElementById('card-'+m[1]);
-  if(!el)return;
-  el.scrollIntoView({behavior:'smooth',block:'center'});
-  el.classList.add('hash-highlight');
-}
 
 document.getElementById('warning-btn').addEventListener('click',function(){
   sessionStorage.setItem('gv_warning','1');
