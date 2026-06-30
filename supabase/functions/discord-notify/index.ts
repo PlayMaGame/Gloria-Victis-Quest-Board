@@ -92,11 +92,17 @@ function fmt(q: DbRow): string {
   return p.length ? p.join(" \u00b7 ") : "\u200b";
 }
 
+function parsePart(p: any): { name: string; dig: string } {
+  if (typeof p === "string") {
+    try { const o = JSON.parse(p); return { name: o.name || p, dig: o.discord_id || "" }; } catch (e) { return { name: p, dig: "" }; }
+  }
+  return { name: p?.name || "", dig: p?.discord_id || "" };
+}
+
 function formatParticipants(list: any[]): string {
   if (!list?.length) return "0";
   return list.map(p => {
-    const name = typeof p === "string" ? p : p.name;
-    const dig = typeof p === "object" ? (p.discord_id || "") : "";
+    const { name, dig } = parsePart(p);
     return dig && /^\d+$/.test(dig) ? `${name} (<@${dig}>)` : name;
   }).join(", ");
 }

@@ -403,9 +403,15 @@ select option{background:var(--parchment-3);}
         <label data-i18n="voice_channel">Voice Channel</label>
         <input id="f-voice" type="text" data-i18n-placeholder="voice_channel_ph">
       </div>
-      <div class="form-group">
-        <label data-i18n="author_label">Your Name or Discord ID *</label>
-        <input id="f-author" type="text" data-i18n-placeholder="author_ph">
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label data-i18n="posted_by">Posted By *</label>
+          <input id="f-poster" type="text" data-i18n-placeholder="poster_ph">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label data-i18n="discord_id">Discord ID</label>
+          <input id="f-discord-id" type="text" data-i18n-placeholder="discord_id_ph">
+        </div>
       </div>
       <div class="form-group" id="rewards-section">
         <label data-i18n="rewards">Rewards</label>
@@ -685,7 +691,8 @@ const TRANS = {
     quantity:'Quantity',qty_ph:'e.g. 500',
     deliver_to:'Deliver To',deliver_ph:'Player name or location',
     deadline:'Deadline (optional)',deadline_ph:'e.g. Sunday 20:00',
-    author_label:'Your Name or Discord ID *',author_ph:'Your in-game name or Discord ID (to get pinged)',
+    posted_by:'Posted By *',poster_ph:'Your in-game name',
+    discord_id:'Discord ID',discord_id_ph:'To get pinged in Discord (your Discord ID)',
     rewards:'Rewards',
     reward_hot:'🔥 Hot Deal',reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',pts_label:'pts',
     gift_ph:'Describe the gift...',
@@ -734,7 +741,8 @@ const TRANS = {
     quantity:'\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',qty_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: 500',
     deliver_to:'\u0414\u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c',deliver_ph:'\u0418\u043c\u044f \u0438\u0433\u0440\u043e\u043a\u0430 \u0438\u043b\u0438 \u043b\u043e\u043a\u0430\u0446\u0438\u044f',
     deadline:'\u0421\u0440\u043e\u043a (\u043d\u0435\u043e\u0431\u044f\u0437.)',deadline_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0412\u043e\u0441\u043a\u0440\u0435\u0441\u0435\u043d\u044c\u0435 20:00',
-    author_label:'\u0418\u043c\u044f \u0438\u043b\u0438 Discord ID *',author_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f \u0438\u043b\u0438 Discord ID (\u0434\u043b\u044f \u0443\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f)',
+    posted_by:'\u0410\u0432\u0442\u043e\u0440 *',poster_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
+    discord_id:'Discord ID',discord_id_ph:'\u0414\u043b\u044f \u0443\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f \u0432 Discord (\u0432\u0430\u0448 ID)',
     rewards:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
     reward_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',pts_label:'\u043e\u0447\u043a.',
     gift_ph:'\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u043f\u043e\u0434\u0430\u0440\u043e\u043a...',
@@ -992,7 +1000,7 @@ function renderCard(q){
       ${participantsHtml}
     </div>
     <div class="card-foot">
-      <span class="card-poster">${t('posted_by_text')} <strong>${esc(q.discordId||q.poster)}</strong> &middot; ${timeAgo(q.postedAt)}</span>
+      <span class="card-poster">${t('posted_by_text')} <strong>${esc(q.poster)}</strong> &middot; ${timeAgo(q.postedAt)}</span>
       <div class="card-actions">${acts}</div>
     </div>
   </div>`;
@@ -1091,7 +1099,7 @@ function onTypeChange(){
 }
 
 function openNewQuestModal(editData){
-  ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-author','f-voice'].forEach(id=>document.getElementById(id).value='');
+  ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster','f-discord-id','f-voice'].forEach(id=>document.getElementById(id).value='');
   ['r-hot','r-points','r-gift'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('f-points-value').value='';document.getElementById('f-points-value').style.display='none';
   document.getElementById('f-gift-desc').value='';document.getElementById('f-gift-desc').style.display='none';
@@ -1107,7 +1115,8 @@ function openNewQuestModal(editData){
     document.getElementById('f-qty').value=editData.qty||'';
     document.getElementById('f-deliver').value=editData.deliverTo||'';
     document.getElementById('f-deadline').value=editData.deadline||'';
-    document.getElementById('f-author').value=editData.discordId||editData.poster||'';
+    document.getElementById('f-poster').value=editData.poster||'';
+    document.getElementById('f-discord-id').value=editData.discordId||'';
     document.getElementById('f-gift-desc').value=editData.rewardNote||'';
     if(editData.pointsValue)document.getElementById('f-points-value').value=editData.pointsValue;
     (editData.rewards||[]).forEach(r=>{const el=document.getElementById('r-'+r);if(el)el.checked=true;});
@@ -1132,11 +1141,8 @@ function openNewQuestModal(editData){
 
 async function postQuest(){
   const title=document.getElementById('f-title').value.trim();
-  const author=document.getElementById('f-author').value.trim();
-  if(!title||!author){toast(t('required_title_poster'));return;}
-  const isDiscordId=/^\d+$/.test(author);
-  const poster=isDiscordId?'':author;
-  const discordId=isDiscordId?author:'';
+  const poster=document.getElementById('f-poster').value.trim();
+  if(!title||!poster){toast(t('required_title_poster'));return;}
   const rewards=isAdmin()?['hot','points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
   const isEventType=document.getElementById('f-type').value==='event';
   const deadlineVal=isEventType?new Date(document.getElementById('f-event-date').value+'T'+document.getElementById('f-event-time').value).toISOString():document.getElementById('f-deadline').value.trim();
@@ -1152,7 +1158,7 @@ async function postQuest(){
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
-    discord_id:discordId,
+    discord_id:document.getElementById('f-discord-id').value.trim(),
     voice_channel:document.getElementById('f-voice').value.trim(),
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
@@ -1174,11 +1180,8 @@ function openEditModal(id){
 
 async function saveEdit(id){
   const title=document.getElementById('f-title').value.trim();
-  const author=document.getElementById('f-author').value.trim();
-  if(!title||!author){toast(t('required_title_poster'));return;}
-  const isDiscordId=/^\d+$/.test(author);
-  const poster=isDiscordId?'':author;
-  const discordId=isDiscordId?author:'';
+  const poster=document.getElementById('f-poster').value.trim();
+  if(!title||!poster){toast(t('required_title_poster'));return;}
   const rewards=isAdmin()?['hot','points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
   const isEventType=document.getElementById('f-type').value==='event';
   const deadlineVal=isEventType?new Date(document.getElementById('f-event-date').value+'T'+document.getElementById('f-event-time').value).toISOString():document.getElementById('f-deadline').value.trim();
@@ -1194,7 +1197,7 @@ async function saveEdit(id){
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
-    discord_id:discordId,
+    discord_id:document.getElementById('f-discord-id').value.trim(),
     voice_channel:document.getElementById('f-voice').value.trim()
   };
   setBusy('post-btn',true);
@@ -1372,11 +1375,8 @@ function repeatQuest(id){
 
 async function saveRepeat(){
   const title=document.getElementById('f-title').value.trim();
-  const author=document.getElementById('f-author').value.trim();
-  if(!title||!author){toast(t('required_title_poster'));return;}
-  const isDiscordId=/^\d+$/.test(author);
-  const poster=isDiscordId?'':author;
-  const discordId=isDiscordId?author:'';
+  const poster=document.getElementById('f-poster').value.trim();
+  if(!title||!poster){toast(t('required_title_poster'));return;}
   const rewards=isAdmin()?['hot','points','gift'].filter(r=>document.getElementById('r-'+r).checked):[];
   const pv=parseInt(document.getElementById('f-points-value').value)||0;
   const giftNote=isAdmin()?document.getElementById('f-gift-desc').value.trim():'';
@@ -1390,7 +1390,7 @@ async function saveRepeat(){
     poster,rewards,
     reward_note:giftNote,
     points_value:pv,
-    discord_id:discordId,
+    discord_id:document.getElementById('f-discord-id').value.trim(),
     voice_channel:document.getElementById('f-voice').value.trim(),
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
@@ -1954,8 +1954,18 @@ function toast(msg){
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function getPName(p){return typeof p==='string'?p:p.name;}
-function getPDiscord(p){return typeof p==='object'?p.discord_id||'':'';}
+function getPName(p){
+  if(typeof p==='string'){
+    try{var o=JSON.parse(p);return o.name||p;}catch(e){return p;}
+  }
+  return p?p.name:'';
+}
+function getPDiscord(p){
+  if(typeof p==='string'){
+    try{var o=JSON.parse(p);return o.discord_id||'';}catch(e){return '';}
+  }
+  return p?p.discord_id||'':'';
+}
 
 document.getElementById('warning-btn').addEventListener('click',function(){
   sessionStorage.setItem('gv_warning','1');
