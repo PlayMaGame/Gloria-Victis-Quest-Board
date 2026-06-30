@@ -140,7 +140,6 @@ async function postDiscord(body: object, discordId?: string) {
   const msg: any = { ...body, components: [linkButton()] };
   if (discordId) {
     msg.content = `<@${discordId}>`;
-    msg.allowed_mentions = { users: [discordId] };
   }
   const r = await fetch(DISCORD_WEBHOOK_URL, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(msg),
