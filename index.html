@@ -2102,7 +2102,6 @@ function checkHashForFilter(){
   var f=m[1];
   var btn=document.querySelector('.filter-btn'+(f==='pending'?'#pending-btn':''));
   if(btn&&btn.style.display!=='none')btn.click();
-  else if(f==='pending')setFilter('pending',document.querySelector('.filter-btn:not(.hidden)')||document.querySelector('.filter-btn'));
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
