@@ -123,13 +123,17 @@ function embed(q: DbRow, overrides?: { title?: string; color?: number; desc?: st
     description: overrides?.desc ?? (q.description ? q.description.slice(0, 400) : undefined),
     fields: overrides?.fields ?? [
       { name: t("type"), value: icon + " " + label, inline: true },
-      { name: t("posted_by"), value: q.poster || "\u200b", inline: true },
+      { name: t("posted_by"), value: posterName(q), inline: true },
       ...buildFields(q),
       { name: t("rewards"), value: fmt(q), inline: false },
     ],
     footer: { text: t("status") + ": " + (statusMap[q.status] || q.status.toUpperCase()) },
     timestamp: q.posted_at || new Date().toISOString(),
   };
+}
+
+function posterName(q: DbRow): string {
+  return q.discord_id ? `<@${q.discord_id}>` : (q.poster || "\u200b");
 }
 
 function linkButton(): object {
@@ -182,7 +186,7 @@ serve(async (req) => {
           title: t("quest_claimed") + "\n" + q.title, color: 0x4a7abf,
           fields: [
             { name: t("type"), value: typeLabel(q), inline: true },
-            { name: t("posted_by"), value: q.poster || "\u200b", inline: true },
+            { name: t("posted_by"), value: posterName(q), inline: true },
             { name: t("claimed_by"), value: q.claimed_by || "\u2014", inline: false },
           ],
         })] }, q.discord_id);
@@ -193,7 +197,7 @@ serve(async (req) => {
           description: t("completed_desc").replace("{title}", q.title),
           fields: [
             { name: t("type"), value: typeLabel(q), inline: true },
-            { name: t("posted_by"), value: q.poster || "\u200b", inline: true },
+            { name: t("posted_by"), value: posterName(q), inline: true },
             ...(q.claimed_by ? [{ name: t("completed_by"), value: q.claimed_by, inline: true }] : []),
             ...(q.points_value && q.claimed_by ? [{ name: t("points_awarded"), value: q.points_value + " — " + q.claimed_by, inline: true }] : []),
           ],
