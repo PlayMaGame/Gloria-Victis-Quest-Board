@@ -143,6 +143,10 @@ main{margin:0 auto;padding:28px 24px 60px;}
 .form-group label{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
 .form-row{display:flex;gap:12px;}
 .form-row .form-group{flex:1;}
+.price-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
+.price-field{display:flex;flex-direction:column;gap:4px;}
+.price-field label{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);text-align:center;}
+.price-field input{text-align:center;padding:7px 4px;font-size:.85rem;}
 input,textarea,select{background:var(--parchment-3);border:1px solid var(--border);color:var(--text);font-family:'Crimson Text',serif;font-size:1rem;padding:8px 10px;width:100%;outline:none;transition:border-color .15s;}
 input:focus,textarea:focus,select:focus{border-color:var(--gold);}
 textarea{resize:vertical;min-height:72px;}
@@ -423,6 +427,15 @@ select option{background:var(--parchment-3);}
           <label class="reward-check"><input type="checkbox" id="r-hot"> <span data-i18n="reward_hot">&#128293; Hot Deal</span></label>
           <label class="reward-check"><input type="checkbox" id="r-points"> <span data-i18n="reward_points">&#127885; Guild Points</span></label>
           <label class="reward-check"><input type="checkbox" id="r-gift">   <span data-i18n="reward_gift">&#127873; Gift / Item</span></label>
+          <label class="reward-check"><input type="checkbox" id="r-money"> <span data-i18n="reward_money">&#128176; In Game Money</span></label>
+        </div>
+        <div id="money-fields" style="display:none;margin-top:8px">
+          <div class="price-row">
+            <div class="price-field"><label data-i18n="label_gold">Gold</label><input id="f-money-gold" type="number" min="0" value="0"></div>
+            <div class="price-field"><label data-i18n="label_silver">Silver</label><input id="f-money-silver" type="number" min="0" value="0"></div>
+            <div class="price-field"><label data-i18n="label_iron">Iron</label><input id="f-money-iron" type="number" min="0" value="0"></div>
+            <div class="price-field"><label data-i18n="label_copper">Copper</label><input id="f-money-copper" type="number" min="0" value="0"></div>
+          </div>
         </div>
         <input id="f-points-value" type="number" min="1" style="display:none;margin-top:6px;max-width:140px" data-i18n-placeholder="points_ph">
         <input id="f-gift-desc" type="text" style="display:none;margin-top:6px" data-i18n-placeholder="gift_ph">
@@ -750,7 +763,7 @@ const TRANS = {
     posted_by:'Posted By *',poster_ph:'Your in-game name',
     discord_id:'Discord ID',discord_id_ph:'To get pinged in Discord (your Discord ID)',
     rewards:'Rewards',
-    reward_hot:'🔥 Hot Deal',reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',pts_label:'pts',
+    reward_hot:'🔥 Hot Deal',reward_points:'🏅 Guild Points',reward_gift:'🎁 Gift / Item',reward_money:'💰 In Game Money',pts_label:'pts',label_gold:'Gold',label_silver:'Silver',label_iron:'Iron',label_copper:'Copper',coin_gold:'🟡',coin_silver:'⚪',coin_iron:'🟤',coin_copper:'🟠',
     gift_ph:'Describe the gift...',
     cancel:'Cancel',
     claim_quest_title:'Claim Quest',
@@ -800,7 +813,7 @@ const TRANS = {
     posted_by:'\u0410\u0432\u0442\u043e\u0440 *',poster_ph:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',
     discord_id:'Discord ID',discord_id_ph:'\u0414\u043b\u044f \u0443\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f \u0432 Discord (\u0432\u0430\u0448 ID)',
     rewards:'\u041d\u0430\u0433\u0440\u0430\u0434\u044b',
-    reward_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',pts_label:'\u043e\u0447\u043a.',
+    reward_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',reward_points:'🏅 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438',reward_gift:'🎁 \u041f\u043e\u0434\u0430\u0440\u043e\u043a / \u041f\u0440\u0435\u0434\u043c\u0435\u0442',reward_money:'💰 \u0418\u0433\u0440\u043e\u0432\u044b\u0435 \u0434\u0435\u043d\u044c\u0433\u0438',pts_label:'\u043e\u0447\u043a.',label_gold:'\u0417\u043e\u043b\u043e\u0442\u043e',label_silver:'\u0421\u0435\u0440\u0435\u0431\u0440\u043e',label_iron:'\u0416\u0435\u043b\u0435\u0437\u043e',label_copper:'\u041c\u0435\u0434\u044c',coin_gold:'🟡',coin_silver:'⚪',coin_iron:'🟤',coin_copper:'🟠',
     gift_ph:'\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u043f\u043e\u0434\u0430\u0440\u043e\u043a...',
     cancel:'\u041e\u0442\u043c\u0435\u043d\u0430',
     claim_quest_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',
@@ -940,7 +953,8 @@ function dbToQ(r){
     rewardNote:r.reward_note||'',status:r.status||'open',
     claimedBy:r.claimed_by||null,postedAt:new Date(r.posted_at).getTime(),
     participants:r.participants||[],pointsValue:r.points_value||0,
-    discordId:r.discord_id||'',voiceChannel:r.voice_channel||''
+    discordId:r.discord_id||'',voiceChannel:r.voice_channel||'',
+    rewardGold:r.reward_gold||0,rewardSilver:r.reward_silver||0,rewardIron:r.reward_iron||0,rewardCopper:r.reward_copper||0
   };
 }
 
@@ -977,8 +991,18 @@ function renderRewards(q){
   const map={points:['reward-points',t('reward_points')],gift:['reward-gift',t('reward_gift')]};
   const chips=(q.rewards||[]).filter(r=>map[r]).map(r=>{const[cls,l]=map[r];return`<span class="reward-chip ${cls}">${l}</span>`;}).join('');
   const note=q.rewardNote?`<span class="reward-chip" style="border-color:var(--border);color:var(--text-dim)">${esc(q.rewardNote)}</span>`:'';
-  const pts=q.pointsValue&&q.rewards.includes('points')?`<span class="reward-chip reward-points">🏅 ${q.pointsValue} ${t('pts_label')}</span>`:'';
-  return chips+note+pts;
+  const pts=q.pointsValue&&(q.rewards||[]).includes('points')?`<span class="reward-chip reward-points">🏅 ${q.pointsValue} ${t('pts_label')}</span>`:'';
+  let money='';
+  const g=q.rewardGold||0,s=q.rewardSilver||0,i=q.rewardIron||0,c=q.rewardCopper||0;
+  if(g||s||i||c){
+    const coins=[];
+    if(g)coins.push(`${t('coin_gold')} ${g}`);
+    if(s)coins.push(`${t('coin_silver')} ${s}`);
+    if(i)coins.push(`${t('coin_iron')} ${i}`);
+    if(c)coins.push(`${t('coin_copper')} ${c}`);
+    money=`<span class="reward-chip" style="border-color:var(--gold);color:var(--gold-bright)">${coins.join(' ')}</span>`;
+  }
+  return chips+note+pts+money;
 }
 
 function timeAgo(ts){
@@ -1179,9 +1203,10 @@ function onTypeChange(){
 
 function openNewQuestModal(editData){
   ['f-title','f-desc','f-item','f-qty','f-deliver','f-deadline','f-poster','f-discord-id','f-voice'].forEach(id=>document.getElementById(id).value='');
-  ['r-hot','r-points','r-gift'].forEach(id=>document.getElementById(id).checked=false);
+  ['r-hot','r-points','r-gift','r-money'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('f-points-value').value='';document.getElementById('f-points-value').style.display='none';
   document.getElementById('f-gift-desc').value='';document.getElementById('f-gift-desc').style.display='none';
+  document.getElementById('money-fields').style.display='none';document.getElementById('f-money-gold').value=0;document.getElementById('f-money-silver').value=0;document.getElementById('f-money-iron').value=0;document.getElementById('f-money-copper').value=0;
   document.getElementById('f-type').value=currentFilter==='event'?'event':'gather';
   const rw=document.getElementById('rewards-section');
   if(rw)rw.style.display=isAdmin()?'':'none';
@@ -1197,6 +1222,10 @@ function openNewQuestModal(editData){
     document.getElementById('f-poster').value=editData.poster||'';
     document.getElementById('f-discord-id').value=editData.discordId||'';
     document.getElementById('f-gift-desc').value=editData.rewardNote||'';
+    document.getElementById('f-money-gold').value=editData.rewardGold||0;
+    document.getElementById('f-money-silver').value=editData.rewardSilver||0;
+    document.getElementById('f-money-iron').value=editData.rewardIron||0;
+    document.getElementById('f-money-copper').value=editData.rewardCopper||0;
     if(editData.pointsValue)document.getElementById('f-points-value').value=editData.pointsValue;
     (editData.rewards||[]).forEach(r=>{const el=document.getElementById('r-'+r);if(el)el.checked=true;});
     if(editData.rewards&&editData.rewards.includes('points'))document.getElementById('f-points-value').style.display='';
@@ -1241,6 +1270,10 @@ async function postQuest(){
     points_value:pv,
     discord_id:document.getElementById('f-discord-id').value.trim(),
     voice_channel:document.getElementById('f-voice').value.trim(),
+    reward_gold:parseInt(document.getElementById('f-money-gold').value)||0,
+    reward_silver:parseInt(document.getElementById('f-money-silver').value)||0,
+    reward_iron:parseInt(document.getElementById('f-money-iron').value)||0,
+    reward_copper:parseInt(document.getElementById('f-money-copper').value)||0,
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
@@ -1279,7 +1312,11 @@ async function saveEdit(id){
     reward_note:giftNote,
     points_value:pv,
     discord_id:document.getElementById('f-discord-id').value.trim(),
-    voice_channel:document.getElementById('f-voice').value.trim()
+    voice_channel:document.getElementById('f-voice').value.trim(),
+    reward_gold:parseInt(document.getElementById('f-money-gold').value)||0,
+    reward_silver:parseInt(document.getElementById('f-money-silver').value)||0,
+    reward_iron:parseInt(document.getElementById('f-money-iron').value)||0,
+    reward_copper:parseInt(document.getElementById('f-money-copper').value)||0
   };
   setBusy('post-btn',true);
   const{error}=await sb.from('quests').update(row).eq('id',id);
@@ -1405,7 +1442,10 @@ async function closeEvent(id){
 
 function renderCEList(parts){
   const el=document.getElementById('ce-list');
-  el.innerHTML=parts.map((n,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:.85rem;border-bottom:1px solid var(--parchment-3)"><span style="color:var(--text-faint);min-width:20px;font-family:Cinzel;font-size:.65rem">#${i+1}</span><span style="flex:1">${esc(n)}</span><button class="btn btn-sm btn-danger" style="font-size:.5rem;padding:1px 6px" onclick="ceRemovePlayer('${esc(n)}')">✕</button></div>`).join('');
+  el.innerHTML=parts.map((p,i)=>{
+    const n=getPName(p);
+    return`<div style="display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:.85rem;border-bottom:1px solid var(--parchment-3)"><span style="color:var(--text-faint);min-width:20px;font-family:Cinzel;font-size:.65rem">#${i+1}</span><span style="flex:1">${esc(n)}</span><button class="btn btn-sm btn-danger" style="font-size:.5rem;padding:1px 6px" onclick="ceRemovePlayer('${esc(n)}')">✕</button></div>`;
+  }).join('');
 }
 
 function ceRemovePlayer(name){
@@ -1423,8 +1463,9 @@ async function confirmCloseEvent(){
   if(!parts.length){toast('No one left to reward.');closeModal('close-event-modal');return;}
   const pts=parseInt(document.getElementById('ce-points').value);
   if(isNaN(pts)||pts<1){toast('Enter valid points.');return;}
-  for(const name of parts){
-    await sb.from('loyalty').insert({player_name:name,points:pts,reason:q.title,awarded_by:'Admin',quest_id:ceQuestId});
+  for(const p of parts){
+    const pn=getPName(p);
+    await sb.from('loyalty').insert({player_name:pn,points:pts,reason:q.title,awarded_by:'Admin',quest_id:ceQuestId});
   }
   await sb.from('quests').update({status:'complete',participants:parts}).eq('id',ceQuestId);
   closeModal('close-event-modal');
@@ -1485,6 +1526,10 @@ async function saveRepeat(){
     points_value:pv,
     discord_id:document.getElementById('f-discord-id').value.trim(),
     voice_channel:document.getElementById('f-voice').value.trim(),
+    reward_gold:parseInt(document.getElementById('f-money-gold').value)||0,
+    reward_silver:parseInt(document.getElementById('f-money-silver').value)||0,
+    reward_iron:parseInt(document.getElementById('f-money-iron').value)||0,
+    reward_copper:parseInt(document.getElementById('f-money-copper').value)||0,
     status:isAdmin()?'open':'pending',claimed_by:null,participants:[]
   };
   setBusy('post-btn',true);
@@ -2036,6 +2081,10 @@ document.getElementById('r-points').addEventListener('change',function(){
 document.getElementById('r-gift').addEventListener('change',function(){
   document.getElementById('f-gift-desc').style.display=this.checked?'':'none';
   if(!this.checked)document.getElementById('f-gift-desc').value='';
+});
+document.getElementById('r-money').addEventListener('change',function(){
+  document.getElementById('money-fields').style.display=this.checked?'':'none';
+  if(!this.checked){document.getElementById('f-money-gold').value=0;document.getElementById('f-money-silver').value=0;document.getElementById('f-money-iron').value=0;document.getElementById('f-money-copper').value=0;}
 });
 
 let toastTimer;

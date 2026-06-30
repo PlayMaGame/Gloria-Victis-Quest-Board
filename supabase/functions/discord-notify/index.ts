@@ -14,6 +14,7 @@ const T: Record<string, Record<string, string>> = {
     completed_by: "Completed By", points_awarded: "Points Awarded",
     participants: "Participants", voice_channel: "Voice Channel",
     hot_deal: "\ud83d\udd25 Hot Deal", guild_points: "\ud83c\udfc5 Guild Points", gift: "\ud83c\udf81 Gift",
+    coin_gold: "\ud83d\udfe1", coin_silver: "\u26aa", coin_iron: "\ud83d\udfe4", coin_copper: "\ud83d\udfe0",
     status: "Status",
     quest_pending: "\u23f3 New Quest \u2014 Pending Approval",
     quest_new: "\ud83d\udcdc New Quest Posted",
@@ -35,6 +36,7 @@ const T: Record<string, Record<string, string>> = {
     participants: "\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438", voice_channel: "\u0413\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439",
     hot_deal: "\ud83d\udd25 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435",
     guild_points: "\ud83c\udfc5 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438",
+    coin_gold: "\ud83d\udfe1", coin_silver: "\u26aa", coin_iron: "\ud83d\udfe4", coin_copper: "\ud83d\udfe0",
     gift: "\ud83c\udf81 \u041f\u043e\u0434\u0430\u0440\u043e\u043a",
     status: "\u0421\u0442\u0430\u0442\u0443\u0441",
     quest_pending: "\u23f3 \u041d\u043e\u0432\u044b\u0439 \u0437\u0430\u043f\u0440\u043e\u0441 \u2014 \u041e\u0436\u0438\u0434\u0430\u0435\u0442 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f",
@@ -62,6 +64,7 @@ interface DbRow {
   poster: string; rewards: string[]; reward_note: string; status: string;
   claimed_by: string | null; posted_at: string; participants: any[]; points_value: number;
   discord_id: string; voice_channel: string; discord_message_id: string;
+  reward_gold: number; reward_silver: number; reward_iron: number; reward_copper: number;
 }
 
 function parseWebhookUrl(url: string): { id: string; token: string } | null {
@@ -89,6 +92,12 @@ function fmt(q: DbRow): string {
   if (q.rewards?.includes("points")) p.push("\ud83c\udfc5 " + (q.points_value || "") + " " + (LANG === "ru" ? "\u043e\u0447\u043a." : "pts"));
   if (q.rewards?.includes("gift")) p.push(t("gift"));
   if (q.reward_note) p.push(q.reward_note);
+  const coins: string[] = [];
+  if (q.reward_gold) coins.push(t("coin_gold") + " " + q.reward_gold);
+  if (q.reward_silver) coins.push(t("coin_silver") + " " + q.reward_silver);
+  if (q.reward_iron) coins.push(t("coin_iron") + " " + q.reward_iron);
+  if (q.reward_copper) coins.push(t("coin_copper") + " " + q.reward_copper);
+  if (coins.length) p.push(coins.join(" "));
   return p.length ? p.join(" \u00b7 ") : "\u200b";
 }
 
