@@ -159,7 +159,7 @@ function embed(q: DbRow, overrides?: { title?: string; color?: number; desc?: st
   return {
     title: overrides?.title ?? q.title,
     color: overrides?.color ?? TYPE_COLORS[q.type] ?? 0x888888,
-    description: overrides?.desc ?? (q.description ? q.description.slice(0, 400) : undefined),
+    description: (overrides?.desc ?? (q.description ? q.description.slice(0, 400) : undefined)) + `\n\n🔗 [${LANG === 'ru' ? 'Открыть доску' : 'Open Board'}](${BOARD_URL})` + (q.type === 'event' ? `\n📝 [${LANG === 'ru' ? 'Записаться' : 'Register'}](${BOARD_URL}#quest-${q.id})` : ''),
     fields: overrides?.fields ?? [
       { name: t("type"), value: icon + " " + label, inline: true },
       { name: t("posted_by"), value: posterName(q), inline: true },
@@ -171,16 +171,6 @@ function embed(q: DbRow, overrides?: { title?: string; color?: number; desc?: st
   };
 }
 
-function linkButtons(q: DbRow): object[] {
-  const btns: object[] = [
-    { type: 2, style: 5, label: LANG === "ru" ? "\ud83d\udd17 \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0434\u043e\u0441\u043a\u0443" : "\ud83d\udd17 Open Board", url: BOARD_URL },
-  ];
-  if (q.type === "event") {
-    btns.push({ type: 2, style: 5, label: LANG === "ru" ? "\ud83d\udcdd \u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f" : "\ud83d\udcdd Register", url: BOARD_URL + "#quest-" + q.id });
-  }
-  return [{ type: 1, components: btns }];
-}
-
 async function patchDiscordMessage(q: DbRow, embedData: object): Promise<boolean> {
   const wh = parseWebhookUrl(DISCORD_WEBHOOK_URL);
   if (!wh || !q.discord_message_id) return false;
@@ -188,13 +178,13 @@ async function patchDiscordMessage(q: DbRow, embedData: object): Promise<boolean
   const r = await fetch(url, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...embedData, components: linkButtons(q) }),
+    body: JSON.stringify(embedData),
   });
   return r.ok;
 }
 
 async function postAndStore(q: DbRow, embedData: object): Promise<string | null> {
-  const msg: any = { ...embedData, components: linkButtons(q) };
+  const msg: any = { ...embedData };
   if (q.type === "event") {
     msg.content = "@everyone";
   } else if (q.discord_id) {
