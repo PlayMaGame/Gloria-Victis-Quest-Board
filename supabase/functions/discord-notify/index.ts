@@ -159,7 +159,7 @@ function embed(q: DbRow, overrides?: { title?: string; color?: number; desc?: st
   return {
     title: overrides?.title ?? q.title,
     color: overrides?.color ?? TYPE_COLORS[q.type] ?? 0x888888,
-    description: (overrides?.desc ?? (q.description ? q.description.slice(0, 400) : undefined)) + `\n\n🔗 [${LANG === 'ru' ? 'Открыть доску' : 'Open Board'}](${BOARD_URL})` + (q.type === 'event' ? `\n📝 [${LANG === 'ru' ? 'Записаться' : 'Register'}](${BOARD_URL}#quest-${q.id})` : ''),
+    description: (overrides?.desc ?? (q.description ? q.description.slice(0, 400) : undefined)) + `\n\n🔗 [${LANG === 'ru' ? 'Открыть доску' : 'Open Board'}](${BOARD_URL}#filter-${q.type === 'event' ? 'event' : 'pending'})` + (q.type === 'event' ? `\n📝 [${LANG === 'ru' ? 'Записаться' : 'Register'}](${BOARD_URL}#filter-event)` : ''),
     fields: overrides?.fields ?? [
       { name: t("type"), value: icon + " " + label, inline: true },
       { name: t("posted_by"), value: posterName(q), inline: true },

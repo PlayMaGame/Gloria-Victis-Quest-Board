@@ -291,7 +291,7 @@ select option{background:var(--parchment-3);}
     <div class="header-actions">
       <div class="live-dot"></div>
       <span class="live-label" data-i18n="live">Live</span>
-      <span class="user-badge" id="user-badge" onclick="openUserModal()" title="Click to set your name">👤 <span id="user-name" data-i18n="set_name">Set Name</span></span>
+      <span class="user-badge" id="user-badge" onclick="openUserModal()" title="Click to set your name">👤 <span id="user-name">Set Name</span></span>
       <span class="admin-badge" id="admin-badge" onclick="logoutAdmin()" title="Click to logout">⚷ Admin</span>
       <button class="btn btn-sm" onclick="toggleLang()" id="lang-btn">RU</button>
       <button class="btn btn-sm" onclick="openGuideModal()">&#10067; <span data-i18n="guide_btn">Guide</span></button>
@@ -923,6 +923,7 @@ async function initApp(){
   try{
     sb=supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     await fetchQuests();
+    checkHashForFilter();
     subscribeRealtime();
     fetchLeaderboard();
     fetchTickerItems();
@@ -2093,6 +2094,15 @@ function toast(msg){
   el.textContent=msg;el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+function checkHashForFilter(){
+  var m=window.location.hash.match(/^#filter-(.+)$/);
+  if(!m)return;
+  var f=m[1];
+  var btn=document.querySelector('.filter-btn'+(f==='pending'?'#pending-btn':''));
+  if(btn&&btn.style.display!=='none')btn.click();
+  else if(f==='pending')setFilter('pending',document.querySelector('.filter-btn:not(.hidden)')||document.querySelector('.filter-btn'));
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
