@@ -93,10 +93,10 @@ function fmt(q: DbRow): string {
   if (q.rewards?.includes("gift")) p.push(t("gift"));
   if (q.reward_note) p.push(q.reward_note);
   const coins: string[] = [];
-  if (q.reward_gold) coins.push(q.reward_gold + t("coin_gold"));
-  if (q.reward_silver) coins.push(q.reward_silver + t("coin_silver"));
-  if (q.reward_iron) coins.push(q.reward_iron + t("coin_iron"));
-  if (q.reward_copper) coins.push(q.reward_copper + t("coin_copper"));
+  if (q.reward_gold) coins.push(q.reward_gold + " " + t("coin_gold"));
+  if (q.reward_silver) coins.push(q.reward_silver + " " + t("coin_silver"));
+  if (q.reward_iron) coins.push(q.reward_iron + " " + t("coin_iron"));
+  if (q.reward_copper) coins.push(q.reward_copper + " " + t("coin_copper"));
   if (coins.length) p.push(coins.join(" "));
   return p.length ? p.join(" \u00b7 ") : "\u200b";
 }
