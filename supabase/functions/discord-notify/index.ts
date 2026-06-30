@@ -103,7 +103,7 @@ function formatParticipants(list: any[]): string {
   if (!list?.length) return "0";
   return list.map(p => {
     const { name, dig } = parsePart(p);
-    return dig && /^\d+$/.test(dig) ? `${name} (<@${dig}>)` : name;
+    return dig && /^\d+$/.test(dig) ? `<@${dig}>` : name;
   }).join(", ");
 }
 
@@ -155,7 +155,7 @@ function embed(q: DbRow, overrides?: { title?: string; color?: number; desc?: st
       { name: t("type"), value: icon + " " + label, inline: true },
       { name: t("posted_by"), value: posterName(q), inline: true },
       ...buildFields(q),
-      { name: t("rewards"), value: fmt(q), inline: false },
+      ...(fmt(q) !== "\u200b" ? [{ name: t("rewards"), value: fmt(q), inline: false }] : []),
     ],
     footer: { text: t("status") + ": " + (statusMap[q.status] || q.status.toUpperCase()) },
     timestamp: q.posted_at || new Date().toISOString(),
