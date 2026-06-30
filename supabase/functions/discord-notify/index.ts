@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const DISCORD_WEBHOOK_URL = Deno.env.get("DISCORD_WEBHOOK_URL")!;
-const DISCORD_SERVICE_KEY = Deno.env.get("DISCORD_SERVICE_KEY")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BOARD_URL = "https://PlayMaGame.github.io/Gloria-Victis-Quest-Board/quest-board.html";
 const SUPABASE_URL = "https://dnwitnnzrkcismsbxfcg.supabase.co";
 const LANG = "ru";
@@ -197,8 +197,8 @@ async function postAndStore(q: DbRow, embedData: object): Promise<string | null>
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "apikey": DISCORD_SERVICE_KEY,
-          "Authorization": `Bearer ${DISCORD_SERVICE_KEY}`,
+          "apikey": SUPABASE_SERVICE_KEY,
+          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
         },
         body: JSON.stringify({ discord_message_id: msgId }),
       });
