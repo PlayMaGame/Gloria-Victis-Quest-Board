@@ -940,10 +940,14 @@ function renderCard(q){
   let acts='';
   if(isEvent&&q.status==='open'){
     const pCount=(q.participants||[]).length;
-    const myName=localStorage.getItem('gv_chat_name')||'';
-    const isReg=(q.participants||[]).includes(myName);
     acts=`<span style="font-size:.75rem;color:var(--text-dim);font-style:italic;cursor:pointer" onclick="openParticipantsModal('${q.id}')">${t('event_players',pCount)} 👥</span>`;
-    acts+=` <button class="btn btn-sm ${isReg?'btn-danger':'btn-success'}" onclick="toggleEventReg('${q.id}')">${isReg?t('event_unregister'):t('event_register')}</button>`;
+    if(admin){
+      acts+=` <button class="btn btn-sm" onclick="openParticipantsModal('${q.id}')">👥 ${t('participants_title')}</button>`;
+    }else{
+      const myName=localStorage.getItem('gv_chat_name')||'';
+      const isReg=(q.participants||[]).some(p=>getPName(p)===myName);
+      acts+=` <button class="btn btn-sm ${isReg?'btn-danger':'btn-success'}" onclick="toggleEventReg('${q.id}')">${isReg?t('event_unregister'):t('event_register')}</button>`;
+    }
   }else if(!isEvent&&q.status==='open'){
     acts=`<button class="btn btn-sm btn-success" onclick="openClaimModal('${q.id}')">${t('claim')}</button>`;
   }else if(q.status==='pending'&&admin){
@@ -966,7 +970,11 @@ function renderCard(q){
   let participantsHtml='';
   if(isEvent){
     if(q.voiceChannel)participantsHtml+=`<div class="detail-row" style="margin-top:4px"><span class="detail-label">🔊</span><span class="detail-value" style="font-size:.85rem">${esc(q.voiceChannel)}</span></div>`;
-    if((q.participants||[]).length)participantsHtml+=`<div class="card-desc" style="font-size:.8rem;margin-top:4px">📋 ${esc((q.participants||[]).join(', '))}</div>`;
+    const pList=q.participants||[];
+    if(pList.length){
+      const names=pList.map(p=>getPName(p)).join(', ');
+      participantsHtml+=`<div class="card-desc" style="font-size:.8rem;margin-top:4px">📋 (${pList.length}) ${esc(names)}</div>`;
+    }
   }
   const hotCls=(q.rewards||[]).includes('hot')?' card-hot-deal':'';
   const pendingCls=q.status==='pending'?' card-pending':q.status==='claimed'&&currentFilter==='_admin_pending'?' card-claimed-pending':'';
@@ -984,7 +992,7 @@ function renderCard(q){
       ${participantsHtml}
     </div>
     <div class="card-foot">
-      <span class="card-poster">${t('posted_by_text')} <strong>${esc(q.poster)}</strong> &middot; ${timeAgo(q.postedAt)}</span>
+      <span class="card-poster">${t('posted_by_text')} <strong>${esc(q.discordId||q.poster)}</strong> &middot; ${timeAgo(q.postedAt)}</span>
       <div class="card-actions">${acts}</div>
     </div>
   </div>`;
@@ -1226,7 +1234,8 @@ function openParticipantsModal(id){
   const admin=isAdmin();
   const myName=localStorage.getItem('gv_chat_name')||'';
   if(!parts.length){list.innerHTML=`<p style="font-style:italic;color:var(--text-faint)" data-i18n="no_participants">No one registered yet.</p>`;}
-  else{list.innerHTML=parts.map((n,i)=>{
+  else{list.innerHTML=parts.map((p,i)=>{
+    const n=getPName(p);
     const canRemove=admin||n===myName;
     const awardBtn=admin?` <button class="lb-award-btn" onclick="closeModal('participants-modal');openAwardModal('${esc(n)}')">+</button>`:'';
     const removeBtn=canRemove?` <button class="lb-award-btn" style="color:var(--red-bright);border-color:var(--red)" onclick="closeModal('participants-modal');unregisterFromEvent('${id}','${esc(n)}')">✕</button>`:'';
@@ -1241,22 +1250,27 @@ async function toggleEventReg(id){
   if(!q)return;
   const parts=q.participants||[];
   const myName=localStorage.getItem('gv_chat_name')||'';
-  if(parts.includes(myName)){
-    const{error}=await sb.from('quests').update({participants:parts.filter(p=>p!==myName)}).eq('id',id);
+  const existing=parts.find(p=>getPName(p)===myName);
+  if(existing){
+    const filtered=parts.filter(p=>getPName(p)!==myName);
+    const{error}=await sb.from('quests').update({participants:filtered}).eq('id',id);
     if(error){toast(t('err_prefix')+error.message);}
     return;
   }
-  registerForEvent(id, myName);
+  registerForEvent(id);
 }
 
-async function registerForEvent(id, forcedName){
-  const name=forcedName||(isAdmin()?prompt(t('enter_name')):localStorage.getItem('gv_chat_name'));
+async function registerForEvent(id){
+  const name=prompt(t('enter_name'));
   if(!name||!name.trim())return;
+  const dig=prompt(t('discord_id_ph'));
+  if(!dig){} // optional
   const q=quests.find(x=>x.id===id);
   if(!q)return;
   const parts=q.participants||[];
-  if(parts.includes(name)){toast(t('event_already'));return;}
-  parts.push(name);
+  if(parts.find(p=>getPName(p)===name.trim())){toast(t('event_already'));return;}
+  const entry=dig&&dig.trim()?{name:name.trim(),discord_id:dig.trim()}:name.trim();
+  parts.push(entry);
   const{error}=await sb.from('quests').update({participants:parts}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
   toast(t('event_done'));
@@ -1265,7 +1279,7 @@ async function registerForEvent(id, forcedName){
 async function unregisterFromEvent(id,name){
   const q=quests.find(x=>x.id===id);
   if(!q)return;
-  const parts=(q.participants||[]).filter(p=>p!==name);
+  const parts=(q.participants||[]).filter(p=>getPName(p)!==name);
   const{error}=await sb.from('quests').update({participants:parts}).eq('id',id);
   if(error){toast(t('err_prefix')+error.message);return;}
   toast('Removed: '+name);
@@ -1940,6 +1954,8 @@ function toast(msg){
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function getPName(p){return typeof p==='string'?p:p.name;}
+function getPDiscord(p){return typeof p==='object'?p.discord_id||'':'';}
 
 document.getElementById('warning-btn').addEventListener('click',function(){
   sessionStorage.setItem('gv_warning','1');

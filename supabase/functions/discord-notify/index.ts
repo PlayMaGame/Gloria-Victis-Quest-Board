@@ -60,7 +60,7 @@ interface DbRow {
   id: number; title: string; type: string; description: string;
   item: string; qty: string; deliver_to: string; deadline: string;
   poster: string; rewards: string[]; reward_note: string; status: string;
-  claimed_by: string | null; posted_at: string; participants: string[]; points_value: number;
+  claimed_by: string | null; posted_at: string; participants: any[]; points_value: number;
   discord_id: string; voice_channel: string; discord_message_id: string;
 }
 
@@ -92,9 +92,13 @@ function fmt(q: DbRow): string {
   return p.length ? p.join(" \u00b7 ") : "\u200b";
 }
 
-function formatParticipants(list: string[]): string {
+function formatParticipants(list: any[]): string {
   if (!list?.length) return "0";
-  return list.map(p => /^\d+$/.test(p) ? `<@${p}>` : p).join(", ");
+  return list.map(p => {
+    const name = typeof p === "string" ? p : p.name;
+    const dig = typeof p === "object" ? (p.discord_id || "") : "";
+    return dig && /^\d+$/.test(dig) ? `${name} (<@${dig}>)` : name;
+  }).join(", ");
 }
 
 function posterName(q: DbRow): string {
@@ -119,7 +123,8 @@ function buildFields(q: DbRow) {
   }
   if (q.claimed_by) f.push({ name: t("claimed_by"), value: q.claimed_by, inline: false });
   if (q.type === "event") {
-    f.push({ name: t("participants"), value: formatParticipants(q.participants || []), inline: false });
+    const pCount = (q.participants || []).length;
+    f.push({ name: t("participants") + ` (${pCount})`, value: formatParticipants(q.participants || []), inline: false });
   }
   return f;
 }
