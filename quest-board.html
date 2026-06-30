@@ -1099,7 +1099,7 @@ function renderCard(q){
       <span class="card-status-badge ${bCls}">${sLabel}</span>
     </div>
     <div class="card-body">
-      ${q.description?`<div class="card-desc">${esc(q.description)}</div>`:''}
+      ${q.description?`<div class="card-desc">${esc(q.description).replace(/\n/g,'<br>')}</div>`:''}
       <div class="card-details">${rows.join('')}${rSec}</div>
       ${participantsHtml}
     </div>
