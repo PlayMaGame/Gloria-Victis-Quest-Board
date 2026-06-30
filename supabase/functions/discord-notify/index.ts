@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const DISCORD_WEBHOOK_URL = Deno.env.get("DISCORD_WEBHOOK_URL")!;
+const DISCORD_SERVICE_KEY = Deno.env.get("DISCORD_SERVICE_KEY")!;
 const BOARD_URL = "https://PlayMaGame.github.io/Gloria-Victis-Quest-Board/quest-board.html";
+const SUPABASE_URL = "https://dnwitnnzrkcismsbxfcg.supabase.co";
 const LANG = "ru";
 
 const T: Record<string, Record<string, string>> = {
@@ -10,7 +12,7 @@ const T: Record<string, Record<string, string>> = {
     deliver_to: "Deliver To", location: "Location", deadline: "Deadline",
     start_time: "Start Time", claimed_by: "Claimed By", rewards: "Rewards",
     completed_by: "Completed By", points_awarded: "Points Awarded",
-    participants: "Participants",
+    participants: "Participants", voice_channel: "Voice Channel",
     hot_deal: "\ud83d\udd25 Hot Deal", guild_points: "\ud83c\udfc5 Guild Points", gift: "\ud83c\udf81 Gift",
     status: "Status",
     quest_pending: "\u23f3 New Quest \u2014 Pending Approval",
@@ -30,7 +32,7 @@ const T: Record<string, Record<string, string>> = {
     start_time: "\u041d\u0430\u0447\u0430\u043b\u043e", claimed_by: "\u0412\u0437\u044f\u043b(\u0430)",
     rewards: "\u041d\u0430\u0433\u0440\u0430\u0434\u044b", completed_by: "\u0412\u044b\u043f\u043e\u043b\u043d\u0438\u043b(\u0430)",
     points_awarded: "\u041d\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u043e \u043e\u0447\u043a\u043e\u0432",
-    participants: "\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438",
+    participants: "\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438", voice_channel: "\u0413\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439",
     hot_deal: "\ud83d\udd25 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435",
     guild_points: "\ud83c\udfc5 \u041e\u0447\u043a\u0438 \u0433\u0438\u043b\u044c\u0434\u0438\u0438",
     gift: "\ud83c\udf81 \u041f\u043e\u0434\u0430\u0440\u043e\u043a",
@@ -59,7 +61,12 @@ interface DbRow {
   item: string; qty: string; deliver_to: string; deadline: string;
   poster: string; rewards: string[]; reward_note: string; status: string;
   claimed_by: string | null; posted_at: string; participants: string[]; points_value: number;
-  discord_id: string;
+  discord_id: string; voice_channel: string; discord_message_id: string;
+}
+
+function parseWebhookUrl(url: string): { id: string; token: string } | null {
+  const m = url.match(/\/api\/webhooks\/(\d+)\/([^/?#]+)/);
+  return m ? { id: m[1], token: m[2] } : null;
 }
 
 function t(key: string): string {
@@ -71,8 +78,7 @@ function formatDeadline(deadline: string, qType: string): string {
   const ms = Date.parse(deadline);
   if (!isNaN(ms)) {
     const unix = Math.floor(ms / 1000);
-    if (qType === "event") return `<t:${unix}:f> (<t:${unix}:R>)`;
-    return `<t:${unix}:f>`;
+    return qType === "event" ? `<t:${unix}:f> (<t:${unix}:R>)` : `<t:${unix}:f>`;
   }
   return deadline;
 }
@@ -86,21 +92,34 @@ function fmt(q: DbRow): string {
   return p.length ? p.join(" \u00b7 ") : "\u200b";
 }
 
+function formatParticipants(list: string[]): string {
+  if (!list?.length) return "0";
+  return list.map(p => /^\d+$/.test(p) ? `<@${p}>` : p).join(", ");
+}
+
+function posterName(q: DbRow): string {
+  return q.discord_id ? `<@${q.discord_id}>` : (q.poster || "\u200b");
+}
+
 function buildFields(q: DbRow) {
   const f: { name: string; value: string; inline: boolean }[] = [];
   if (q.type !== "event") {
     if (q.item) f.push({ name: t("item"), value: q.item, inline: true });
     if (q.qty) f.push({ name: t("qty"), value: q.qty, inline: true });
   }
-  const label = q.type === "event" ? t("location") : t("deliver_to");
-  if (q.deliver_to) f.push({ name: label, value: q.deliver_to, inline: false });
+  const locLabel = q.type === "event" ? t("location") : t("deliver_to");
+  if (q.deliver_to) f.push({ name: locLabel, value: q.deliver_to, inline: false });
   if (q.deadline) {
     const dlLabel = q.type === "event" ? t("start_time") : t("deadline");
     f.push({ name: dlLabel, value: formatDeadline(q.deadline, q.type), inline: false });
   }
+  if (q.voice_channel) {
+    const vc = /^\d+$/.test(q.voice_channel) ? `<#${q.voice_channel}>` : q.voice_channel;
+    f.push({ name: t("voice_channel"), value: vc, inline: false });
+  }
   if (q.claimed_by) f.push({ name: t("claimed_by"), value: q.claimed_by, inline: false });
-  if (q.type === "event" && q.participants?.length) {
-    f.push({ name: t("participants"), value: q.participants.join(", "), inline: false });
+  if (q.type === "event") {
+    f.push({ name: t("participants"), value: formatParticipants(q.participants || []), inline: false });
   }
   return f;
 }
@@ -132,23 +151,62 @@ function embed(q: DbRow, overrides?: { title?: string; color?: number; desc?: st
   };
 }
 
-function posterName(q: DbRow): string {
-  return q.discord_id ? `<@${q.discord_id}>` : (q.poster || "\u200b");
-}
-
-function linkButton(): object {
-  return { type: 1, components: [{ type: 2, style: 5, label: LANG === "ru" ? "\ud83d\udd17 \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0434\u043e\u0441\u043a\u0443" : "\ud83d\udd17 Open Board", url: BOARD_URL }] };
-}
-
-async function postDiscord(body: object, discordId?: string) {
-  const msg: any = { ...body, components: [linkButton()] };
-  if (discordId) {
-    msg.content = `<@${discordId}>`;
+function linkButtons(q: DbRow): object[] {
+  const btns: object[] = [
+    { type: 2, style: 5, label: LANG === "ru" ? "\ud83d\udd17 \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0434\u043e\u0441\u043a\u0443" : "\ud83d\udd17 Open Board", url: BOARD_URL },
+  ];
+  if (q.type === "event") {
+    btns.push({ type: 2, style: 5, label: LANG === "ru" ? "\ud83d\udcdd \u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f" : "\ud83d\udcdd Register", url: BOARD_URL + "#quest-" + q.id });
   }
-  const r = await fetch(DISCORD_WEBHOOK_URL, {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(msg),
+  return [{ type: 1, components: btns }];
+}
+
+async function patchDiscordMessage(q: DbRow, embedData: object): Promise<boolean> {
+  const wh = parseWebhookUrl(DISCORD_WEBHOOK_URL);
+  if (!wh || !q.discord_message_id) return false;
+  const url = `https://discord.com/api/webhooks/${wh.id}/${wh.token}/messages/${q.discord_message_id}`;
+  const r = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...embedData, components: linkButtons(q) }),
   });
-  if (!r.ok) console.error("Discord error:", r.status, await r.text());
+  return r.ok;
+}
+
+async function postAndStore(q: DbRow, embedData: object): Promise<string | null> {
+  const msg: any = { ...embedData, components: linkButtons(q) };
+  if (q.type === "event") {
+    msg.content = "@everyone";
+  } else if (q.discord_id) {
+    msg.content = `<@${q.discord_id}>`;
+  }
+  const r = await fetch(DISCORD_WEBHOOK_URL + "?wait=true", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(msg),
+  });
+  if (!r.ok) {
+    console.error("Discord error:", r.status, await r.text());
+    return null;
+  }
+  const data = await r.json();
+  const msgId = data.id as string;
+  if (q.type === "event" && msgId) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/quests?id=eq.${q.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": DISCORD_SERVICE_KEY,
+          "Authorization": `Bearer ${DISCORD_SERVICE_KEY}`,
+        },
+        body: JSON.stringify({ discord_message_id: msgId }),
+      });
+    } catch (e) {
+      console.error("Failed to store message_id:", e);
+    }
+  }
+  return msgId;
 }
 
 function typeLabel(q: DbRow): string {
@@ -159,57 +217,74 @@ function typeLabel(q: DbRow): string {
   return icon + " " + name;
 }
 
+function partsChanged(q: DbRow, oq: DbRow | null): boolean {
+  if (!oq) return false;
+  return JSON.stringify(q.participants || []) !== JSON.stringify(oq.participants || []);
+}
+
 serve(async (req) => {
   try {
     const p = await req.json();
     const ev = p.type as string;
     const q = p.record as DbRow | undefined;
     const oq = p.old_record as DbRow | null | undefined;
-
     if (!q) return new Response("no record", { status: 200 });
 
     if (ev === "INSERT") {
+      const isEvent = q.type === "event";
       if (q.status === "pending") {
-        await postDiscord({ embeds: [embed(q, {
+        await postAndStore(q, { embeds: [embed(q, {
           title: t("quest_pending") + "\n" + q.title,
           color: 0xffaa00,
           desc: (q.description || "") + "\n\n" + t("pending_desc"),
-        })] }, q.discord_id);
+        })] });
       } else if (q.status === "open") {
-        await postDiscord({ embeds: [embed(q, { title: t("quest_new") + "\n" + q.title })] }, q.discord_id);
+        await postAndStore(q, { embeds: [embed(q, { title: (isEvent ? "\ud83c\udfaa " : "\ud83d\udcdc ") + t("quest_new") + "\n" + q.title })] });
       }
-    } else if (ev === "UPDATE" && oq && q.status !== oq.status) {
-      if (oq.status === "pending" && q.status === "open") {
-        await postDiscord({ embeds: [embed(q, { title: t("quest_approved") + "\n" + q.title, color: 0x3a9a3a })] }, q.discord_id);
-      } else if (q.status === "claimed") {
-        await postDiscord({ embeds: [embed(q, {
-          title: t("quest_claimed") + "\n" + q.title, color: 0x4a7abf,
-          fields: [
-            { name: t("type"), value: typeLabel(q), inline: true },
-            { name: t("posted_by"), value: posterName(q), inline: true },
-            { name: t("claimed_by"), value: q.claimed_by || "\u2014", inline: false },
-          ],
-        })] }, q.discord_id);
-      } else if (q.status === "complete") {
-        await postDiscord({ embeds: [{
-          title: t("quest_completed") + q.title,
-          color: 0x3a9a3a,
-          description: t("completed_desc").replace("{title}", q.title),
-          fields: [
-            { name: t("type"), value: typeLabel(q), inline: true },
-            { name: t("posted_by"), value: posterName(q), inline: true },
-            ...(q.claimed_by ? [{ name: t("completed_by"), value: q.claimed_by, inline: true }] : []),
-            ...(q.points_value && q.claimed_by ? [{ name: t("points_awarded"), value: q.points_value + " — " + q.claimed_by, inline: true }] : []),
-          ],
-          timestamp: new Date().toISOString(),
-        }] }, q.discord_id);
-      } else if (q.status === "cancelled") {
-        await postDiscord({ embeds: [{
-          title: t("quest_cancelled") + q.title,
-          color: 0xcc4444,
-          description: t("cancelled_desc").replace("{title}", q.title),
-          timestamp: new Date().toISOString(),
-        }] }, q.discord_id);
+    } else if (ev === "UPDATE" && oq) {
+      const isEvent = q.type === "event";
+      const hasMsgId = !!q.discord_message_id;
+
+      if (isEvent && hasMsgId && partsChanged(q, oq)) {
+        const title = q.status === "open" ? t("quest_new") : t("quest_pending");
+        await patchDiscordMessage(q, { embeds: [embed(q, { title: "\ud83c\udfaa " + title + "\n" + q.title })] });
+      } else if (q.status !== oq.status) {
+        if (oq.status === "pending" && q.status === "open") {
+          if (isEvent && hasMsgId) {
+            await patchDiscordMessage(q, { embeds: [embed(q, { title: "\u2705 " + t("quest_approved") + "\n" + q.title, color: 0x3a9a3a })] });
+          } else {
+            await postAndStore(q, { embeds: [embed(q, { title: t("quest_approved") + "\n" + q.title, color: 0x3a9a3a })] });
+          }
+        } else if (q.status === "claimed") {
+          await postAndStore(q, { embeds: [embed(q, {
+            title: t("quest_claimed") + "\n" + q.title, color: 0x4a7abf,
+            fields: [
+              { name: t("type"), value: typeLabel(q), inline: true },
+              { name: t("posted_by"), value: posterName(q), inline: true },
+              { name: t("claimed_by"), value: q.claimed_by || "\u2014", inline: false },
+            ],
+          })] });
+        } else if (q.status === "complete") {
+          await postAndStore(q, { embeds: [{
+            title: t("quest_completed") + q.title,
+            color: 0x3a9a3a,
+            description: t("completed_desc").replace("{title}", q.title),
+            fields: [
+              { name: t("type"), value: typeLabel(q), inline: true },
+              { name: t("posted_by"), value: posterName(q), inline: true },
+              ...(q.claimed_by ? [{ name: t("completed_by"), value: q.claimed_by, inline: true }] : []),
+              ...(q.points_value && q.claimed_by ? [{ name: t("points_awarded"), value: q.points_value + " \u2014 " + q.claimed_by, inline: true }] : []),
+            ],
+            timestamp: new Date().toISOString(),
+          }] });
+        } else if (q.status === "cancelled") {
+          await postAndStore(q, { embeds: [{
+            title: t("quest_cancelled") + q.title,
+            color: 0xcc4444,
+            description: t("cancelled_desc").replace("{title}", q.title),
+            timestamp: new Date().toISOString(),
+          }] });
+        }
       }
     }
 
