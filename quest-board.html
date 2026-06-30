@@ -996,10 +996,10 @@ function renderRewards(q){
   const g=q.rewardGold||0,s=q.rewardSilver||0,i=q.rewardIron||0,c=q.rewardCopper||0;
   if(g||s||i||c){
     const coins=[];
-    if(g)coins.push(`${t('coin_gold')} ${g}`);
-    if(s)coins.push(`${t('coin_silver')} ${s}`);
-    if(i)coins.push(`${t('coin_iron')} ${i}`);
-    if(c)coins.push(`${t('coin_copper')} ${c}`);
+    if(g)coins.push(`${g}${t('coin_gold')}`);
+    if(s)coins.push(`${s}${t('coin_silver')}`);
+    if(i)coins.push(`${i}${t('coin_iron')}`);
+    if(c)coins.push(`${c}${t('coin_copper')}`);
     money=`<span class="reward-chip" style="border-color:var(--gold);color:var(--gold-bright)">${coins.join(' ')}</span>`;
   }
   return chips+note+pts+money;
