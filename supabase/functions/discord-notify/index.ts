@@ -59,7 +59,7 @@ const T: Record<string, Record<string, string>> = {
     shop_purchase_item: "\u041f\u0440\u0435\u0434\u043c\u0435\u0442",
     shop_purchase_price: "\u0426\u0435\u043d\u0430",
     shop_purchase_link: "\u041f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043e\u0436\u0438\u0434\u0430\u044e\u0449\u0438\u0435 \u043f\u043e\u043a\u0443\u043f\u043a\u0438",
-    shop_purchase_desc: "**{player}** \u043a\u0443\u043f\u0438\u043b(\\u0430) **{item}** \u0437\u0430 **{price} \u043e\u0447\u043a\u043e\u0432**",
+    shop_purchase_desc: "**{player}** \u043a\u0443\u043f\u0438\u043b(\u0430) **{item}** \u0437\u0430 **{price} \u043e\u0447\u043a\u043e\u0432**",
   },
 };
 

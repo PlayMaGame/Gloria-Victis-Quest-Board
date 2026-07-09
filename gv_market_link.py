@@ -128,6 +128,17 @@ def activate_gv(hwnd):
     if ftid != ttid:
         win32process.AttachThreadInput(ftid, ttid, False)
 
+def is_target_tab():
+    hwnd = win32gui.GetForegroundWindow()
+    if not hwnd:
+        return False
+    cls = win32gui.GetClassName(hwnd)
+    is_browser = 'MozillaWindowClass' in cls or 'Chrome_WidgetWin' in cls
+    if not is_browser:
+        return False
+    title = win32gui.GetWindowText(hwnd)
+    return 'gloria victis' in title.lower()
+
 def search(name, pos):
     x, y = pos
     orig_x, orig_y = pyautogui.position()
@@ -169,7 +180,7 @@ def main():
     try:
         while True:
             c = pyperclip.paste()
-            if c and c != last:
+            if c and c != last and is_target_tab():
                 last = c
                 now = time.time()
                 if now - last_t > COOLDOWN and is_item(c):
