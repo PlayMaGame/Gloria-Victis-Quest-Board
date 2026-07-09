@@ -103,6 +103,30 @@ export function buildQuestEmbed(q, baseUrl) {
   return embed;
 }
 
+export function buildShopPurchaseEmbed(purchase, baseUrl) {
+  const embed = new EmbedBuilder()
+    .setColor(0xc8922a)
+    .setTitle('\uD83D\uDED2 New Shop Purchase')
+    .setDescription(`**${purchase.player_name}** bought **${purchase.item_name}** for **${purchase.price} pts**`)
+    .addFields(
+      { name: '👤 Player', value: purchase.player_name, inline: true },
+      { name: '\uD83C\uDFAE Discord ID', value: /^\d+$/.test(purchase.discord_id) ? `<@${purchase.discord_id}>` : (purchase.discord_id || '—'), inline: true },
+      { name: '\uD83D\uDCE6 Item', value: purchase.item_name, inline: true },
+      { name: '\uD83D\uDCB0 Price', value: `${purchase.price} pts`, inline: true },
+    )
+    .setFooter({ text: `ID: ${purchase.id.slice(0, 8)}…` })
+    .setTimestamp(new Date());
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setLabel('\uD83D\uDCCB Pending Purchases')
+      .setStyle(ButtonStyle.Link)
+      .setURL(`${baseUrl}/#pending-purchases`)
+  );
+
+  return { embeds: [embed], components: [row] };
+}
+
 export function buildQuestComponents(q, baseUrl) {
   const url = getQuestUrl(baseUrl, q.id);
   const row = new ActionRowBuilder();

@@ -121,6 +121,20 @@ main{margin:0 auto;padding:28px 24px 60px;}
 .shop-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
 .shop-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .ornament.shop-ornament{color:var(--green-bright);}
+.shop-buy-summary{margin-bottom:12px;padding:12px;background:var(--parchment-3);border:1px solid var(--border);border-radius:4px;}
+.shop-buy-summary .shop-buy-name{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gold-bright);font-weight:600;}
+.shop-buy-summary .shop-buy-price{font-size:.8rem;color:var(--text-dim);margin-top:4px;}
+.purchases-list{display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;}
+.purchase-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--parchment-3);border:1px solid var(--border);font-size:.82rem;flex-wrap:wrap;}
+.purchase-row .pr-info{flex:1;min-width:0;}
+.purchase-row .pr-player{font-weight:600;color:var(--gold-bright);}
+.purchase-row .pr-item{color:var(--text);}
+.purchase-row .pr-meta{font-size:.72rem;color:var(--text-faint);}
+.purchase-row .pr-actions{display:flex;gap:6px;}
+.purchase-row.approved{opacity:.5;border-color:var(--green);}
+.purchase-row.approved .pr-player,.purchase-row.approved .pr-item{color:var(--text-faint);}
+.purchase-row.rejected{opacity:.5;border-color:var(--red);}
+.purchase-row.rejected .pr-player,.purchase-row.rejected .pr-item{color:var(--text-faint);}
 
 /* STATUS */
 .board-status{grid-column:1/-1;text-align:center;padding:80px 24px;color:var(--text-faint);}
@@ -739,6 +753,49 @@ select option{background:var(--parchment-3);}
   </div>
 </div>
 
+<!-- PURCHASE CONFIRMATION MODAL -->
+<div class="modal-overlay hidden" id="buy-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="shop_buy_modal_title">&#128176; Confirm Purchase</span>
+      <button class="modal-close" onclick="closeModal('buy-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="shop-buy-summary" id="buy-summary"></div>
+      <div class="form-group">
+        <label data-i18n="shop_buy_ign">Your IGN *</label>
+        <input id="buy-ign" type="text">
+      </div>
+      <div class="form-group">
+        <label data-i18n="shop_buy_discord">Discord ID</label>
+        <input id="buy-discord" type="text" data-i18n-placeholder="discord_id_ph">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('buy-modal')" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-primary" id="buy-confirm-btn" onclick="confirmPurchase()" data-i18n="shop_buy_confirm_btn">Buy</button>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING PURCHASES MODAL -->
+<div class="modal-overlay hidden" id="purchases-modal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="shop_pending_title">&#128176; Pending Purchases</span>
+      <button class="modal-close" onclick="closeModal('purchases-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div id="purchases-list" class="purchases-list">
+        <div class="board-status" style="padding:30px 16px"><p data-i18n="shop_pending_none">No pending purchases.</p></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('purchases-modal')" data-i18n="close">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -795,7 +852,7 @@ const TRANS = {
     admin_password:'Password',admin_unlock:'Unlock',
     award_title:'Award Points',award_points:'Points',award_reason:'Reason',
     award_reason_ph:'e.g. Event victory',award_btn:'Award',
-    cancelled:'❌ Cancelled',pending:'⏳ Pending',approve:'✅ Approve',reject:'❌ Reject',pending_title:'Pending Approval',pending_note:'Your quest is pending admin approval.',    supplies:'Supplies',event_register:'Register',event_unregister:'Unregister',event_close:'Close Event',event_cancel:'❌ Cancel Event',event_started:'🚀 Event Started!',event_players:'{n} players',event_already:'Already registered.',event_done:'Registered!',reg_title:'📝 Register for Event',reg_info:'Enter your in-game name to register.',reg_hint:'Where to find: Settings → Advanced → Developer Mode → Right-click name → Copy ID',event_close_title:'Close Event',event_close_confirm:'Award & Close',event_participants:'Participants — click ✕ to remove:',event_awarded:'{n} pts awarded to {m} players!',event_location:'Start Location',event_start:'Start Time',voice_channel:'Voice Channel',voice_channel_ph:'Channel ID (#ID) or name (e.g. Voice Chat 2)',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',chat_title:'✦ Guild Chat ✦',chat_header:'💬 Guild Chat',chat_placeholder:'Type a message...',chat_send:'Send',chat_name_prompt:'Enter your in-game name for chat:',chat_cooldown:'Wait {n}s',shop_tab:'💰 Point Shop 💰',shop_empty:'Shop is empty.',shop_add:'Add Item',shop_edit:'Edit Item',shop_save:'Save',shop_name:'Item Name',shop_price_label:'Price (pts)',shop_stock_label:'Stock',shop_sponsor_label:'Sponsor',shop_buy:'Buy',shop_out:'Out of stock',shop_stock:'{n} left',shop_price:'{n} pts',shop_sponsor:'Sponsored by: {n}',shop_buy_title:'Confirm Purchase',shop_buy_prompt:'Your IGN',shop_buy_confirm:'Buy {item} for {n} pts?',shop_no_points:'Not enough points! You have {n}.',shop_thanks:'Item purchased! Enjoy!',shop_hot:'🔥 Hot Deal',ticker_title:'Ticker Items',ticker_click_hint:'Click an item below to add it to the scrolling ticker:',ticker_add_hot:'🔥 Add as hot',ticker_active:'Active ticker items:',ticker_clear:'Clear All',ticker_del:'Delete',ticker_announce:'🔥 Items in need:',    set_name:'Set Name',user_title:'👤 Your Profile',user_info:'Set your details. They will auto-fill when posting quests or registering for events.',user_saved:'Profile saved!',guide_btn:'Guide',guide_title:'How to Use',repeat_title:'Repeat Quest',pm_title:'Manage Player',upcoming_events:'✦ Upcoming Events ✦',no_upcoming:'No upcoming events',pm_rename:'Rename',pm_add:'Add',pm_remove:'Remove',pm_delete:'Delete Player',pm_current:'Current: {n} pts',guide_p1_title:'Post a quest',guide_p1_desc:'Click "Post Quest", fill in title, type, description and rewards. Only admins can set rewards.',guide_p2_title:'Need approval',guide_p2_desc:'Quests posted by non-admins go to "Pending" until an admin approves them. Check the ⏳ Pending tab if you are admin.',guide_p3_title:'Claim a quest',guide_p3_desc:'Enter your in-game name to mark it as taken. All members see it in real time.',guide_p4_title:'Events',guide_p4_desc:'Register for guild events with your IGN. Admin closes the event and awards loyalty points.',guide_p5_title:'Leaderboard',guide_p5_desc:'Earn loyalty points by completing quests and participating in events. Top players are shown on the right.',
+    cancelled:'❌ Cancelled',pending:'⏳ Pending',approve:'✅ Approve',reject:'❌ Reject',pending_title:'Pending Approval',pending_note:'Your quest is pending admin approval.',    supplies:'Supplies',event_register:'Register',event_unregister:'Unregister',event_close:'Close Event',event_cancel:'❌ Cancel Event',event_started:'🚀 Event Started!',event_players:'{n} players',event_already:'Already registered.',event_done:'Registered!',reg_title:'📝 Register for Event',reg_info:'Enter your in-game name to register.',reg_hint:'Where to find: Settings → Advanced → Developer Mode → Right-click name → Copy ID',event_close_title:'Close Event',event_close_confirm:'Award & Close',event_participants:'Participants — click ✕ to remove:',event_awarded:'{n} pts awarded to {m} players!',event_location:'Start Location',event_start:'Start Time',voice_channel:'Voice Channel',voice_channel_ph:'Channel ID (#ID) or name (e.g. Voice Chat 2)',points_ph:'Points value',participants_title:'👥 Participants',no_participants:'No one registered yet.',chat_title:'✦ Guild Chat ✦',chat_header:'💬 Guild Chat',chat_placeholder:'Type a message...',chat_send:'Send',chat_name_prompt:'Enter your in-game name for chat:',chat_cooldown:'Wait {n}s',shop_tab:'💰 Point Shop 💰',shop_empty:'Shop is empty.',shop_add:'Add Item',shop_edit:'Edit Item',shop_save:'Save',shop_name:'Item Name',shop_price_label:'Price (pts)',shop_stock_label:'Stock',shop_sponsor_label:'Sponsor',shop_buy:'Buy',shop_out:'Out of stock',shop_stock:'{n} left',shop_price:'{n} pts',shop_sponsor:'Sponsored by: {n}',shop_buy_title:'Confirm Purchase',shop_buy_prompt:'Your IGN',shop_buy_confirm:'Buy {item} for {n} pts?',shop_no_points:'Not enough points! You have {n}.',shop_thanks:'Item purchased! Enjoy!',shop_hot:'🔥 Hot Deal',shop_buy_modal_title:'🛒 Confirm Purchase',shop_buy_ign:'Your IGN *',shop_buy_discord:'Discord ID',shop_buy_confirm_btn:'Buy',shop_buy_submitted:'Purchase submitted! Waiting for admin approval.',shop_pending_title:'🕐 Pending Purchases',shop_pending_none:'No pending purchases.',shop_pending_player:'Player',shop_pending_item:'Item',shop_pending_price:'Price',shop_pending_date:'Date',shop_approve_purchase:'✅ Approve',shop_reject_purchase:'❌ Reject',shop_approved_toast:'Purchase approved! {n} pts deducted from {m}. Stock updated.',shop_rejected_toast:'Purchase rejected.',shop_purchases_btn:'📋 Purchases',shop_buy_modal_item:'Item: {name}',shop_buy_modal_price:'Price: {n} pts',ticker_title:'Ticker Items',ticker_click_hint:'Click an item below to add it to the scrolling ticker:',ticker_add_hot:'🔥 Add as hot',ticker_active:'Active ticker items:',ticker_clear:'Clear All',ticker_del:'Delete',ticker_announce:'🔥 Items in need:',    set_name:'Set Name',user_title:'👤 Your Profile',user_info:'Set your details. They will auto-fill when posting quests or registering for events.',user_saved:'Profile saved!',guide_btn:'Guide',guide_title:'How to Use',repeat_title:'Repeat Quest',pm_title:'Manage Player',upcoming_events:'✦ Upcoming Events ✦',no_upcoming:'No upcoming events',pm_rename:'Rename',pm_add:'Add',pm_remove:'Remove',pm_delete:'Delete Player',pm_current:'Current: {n} pts',guide_p1_title:'Post a quest',guide_p1_desc:'Click "Post Quest", fill in title, type, description and rewards. Only admins can set rewards.',guide_p2_title:'Need approval',guide_p2_desc:'Quests posted by non-admins go to "Pending" until an admin approves them. Check the ⏳ Pending tab if you are admin.',guide_p3_title:'Claim a quest',guide_p3_desc:'Enter your in-game name to mark it as taken. All members see it in real time.',guide_p4_title:'Events',guide_p4_desc:'Register for guild events with your IGN. Admin closes the event and awards loyalty points.',guide_p5_title:'Leaderboard',guide_p5_desc:'Earn loyalty points by completing quests and participating in events. Top players are shown on the right.',
     lang_ru:'RU',lang_en:'EN'
   },
   ru:{
@@ -845,7 +902,7 @@ const TRANS = {
     admin_password:'\u041f\u0430\u0440\u043e\u043b\u044c',admin_unlock:'\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
     award_title:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u043e\u0447\u043a\u0438',award_points:'\u041e\u0447\u043a\u0438',award_reason:'\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
     award_reason_ph:'\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u041f\u043e\u0431\u0435\u0434\u0430 \u0432 \u0438\u0432\u0435\u043d\u0442\u0435',award_btn:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c',
-    cancelled:'❌ \u041e\u0442\u043c\u0435\u043d\u0451\u043d',pending:'⏳ \u041d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435',approve:'✅ \u041e\u0434\u043e\u0431\u0440\u0438\u0442\u044c',reject:'❌ \u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c',pending_title:'\u041e\u0436\u0438\u0434\u0430\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438',pending_note:'\u0412\u0430\u0448\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0435 \u043e\u0436\u0438\u0434\u0430\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438 \u0430\u0434\u043c\u0438\u043d\u0430.',supplies:'\u041f\u043e\u0441\u0442\u0430\u0432\u043a\u0438',event_register:'\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f',event_unregister:'\u041e\u0442\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f',event_close:'\u0417\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c \u0438\u0432\u0435\u043d\u0442',event_cancel:'❌ \u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0438\u0432\u0435\u043d\u0442',event_started:'🚀 \u0418\u0432\u0435\u043d\u0442 \u043d\u0430\u0447\u0430\u043b\u0441\u044f!',event_players:'{n} \u0438\u0433\u0440\u043e\u043a\u043e\u0432',event_already:'\u0423\u0436\u0435 \u0437\u0430\u043f\u0438\u0441\u0430\u043d.',event_done:'\u0417\u0430\u043f\u0438\u0441\u0430\u043d!',reg_title:'\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f \u043d\u0430 \u0438\u0432\u0435\u043d\u0442',reg_info:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u043c\u044f \u0434\u043b\u044f \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.',reg_hint:'\u0413\u0434\u0435 \u043d\u0430\u0439\u0442\u0438: \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u2192 \u0420\u0430\u0441\u0448\u0438\u0440\u0435\u043d\u043d\u044b\u0435 \u2192 \u0420\u0435\u0436\u0438\u043c \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u0447\u0438\u043a\u0430 \u2192 \u041f\u041a\u041c \u043f\u043e \u0438\u043c\u0435\u043d\u0438 \u2192 \u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c ID',event_close_title:'\u0417\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c \u0438\u0432\u0435\u043d\u0442',event_close_confirm:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u0438 \u0437\u0430\u043a\u0440\u044b\u0442\u044c',event_participants:'\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u2014 \u043d\u0430\u0436\u043c\u0438\u0442\u0435 \u2715 \u0447\u0442\u043e\u0431\u044b \u0443\u0434\u0430\u043b\u0438\u0442\u044c:',event_awarded:'{n} \u043e\u0447\u043a\u043e\u0432 \u043d\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u043e {m} \u0438\u0433\u0440\u043e\u043a\u0430\u043c!',event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',voice_channel:'\u0413\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439 \u043a\u0430\u043d\u0430\u043b',voice_channel_ph:'ID \u043a\u0430\u043d\u0430\u043b\u0430 (#ID) \u0438\u043b\u0438 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',chat_title:'✦ \u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0439 \u0447\u0430\u0442 ✦',chat_header:'💬 \u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0439 \u0447\u0430\u0442',chat_placeholder:'\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435...',chat_send:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c',chat_name_prompt:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f \u0434\u043b\u044f \u0447\u0430\u0442\u0430:',chat_cooldown:'\u041f\u043e\u0434\u043e\u0436\u0434\u0438\u0442\u0435 {n}\u0441',shop_tab:'💰 \u041c\u0430\u0433\u0430\u0437\u0438\u043d \u043e\u0447\u043a\u043e\u0432 💰',shop_empty:'\u041c\u0430\u0433\u0430\u0437\u0438\u043d \u043f\u0443\u0441\u0442.',shop_add:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c',shop_edit:'\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c',shop_save:'\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c',shop_name:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',shop_price_label:'\u0426\u0435\u043d\u0430 (\u043e\u0447\u043a\u0438)',shop_stock_label:'\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',shop_sponsor_label:'\u0421\u043f\u043e\u043d\u0441\u043e\u0440',shop_buy:'\u041a\u0443\u043f\u0438\u0442\u044c',shop_out:'\u041d\u0435\u0442 \u0432 \u043d\u0430\u043b\u0438\u0447\u0438\u0438',shop_stock:'\u043e\u0441\u0442\u0430\u043b\u043e\u0441\u044c {n}',shop_price:'{n} \u043e\u0447\u043a\u043e\u0432',shop_sponsor:'\u0421\u043f\u043e\u043d\u0441\u043e\u0440: {n}',shop_buy_title:'\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435',shop_buy_prompt:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',shop_buy_confirm:'\u041a\u0443\u043f\u0438\u0442\u044c {item} \u0437\u0430 {n} \u043e\u0447\u043a\u043e\u0432?',shop_no_points:'\u041d\u0435\u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u043e\u0447\u043a\u043e\u0432! \u0423 \u0432\u0430\u0441 {n}.',shop_thanks:'\u041f\u043e\u043a\u0443\u043f\u043a\u0430 \u0441\u043e\u0432\u0435\u0440\u0448\u0435\u043d\u0430! \u041d\u0430\u0441\u043b\u0430\u0436\u0434\u0430\u0439\u0442\u0435\u0441\u044c!',shop_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',ticker_title:'\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b \u0431\u0435\u0433\u0443\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438',ticker_click_hint:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442, \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0435\u0433\u043e \u0432 \u0431\u0435\u0433\u0443\u0449\u0443\u044e \u0441\u0442\u0440\u043e\u043a\u0443:',ticker_add_hot:'🔥 \u041a\u0430\u043a \u0433\u043e\u0440\u044f\u0447\u0435\u0435',ticker_active:'\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u044b:',ticker_clear:'\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c',ticker_del:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',ticker_announce:'🔥 \u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b:',set_name:'\u0423\u043a\u0430\u0437\u0430\u0442\u044c \u0438\u043c\u044f',user_title:'👤 \u0412\u0430\u0448 \u043f\u0440\u043e\u0444\u0438\u043b\u044c',user_info:'\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0432\u0430\u0448\u0438 \u0434\u0430\u043d\u043d\u044b\u0435. \u041e\u043d\u0438 \u0431\u0443\u0434\u0443\u0442 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438 \u043f\u043e\u0434\u0441\u0442\u0430\u0432\u043b\u044f\u0442\u044c\u0441\u044f \u043f\u0440\u0438 \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u0438 \u0437\u0430\u043f\u0440\u043e\u0441\u043e\u0432 \u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.',user_saved:'\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d!',guide_btn:'\u0413\u0430\u0439\u0434',guide_title:'\u041a\u0430\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c\u0441\u044f',repeat_title:'\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',pm_title:'\u0423\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0438\u0433\u0440\u043e\u043a\u043e\u043c',upcoming_events:'✦ \u041f\u0440\u0435\u0434\u0441\u0442\u043e\u044f\u0449\u0438\u0435 \u0438\u0432\u0435\u043d\u0442\u044b ✦',no_upcoming:'\u041d\u0435\u0442 \u043f\u0440\u0435\u0434\u0441\u0442\u043e\u044f\u0449\u0438\u0445 \u0438\u0432\u0435\u043d\u0442\u043e\u0432',pm_rename:'\u041f\u0435\u0440\u0435\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u0442\u044c',pm_add:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c',pm_remove:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',pm_delete:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0438\u0433\u0440\u043e\u043a\u0430',pm_current:'\u0422\u0435\u043a\u0443\u0449\u0438\u0435: {n} \u043e\u0447\u043a\u043e\u0432',guide_p1_title:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p1_desc:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 "\u0421\u043e\u0437\u0434\u0430\u0442\u044c", \u0437\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435, \u0442\u0438\u043f, \u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0438 \u043d\u0430\u0433\u0440\u0430\u0434\u044b. \u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d \u043c\u043e\u0436\u0435\u0442 \u0443\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0442\u044c \u043d\u0430\u0433\u0440\u0430\u0434\u044b.',guide_p2_title:'\u041d\u0443\u0436\u043d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0430',guide_p2_desc:'\u0417\u0430\u0434\u0430\u043d\u0438\u044f \u043e\u0442 \u043d\u0435-\u0430\u0434\u043c\u0438\u043d\u043e\u0432 \u043f\u043e\u043f\u0430\u0434\u0430\u044e\u0442 \u0432 "\u041d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435" \u043f\u043e\u043a\u0430 \u0430\u0434\u043c\u0438\u043d \u043d\u0435 \u043e\u0434\u043e\u0431\u0440\u0438\u0442 \u0438\u0445. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0432\u043a\u043b\u0430\u0434\u043a\u0443 \u23f3 \u041d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435, \u0435\u0441\u043b\u0438 \u0432\u044b \u0430\u0434\u043c\u0438\u043d.',guide_p3_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p3_desc:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043c\u0435\u0442\u0438\u0442\u044c \u0435\u0433\u043e \u043a\u0430\u043a \u0432\u0437\u044f\u0442\u043e\u0435. \u0412\u0441\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u0432\u0438\u0434\u044f\u0442 \u044d\u0442\u043e \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438.',guide_p4_title:'\u0418\u0432\u0435\u043d\u0442\u044b',guide_p4_desc:'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044c \u043d\u0430 \u0433\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0435 \u0438\u0432\u0435\u043d\u0442\u044b \u0441 \u0432\u0430\u0448\u0438\u043c IGN. \u0410\u0434\u043c\u0438\u043d \u0437\u0430\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u0438\u0432\u0435\u043d\u0442 \u0438 \u043d\u0430\u0447\u0438\u0441\u043b\u044f\u0435\u0442 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438.',guide_p5_title:'\u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432',guide_p5_desc:'\u0417\u0430\u0440\u0430\u0431\u0430\u0442\u044b\u0432\u0430\u0439\u0442\u0435 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438 \u0437\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0439 \u0438 \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 \u0438\u0432\u0435\u043d\u0442\u0430\u0445. \u041b\u0443\u0447\u0448\u0438\u0435 \u0438\u0433\u0440\u043e\u043a\u0438 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u044b \u0441\u043f\u0440\u0430\u0432\u0430.',
+    cancelled:'❌ \u041e\u0442\u043c\u0435\u043d\u0451\u043d',pending:'⏳ \u041d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435',approve:'✅ \u041e\u0434\u043e\u0431\u0440\u0438\u0442\u044c',reject:'❌ \u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c',pending_title:'\u041e\u0436\u0438\u0434\u0430\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438',pending_note:'\u0412\u0430\u0448\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0435 \u043e\u0436\u0438\u0434\u0430\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438 \u0430\u0434\u043c\u0438\u043d\u0430.',supplies:'\u041f\u043e\u0441\u0442\u0430\u0432\u043a\u0438',event_register:'\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f',event_unregister:'\u041e\u0442\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f',event_close:'\u0417\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c \u0438\u0432\u0435\u043d\u0442',event_cancel:'❌ \u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0438\u0432\u0435\u043d\u0442',event_started:'🚀 \u0418\u0432\u0435\u043d\u0442 \u043d\u0430\u0447\u0430\u043b\u0441\u044f!',event_players:'{n} \u0438\u0433\u0440\u043e\u043a\u043e\u0432',event_already:'\u0423\u0436\u0435 \u0437\u0430\u043f\u0438\u0441\u0430\u043d.',event_done:'\u0417\u0430\u043f\u0438\u0441\u0430\u043d!',reg_title:'\u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c\u0441\u044f \u043d\u0430 \u0438\u0432\u0435\u043d\u0442',reg_info:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u043c\u044f \u0434\u043b\u044f \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.',reg_hint:'\u0413\u0434\u0435 \u043d\u0430\u0439\u0442\u0438: \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u2192 \u0420\u0430\u0441\u0448\u0438\u0440\u0435\u043d\u043d\u044b\u0435 \u2192 \u0420\u0435\u0436\u0438\u043c \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u0447\u0438\u043a\u0430 \u2192 \u041f\u041a\u041c \u043f\u043e \u0438\u043c\u0435\u043d\u0438 \u2192 \u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c ID',event_close_title:'\u0417\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c \u0438\u0432\u0435\u043d\u0442',event_close_confirm:'\u041d\u0430\u0447\u0438\u0441\u043b\u0438\u0442\u044c \u0438 \u0437\u0430\u043a\u0440\u044b\u0442\u044c',event_participants:'\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u2014 \u043d\u0430\u0436\u043c\u0438\u0442\u0435 \u2715 \u0447\u0442\u043e\u0431\u044b \u0443\u0434\u0430\u043b\u0438\u0442\u044c:',event_awarded:'{n} \u043e\u0447\u043a\u043e\u0432 \u043d\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u043e {m} \u0438\u0433\u0440\u043e\u043a\u0430\u043c!',event_location:'\u041c\u0435\u0441\u0442\u043e \u0441\u0431\u043e\u0440\u0430',event_start:'\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430',voice_channel:'\u0413\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439 \u043a\u0430\u043d\u0430\u043b',voice_channel_ph:'ID \u043a\u0430\u043d\u0430\u043b\u0430 (#ID) \u0438\u043b\u0438 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',points_ph:'\u041a\u043e\u043b-\u0432\u043e \u043e\u0447\u043a\u043e\u0432',participants_title:'👥 \u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',no_participants:'\u041f\u043e\u043a\u0430 \u043d\u0438\u043a\u0442\u043e \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043b\u0441\u044f.',chat_title:'✦ \u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0439 \u0447\u0430\u0442 ✦',chat_header:'💬 \u0413\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0439 \u0447\u0430\u0442',chat_placeholder:'\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435...',chat_send:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c',chat_name_prompt:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f \u0434\u043b\u044f \u0447\u0430\u0442\u0430:',chat_cooldown:'\u041f\u043e\u0434\u043e\u0436\u0434\u0438\u0442\u0435 {n}\u0441',shop_tab:'💰 \u041c\u0430\u0433\u0430\u0437\u0438\u043d \u043e\u0447\u043a\u043e\u0432 💰',shop_empty:'\u041c\u0430\u0433\u0430\u0437\u0438\u043d \u043f\u0443\u0441\u0442.',shop_add:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c',shop_edit:'\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c',shop_save:'\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c',shop_name:'\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',shop_price_label:'\u0426\u0435\u043d\u0430 (\u043e\u0447\u043a\u0438)',shop_stock_label:'\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',shop_sponsor_label:'\u0421\u043f\u043e\u043d\u0441\u043e\u0440',shop_buy:'\u041a\u0443\u043f\u0438\u0442\u044c',shop_out:'\u041d\u0435\u0442 \u0432 \u043d\u0430\u043b\u0438\u0447\u0438\u0438',shop_stock:'\u043e\u0441\u0442\u0430\u043b\u043e\u0441\u044c {n}',shop_price:'{n} \u043e\u0447\u043a\u043e\u0432',shop_sponsor:'\u0421\u043f\u043e\u043d\u0441\u043e\u0440: {n}',shop_buy_title:'\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435',shop_buy_prompt:'\u0412\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f',shop_buy_confirm:'\u041a\u0443\u043f\u0438\u0442\u044c {item} \u0437\u0430 {n} \u043e\u0447\u043a\u043e\u0432?',shop_no_points:'\u041d\u0435\u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u043e\u0447\u043a\u043e\u0432! \u0423 \u0432\u0430\u0441 {n}.',shop_thanks:'\u041f\u043e\u043a\u0443\u043f\u043a\u0430 \u0441\u043e\u0432\u0435\u0440\u0448\u0435\u043d\u0430! \u041d\u0430\u0441\u043b\u0430\u0436\u0434\u0430\u0439\u0442\u0435\u0441\u044c!',shop_hot:'🔥 \u0413\u043e\u0440\u044f\u0447\u0435\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435',shop_buy_modal_title:'🛒 \u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u043f\u043e\u043a\u0443\u043f\u043a\u0438',shop_buy_ign:'\u0412\u0430\u0448 IGN *',shop_buy_discord:'Discord ID',shop_buy_confirm_btn:'\u041a\u0443\u043f\u0438\u0442\u044c',shop_buy_submitted:'\u041f\u043e\u043a\u0443\u043f\u043a\u0430 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0430! \u041e\u0436\u0438\u0434\u0430\u0435\u0442 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u0430.',shop_pending_title:'🕐 \u041e\u0436\u0438\u0434\u0430\u044e\u0449\u0438\u0435 \u043f\u043e\u043a\u0443\u043f\u043a\u0438',shop_pending_none:'\u041d\u0435\u0442 \u043e\u0436\u0438\u0434\u0430\u044e\u0449\u0438\u0445 \u043f\u043e\u043a\u0443\u043f\u043e\u043a.',shop_pending_player:'\u0418\u0433\u0440\u043e\u043a',shop_pending_item:'\u041f\u0440\u0435\u0434\u043c\u0435\u0442',shop_pending_price:'\u0426\u0435\u043d\u0430',shop_pending_date:'\u0414\u0430\u0442\u0430',shop_approve_purchase:'\u2705 \u041e\u0434\u043e\u0431\u0440\u0438\u0442\u044c',shop_reject_purchase:'\u274c \u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c',shop_approved_toast:'\u041f\u043e\u043a\u0443\u043f\u043a\u0430 \u043e\u0434\u043e\u0431\u0440\u0435\u043d\u0430! {n} \u043e\u0447\u043a\u043e\u0432 \u0441\u043f\u0438\u0441\u0430\u043d\u043e \u0443 {m}. \u0417\u0430\u043f\u0430\u0441 \u043e\u0431\u043d\u043e\u0432\u043b\u0451\u043d.',shop_rejected_toast:'\u041f\u043e\u043a\u0443\u043f\u043a\u0430 \u043e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u0430.',shop_purchases_btn:'📋 \u041f\u043e\u043a\u0443\u043f\u043a\u0438',shop_buy_modal_item:'\u041f\u0440\u0435\u0434\u043c\u0435\u0442: {name}',shop_buy_modal_price:'\u0426\u0435\u043d\u0430: {n} \u043e\u0447\u043a.',ticker_title:'\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b \u0431\u0435\u0433\u0443\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438',ticker_click_hint:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u043f\u0440\u0435\u0434\u043c\u0435\u0442, \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0435\u0433\u043e \u0432 \u0431\u0435\u0433\u0443\u0449\u0443\u044e \u0441\u0442\u0440\u043e\u043a\u0443:',ticker_add_hot:'🔥 \u041a\u0430\u043a \u0433\u043e\u0440\u044f\u0447\u0435\u0435',ticker_active:'\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u044b:',ticker_clear:'\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c',ticker_del:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',ticker_announce:'🔥 \u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b:',set_name:'\u0423\u043a\u0430\u0437\u0430\u0442\u044c \u0438\u043c\u044f',user_title:'👤 \u0412\u0430\u0448 \u043f\u0440\u043e\u0444\u0438\u043b\u044c',user_info:'\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0432\u0430\u0448\u0438 \u0434\u0430\u043d\u043d\u044b\u0435. \u041e\u043d\u0438 \u0431\u0443\u0434\u0443\u0442 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438 \u043f\u043e\u0434\u0441\u0442\u0430\u0432\u043b\u044f\u0442\u044c\u0441\u044f \u043f\u0440\u0438 \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u0438 \u0437\u0430\u043f\u0440\u043e\u0441\u043e\u0432 \u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.',user_saved:'\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d!',guide_btn:'\u0413\u0430\u0439\u0434',guide_title:'\u041a\u0430\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c\u0441\u044f',repeat_title:'\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',pm_title:'\u0423\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0438\u0433\u0440\u043e\u043a\u043e\u043c',upcoming_events:'✦ \u041f\u0440\u0435\u0434\u0441\u0442\u043e\u044f\u0449\u0438\u0435 \u0438\u0432\u0435\u043d\u0442\u044b ✦',no_upcoming:'\u041d\u0435\u0442 \u043f\u0440\u0435\u0434\u0441\u0442\u043e\u044f\u0449\u0438\u0445 \u0438\u0432\u0435\u043d\u0442\u043e\u0432',pm_rename:'\u041f\u0435\u0440\u0435\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u0442\u044c',pm_add:'\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c',pm_remove:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c',pm_delete:'\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0438\u0433\u0440\u043e\u043a\u0430',pm_current:'\u0422\u0435\u043a\u0443\u0449\u0438\u0435: {n} \u043e\u0447\u043a\u043e\u0432',guide_p1_title:'\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p1_desc:'\u041d\u0430\u0436\u043c\u0438\u0442\u0435 "\u0421\u043e\u0437\u0434\u0430\u0442\u044c", \u0437\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435, \u0442\u0438\u043f, \u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0438 \u043d\u0430\u0433\u0440\u0430\u0434\u044b. \u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d \u043c\u043e\u0436\u0435\u0442 \u0443\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0442\u044c \u043d\u0430\u0433\u0440\u0430\u0434\u044b.',guide_p2_title:'\u041d\u0443\u0436\u043d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0430',guide_p2_desc:'\u0417\u0430\u0434\u0430\u043d\u0438\u044f \u043e\u0442 \u043d\u0435-\u0430\u0434\u043c\u0438\u043d\u043e\u0432 \u043f\u043e\u043f\u0430\u0434\u0430\u044e\u0442 \u0432 "\u041d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435" \u043f\u043e\u043a\u0430 \u0430\u0434\u043c\u0438\u043d \u043d\u0435 \u043e\u0434\u043e\u0431\u0440\u0438\u0442 \u0438\u0445. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0432\u043a\u043b\u0430\u0434\u043a\u0443 \u23f3 \u041d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435, \u0435\u0441\u043b\u0438 \u0432\u044b \u0430\u0434\u043c\u0438\u043d.',guide_p3_title:'\u0412\u0437\u044f\u0442\u044c \u0437\u0430\u0434\u0430\u043d\u0438\u0435',guide_p3_desc:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0432\u0430\u0448\u0435 \u0438\u0433\u0440\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043c\u0435\u0442\u0438\u0442\u044c \u0435\u0433\u043e \u043a\u0430\u043a \u0432\u0437\u044f\u0442\u043e\u0435. \u0412\u0441\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438 \u0432\u0438\u0434\u044f\u0442 \u044d\u0442\u043e \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438.',guide_p4_title:'\u0418\u0432\u0435\u043d\u0442\u044b',guide_p4_desc:'\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044c \u043d\u0430 \u0433\u0438\u043b\u044c\u0434\u0435\u0439\u0441\u043a\u0438\u0435 \u0438\u0432\u0435\u043d\u0442\u044b \u0441 \u0432\u0430\u0448\u0438\u043c IGN. \u0410\u0434\u043c\u0438\u043d \u0437\u0430\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u0438\u0432\u0435\u043d\u0442 \u0438 \u043d\u0430\u0447\u0438\u0441\u043b\u044f\u0435\u0442 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438.',guide_p5_title:'\u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u043b\u0438\u0434\u0435\u0440\u043e\u0432',guide_p5_desc:'\u0417\u0430\u0440\u0430\u0431\u0430\u0442\u044b\u0432\u0430\u0439\u0442\u0435 \u043e\u0447\u043a\u0438 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438 \u0437\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0439 \u0438 \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 \u0438\u0432\u0435\u043d\u0442\u0430\u0445. \u041b\u0443\u0447\u0448\u0438\u0435 \u0438\u0433\u0440\u043e\u043a\u0438 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u044b \u0441\u043f\u0440\u0430\u0432\u0430.',
     lang_ru:'RU',lang_en:'EN'
   }
 };
@@ -978,6 +1035,9 @@ function subscribeRealtime(){
     .subscribe();
   sb.channel('shop-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'shop_items'},()=>{fetchShopItems();})
+    .subscribe();
+  sb.channel('purchases-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'shop_purchases'},()=>{})
     .subscribe();
 }
 
@@ -1845,10 +1905,10 @@ function renderShop(){
     </div>`;
   }).join('');
   applyTranslations();
-  if(admin&&shopItems.length){
+  if(admin){
     const addBtn=document.createElement('div');
-    addBtn.style.cssText='grid-column:1/-1;text-align:center;padding:8px';
-    addBtn.innerHTML=`<button class="btn btn-primary" onclick="openShopModal()">+ ${t('shop_add')}</button>`;
+    addBtn.style.cssText='grid-column:1/-1;text-align:center;padding:8px;display:flex;gap:8px;justify-content:center';
+    addBtn.innerHTML=`<button class="btn btn-primary" onclick="openShopModal()">+ ${t('shop_add')}</button><button class="btn" onclick="openPurchasesModal()">${t('shop_purchases_btn')}</button>`;
     grid.insertAdjacentElement('beforeend',addBtn);
   }
 }
@@ -1893,18 +1953,81 @@ async function deleteShopItem(id){
   if(error){toast(t('err_prefix')+error.message);return;}
 }
 
-async function buyShopItem(id){
+let buyingItemId=null;
+
+function openBuyShopModal(id){
   const item=shopItems.find(i=>i.id===id);
   if(!item||item.stock<=0)return;
-  const defaultName=localStorage.getItem('gv_chat_name')||'';
-  const name=prompt(t('shop_buy_prompt')+':',defaultName);
-  if(!name||!name.trim())return;
-  const pts=await getPlayerPoints(name.trim());
+  buyingItemId=id;
+  document.getElementById('buy-ign').value=getUserIGN();
+  document.getElementById('buy-discord').value=getUserDiscord();
+  document.getElementById('buy-summary').innerHTML=`<div class="shop-buy-name">${esc(item.name)}</div><div class="shop-buy-price">${t('shop_buy_modal_price',item.price)}</div>`;
+  applyTranslations();
+  openModal('buy-modal');
+  document.getElementById('buy-ign').focus();
+}
+
+async function confirmPurchase(){
+  const item=shopItems.find(i=>i.id===buyingItemId);
+  if(!item||item.stock<=0)return;
+  const name=document.getElementById('buy-ign').value.trim();
+  if(!name){toast(t('enter_name'));return;}
+  const discord=document.getElementById('buy-discord').value.trim();
+  const pts=await getPlayerPoints(name);
   if(pts<item.price){toast(t('shop_no_points',pts));return;}
-  if(!confirm(t('shop_buy_confirm',item.name,item.price)))return;
-  await sb.from('loyalty').insert({player_name:name.trim(),points:-item.price,reason:'Purchased: '+item.name,awarded_by:'Shop'});
-  await sb.from('shop_items').update({stock:item.stock-1}).eq('id',id);
-  toast(t('shop_thanks'));
+  const{error}=await sb.from('shop_purchases').insert({player_name:name,discord_id:discord,item_id:item.id,item_name:item.name,price:item.price,status:'pending'});
+  if(error){toast(t('err_prefix')+error.message);return;}
+  closeModal('buy-modal');
+  toast(t('shop_buy_submitted'));
+  fetchShopItems();
+}
+
+async function openPurchasesModal(){
+  if(!isAdmin())return;
+  const list=document.getElementById('purchases-list');
+  list.innerHTML=`<div class="board-status" style="padding:30px 16px"><div class="spinner"></div></div>`;
+  applyTranslations();
+  openModal('purchases-modal');
+  const{data,error}=await sb.from('shop_purchases').select('*').order('created_at',{ascending:false}).limit(50);
+  if(error){list.innerHTML=`<div class="board-status" style="padding:30px 16px"><p>${t('err_prefix')+error.message}</p></div>`;return;}
+  if(!data||!data.length){
+    list.innerHTML=`<div class="board-status" style="padding:30px 16px"><p data-i18n="shop_pending_none">${t('shop_pending_none')}</p></div>`;
+    return;
+  }
+  list.innerHTML=data.map(p=>{
+    const statusCls=p.status==='approved'?' approved':p.status==='rejected'?' rejected':'';
+    const statusLabel=p.status==='approved'?t('shop_approve_purchase'):p.status==='rejected'?t('shop_reject_purchase'):'⏳';
+    const at=p.created_at?new Date(p.created_at).toLocaleString():'';
+    const actions=p.status==='pending'?`<div class="pr-actions"><button class="btn btn-sm btn-success" onclick="approvePurchase('${p.id}')">${t('shop_approve_purchase')}</button><button class="btn btn-sm btn-danger" onclick="rejectPurchase('${p.id}')">${t('shop_reject_purchase')}</button></div>`:`<span style="font-size:.7rem;color:var(--text-faint)">${statusLabel}</span>`;
+    return`<div class="purchase-row${statusCls}"><div class="pr-info"><div class="pr-player">${esc(p.player_name)}</div><div class="pr-item">${esc(p.item_name)}</div><div class="pr-meta">${t('shop_buy_modal_price',p.price)} &middot; ${at}</div></div>${actions}</div>`;
+  }).join('');
+}
+
+async function approvePurchase(id){
+  if(!isAdmin())return;
+  const{data,error}=await sb.from('shop_purchases').select('*').eq('id',id).single();
+  if(error||!data){toast(t('err_prefix')+'Purchase not found.');return;}
+  const item=shopItems.find(i=>i.id===data.item_id);
+  const pts=await getPlayerPoints(data.player_name);
+  if(pts<data.price){toast(t('shop_no_points',pts));return;}
+  await sb.from('loyalty').insert({player_name:data.player_name,points:-data.price,reason:'Purchased: '+data.item_name,awarded_by:'Shop'});
+  if(item)await sb.from('shop_items').update({stock:Math.max(0,item.stock-1)}).eq('id',data.item_id);
+  await sb.from('shop_purchases').update({status:'approved',approved_by:getUserIGN(),approved_at:new Date().toISOString()}).eq('id',id);
+  const total=pts-data.price;
+  toast(t('shop_approved_toast',data.price,data.player_name)+' ('+data.player_name+' now has '+total+' pts)');
+  openPurchasesModal();
+  fetchShopItems();
+}
+
+async function rejectPurchase(id){
+  if(!isAdmin())return;
+  await sb.from('shop_purchases').update({status:'rejected'}).eq('id',id);
+  toast(t('shop_rejected_toast'));
+  openPurchasesModal();
+}
+
+async function buyShopItem(id){
+  openBuyShopModal(id);
 }
 
 // PLAYER MODAL
@@ -2098,10 +2221,19 @@ function toast(msg){
 
 function checkHashForFilter(){
   var m=window.location.hash.match(/^#filter-(.+)$/);
-  if(!m)return;
-  var f=m[1];
-  var btn=document.querySelector('.filter-btn'+(f==='pending'?'#pending-btn':''));
-  if(btn&&btn.style.display!=='none')btn.click();
+  if(m){
+    var f=m[1];
+    var btn=document.querySelector('.filter-btn'+(f==='pending'?'#pending-btn':''));
+    if(btn&&btn.style.display!=='none')btn.click();
+    return;
+  }
+  if(window.location.hash==='#pending-purchases'){
+    switchView('shop');
+    setTimeout(function(){
+      var admin=isAdmin();
+      if(admin)openPurchasesModal();
+    },500);
+  }
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}

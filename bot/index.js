@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits, Events } from 'discord.js';
 import { createClient } from '@supabase/supabase-js';
-import { buildQuestEmbed, buildQuestComponents } from './embeds.js';
+import { buildQuestEmbed, buildQuestComponents, buildShopPurchaseEmbed } from './embeds.js';
 
 const {
   DISCORD_TOKEN,
@@ -176,6 +176,36 @@ async function handleInteraction(interaction) {
   });
 }
 
+// ── Shop Purchase ──
+async function postShopPurchaseEmbed(purchase) {
+  const channel = await client.channels.fetch(DISCORD_CHANNEL_ID);
+  if (!channel) {
+    console.error(`Channel ${DISCORD_CHANNEL_ID} not found`);
+    return;
+  }
+  const payload = buildShopPurchaseEmbed(purchase, BASE_URL);
+  const msg = await channel.send(payload);
+  await sb.from('shop_purchases').update({
+    discord_message_id: msg.id,
+  }).eq('id', purchase.id);
+  console.log(`Posted shop purchase embed for ${purchase.player_name} (message ${msg.id})`);
+}
+
+// ── Catch-up shop purchases ──
+async function catchUpMissingShopEmbeds() {
+  const { data, error } = await sb.from('shop_purchases')
+    .select('*')
+    .is('discord_message_id', null)
+    .eq('status', 'pending');
+  if (error) { console.error('Shop catch-up error:', error.message); return; }
+  for (const row of data || []) {
+    await postShopPurchaseEmbed(row);
+  }
+  if (data?.length) {
+    console.log(`Caught up ${data.length} shop purchase(s) missing Discord embeds`);
+  }
+}
+
 // ── Startup ──
 client.once(Events.ClientReady, async () => {
   console.log(`Logged in as ${client.user.tag}`);
@@ -192,10 +222,25 @@ client.once(Events.ClientReady, async () => {
   );
   channel.subscribe();
 
-  console.log('Subscribed to Supabase realtime (quests)');
+  // Subscribe to shop_purchases
+  const shopChannel = sb.channel('bot-shop-live');
+  shopChannel.on('postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'shop_purchases' },
+    async (p) => {
+      try {
+        if (p.new.status === 'pending') {
+          await postShopPurchaseEmbed(p.new);
+        }
+      } catch (e) { console.error('Shop INSERT handler error:', e.message); }
+    }
+  );
+  shopChannel.subscribe();
+
+  console.log('Subscribed to Supabase realtime (quests + shop_purchases)');
 
   // Catch-up quests that slipped through while bot was offline
   await catchUpMissingEmbeds();
+  await catchUpMissingShopEmbeds();
 
   console.log('Bot ready');
 });
