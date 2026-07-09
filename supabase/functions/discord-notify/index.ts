@@ -25,6 +25,12 @@ const T: Record<string, Record<string, string>> = {
     completed_desc: "**{title}** has been marked as complete!",
     cancelled_desc: "**{title}** has been cancelled.",
     pending_desc: "_Quest is awaiting admin approval._",
+    shop_purchase_title: "\ud83d\uded2 New Shop Purchase",
+    shop_purchase_player: "Player",
+    shop_purchase_item: "Item",
+    shop_purchase_price: "Price",
+    shop_purchase_link: "View Pending Purchases",
+    shop_purchase_desc: "**{player}** bought **{item}** for **{price} pts**",
   },
   ru: {
     type: "\u0422\u0438\u043f", posted_by: "\u0410\u0432\u0442\u043e\u0440", item: "\u041f\u0440\u0435\u0434\u043c\u0435\u0442",
@@ -48,6 +54,12 @@ const T: Record<string, Record<string, string>> = {
     completed_desc: "**{title}** \u043e\u0442\u043c\u0435\u0447\u0435\u043d \u043a\u0430\u043a \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043d\u044b\u0439!",
     cancelled_desc: "**{title}** \u043e\u0442\u043c\u0435\u043d\u0451\u043d.",
     pending_desc: "_Запрос ожидает подтверждения администратора._",
+    shop_purchase_title: "\ud83d\uded2 \u041d\u043e\u0432\u0430\u044f \u043f\u043e\u043a\u0443\u043f\u043a\u0430 \u0432 \u043c\u0430\u0433\u0430\u0437\u0438\u043d\u0435",
+    shop_purchase_player: "\u0418\u0433\u0440\u043e\u043a",
+    shop_purchase_item: "\u041f\u0440\u0435\u0434\u043c\u0435\u0442",
+    shop_purchase_price: "\u0426\u0435\u043d\u0430",
+    shop_purchase_link: "\u041f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043e\u0436\u0438\u0434\u0430\u044e\u0449\u0438\u0435 \u043f\u043e\u043a\u0443\u043f\u043a\u0438",
+    shop_purchase_desc: "**{player}** \u043a\u0443\u043f\u0438\u043b(\\u0430) **{item}** \u0437\u0430 **{price} \u043e\u0447\u043a\u043e\u0432**",
   },
 };
 
@@ -232,10 +244,80 @@ function partsChanged(q: DbRow, oq: DbRow | null): boolean {
   return JSON.stringify(q.participants || []) !== JSON.stringify(oq.participants || []);
 }
 
+interface ShopPurchase {
+  id: string; player_name: string; discord_id: string;
+  item_name: string; price: number; discord_message_id: string;
+}
+
+async function postShopPurchase(p: ShopPurchase): Promise<string | null> {
+  const discordLink = `\n\n\ud83d\udccb [${t("shop_purchase_link")}](${BOARD_URL}#pending-purchases)`;
+  const desc = t("shop_purchase_desc")
+    .replace("{player}", p.player_name)
+    .replace("{item}", p.item_name)
+    .replace("{price}", String(p.price)) + discordLink;
+  const msg: any = {
+    embeds: [{
+      title: t("shop_purchase_title"),
+      color: 0xc8922a,
+      description: desc,
+      fields: [
+        { name: t("shop_purchase_player"), value: p.player_name, inline: true },
+        { name: "\ud83c\udfae Discord ID", value: /^\d+$/.test(p.discord_id) ? `<@${p.discord_id}>` : (p.discord_id || "\u2014"), inline: true },
+        { name: t("shop_purchase_item"), value: p.item_name, inline: true },
+        { name: t("shop_purchase_price"), value: `${p.price} pts`, inline: true },
+      ],
+      footer: { text: `ID: ${p.id.slice(0, 8)}\u2026` },
+      timestamp: new Date().toISOString(),
+    }],
+  };
+  if (/^\d+$/.test(p.discord_id)) {
+    msg.content = `<@${p.discord_id}>`;
+  }
+  const r = await fetch(DISCORD_WEBHOOK_URL + "?wait=true", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(msg),
+  });
+  if (!r.ok) {
+    console.error("Discord shop error:", r.status, await r.text());
+    return null;
+  }
+  const data = await r.json();
+  const msgId = data.id as string;
+  if (msgId) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/shop_purchases?id=eq.${p.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_SERVICE_KEY,
+          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+        },
+        body: JSON.stringify({ discord_message_id: msgId }),
+      });
+    } catch (e) {
+      console.error("Failed to store shop message_id:", e);
+    }
+  }
+  return msgId;
+}
+
 serve(async (req) => {
   try {
     const p = await req.json();
     const ev = p.type as string;
+    const tbl = p.table as string;
+
+    // Handle shop_purchases table
+    if (tbl === "shop_purchases") {
+      const sp = p.record as ShopPurchase | undefined;
+      if (!sp) return new Response("no record", { status: 200 });
+      if (ev === "INSERT" && sp.status === "pending") {
+        await postShopPurchase(sp);
+      }
+      return new Response("ok", { status: 200 });
+    }
+
     const q = p.record as DbRow | undefined;
     const oq = p.old_record as DbRow | null | undefined;
     if (!q) return new Response("no record", { status: 200 });
@@ -249,7 +331,7 @@ serve(async (req) => {
           desc: (q.description || "") + "\n\n" + t("pending_desc"),
         })] });
       } else if (q.status === "open") {
-        await postAndStore(q, { embeds: [embed(q, { title: (isEvent ? "\ud83c\udfaa " : "\ud83d\udcdc ") + t("quest_new") + "\n" + q.title })] });
+        await postAndStore(q, { embeds: [embed(q, { title: (isEvent ? "\ud83c\udfaa " : "") + t("quest_new") + "\n" + q.title })] });
       }
     } else if (ev === "UPDATE" && oq) {
       const isEvent = q.type === "event";
