@@ -134,11 +134,42 @@ alter publication supabase_realtime add table shop_items;
 
 ### 3. Open the board
 
-The Supabase credentials are already hardcoded — just open the URL and start using it. Click **RU** in the top-right to switch to Russian.
+The Supabase credentials are already hardcoded — just open the URL and start using it. Click **RU** in the top-right to switch to Russian. Read **Security** below first: the database accepts writes from anyone.
 
 ### 4. Admin Access
 
-Triple-click the **crest logo** in the top-left to open the admin login. Default password: `gvadmin2024`
+Triple-click the **crest logo** in the top-left to open the admin login. The
+password is a JavaScript check inside the page — see **Security** below before
+you rely on it.
+
+---
+
+## Security
+
+This board was built for one guild, not for public deployment, and it shows.
+
+- **There is no authentication.** The admin gate is a password comparison in the
+  page source, so it stops nobody who opens dev tools.
+- **The Supabase anon key is public by design** and is embedded in `index.html`.
+  That is how Supabase client apps work — the key is not the thing protecting you.
+- **Row Level Security is fully open.** Every table uses
+  `for all using (true) with check (true)`, so anyone who finds the URL can read,
+  write and delete rows, including the quest board, loyalty points and shop.
+- **Anyone with the page can wipe the data.** There is no rate limit, no audit
+  trail, and no way to tell who changed what.
+
+That is a fair trade for a guild tool nobody hostile cares about. It is not
+acceptable for anything holding real data. If you want to reuse this, do three
+things first:
+
+1. Add real Supabase Auth and require sign-in for officers.
+2. Replace each policy with `select` for everyone, and
+   `insert` / `update` / `delete` for `authenticated` only.
+3. Move admin writes behind an Edge Function using the service role key, so the
+   anon key never grants write access.
+
+The board is published here as an example of the guild workflow, not as a
+template to deploy as-is.
 
 ---
 
