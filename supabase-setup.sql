@@ -19,5 +19,8 @@ CREATE TABLE IF NOT EXISTS guild_items (
 
 ALTER TABLE guild_items ENABLE ROW LEVEL SECURITY;
 
--- Allow anyone to read/write (password-gated via the UI)
-CREATE POLICY "Allow all" ON guild_items FOR ALL USING (true) WITH CHECK (true);
+-- Read-only for the public app. This table is shop content written only by
+-- admins, so the page never needs write access to it. Earlier versions used
+-- "FOR ALL", which let anyone with the URL rewrite guild prices.
+DROP POLICY IF EXISTS "Allow all" ON guild_items;
+CREATE POLICY "Public read" ON guild_items FOR SELECT USING (true);
